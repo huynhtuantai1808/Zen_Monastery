@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Zen Color Palette */
+  --zen-bg: #0c0a09;
+  --zen-paper: #fbf7ee;
+  --zen-paper-dark: #1f1a16;
+  --zen-paper-warm: #f4ece1;
+  --zen-ink: #1a1614;
+  --zen-ink-light: #574e47;
+  --zen-amber: #d97706;
+  --zen-amber-glow: rgba(217, 119, 6, 0.35);
+  --zen-gold: #f59e0b;
+  --zen-bamboo: #3d6a45;
+  --zen-bamboo-light: #65a30d;
+  --zen-lotus: #e11d48;
+  --zen-lotus-soft: #f43f5e;
+  --zen-border: rgba(217, 119, 6, 0.25);
+  --zen-border-subtle: rgba(255, 255, 255, 0.1);
+  --zen-glass: rgba(24, 20, 17, 0.85);
+  --zen-glass-paper: rgba(251, 247, 238, 0.88);
+  
+  /* Fonts */
+  --font-heading: 'Cinzel', serif;
+  --font-serif: 'Noto Serif', serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background-color: #0c0a09;
+  color: #f3efe6;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Helpers */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* Zen Glassmorphic Cards */
+.zen-glass-panel {
+  background: var(--zen-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--zen-border);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.zen-paper-panel {
+  background: #fdfaf3;
+  color: #2b241d;
+  border: 1px solid rgba(138, 98, 59, 0.3);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(180, 140, 90, 0.08);
+}
+
+/* Gold button */
+.zen-btn-gold {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: #fffaf0;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+  transition: all 0.25s ease;
+  font-family: var(--font-serif);
+  cursor: pointer;
+}
+
+.zen-btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.zen-btn-gold:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.zen-btn-subtle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e5ded3;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.zen-btn-subtle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fff;
+}
+
+/* Animations */
+@keyframes zenPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+    filter: drop-shadow(0 0 16px var(--zen-amber-glow));
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes breathExpand {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.65);
+    opacity: 0.6;
+  }
+}
+
+.animate-zen-pulse {
+  animation: zenPulse 3s infinite ease-in-out;
+}
+
+.animate-float {
+  animation: floatGentle 4s infinite ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 6, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 119, 6, 0.7);
+}
+
+/* Watercolor texture overlay simulation */
+.watercolor-texture {
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 80%),
+                    repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 4px);
+}
+
