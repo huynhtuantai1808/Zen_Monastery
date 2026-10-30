@@ -12,6 +12,14 @@ class ZenAudioEngine {
   private ambientBellTimer: number | null = null;
   private isAmbientBellActive: boolean = false;
 
+  // Background Music (On Rainy Days - Relaxing Sleep & Meditation Soundtrack)
+  private bgmAudio: HTMLAudioElement | null = null;
+  private isBgmPlaying: boolean = false;
+  private bgmVolume: number = 0.5;
+  private bgmUrl: string = '/audio/on-rainy-days.webm';
+  private bgmListeners: Array<(isPlaying: boolean, volume: number) => void> = [];
+  private hasRegisteredGesture: boolean = false;
+
   public initContext() {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -29,11 +37,138 @@ class ZenAudioEngine {
     if (this.ambientGain && this.ctx) {
       this.ambientGain.gain.setValueAtTime(this.isMuted ? 0 : 0.4, this.ctx.currentTime);
     }
+    if (this.bgmAudio) {
+      this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
+    }
+    this.notifyBgmListeners();
     return this.isMuted;
   }
 
   public getMuted(): boolean {
     return this.isMuted;
+  }
+
+  // ==========================================
+  // BACKGROUND MUSIC (BGM): ON RAINY DAYS SOUNDTRACK
+  // ==========================================
+
+  public initBGM() {
+    if (typeof window === 'undefined' || this.bgmAudio) return;
+    try {
+      this.bgmAudio = new Audio(this.bgmUrl);
+      this.bgmAudio.loop = true;
+      this.bgmAudio.preload = 'auto';
+      this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
+
+      this.bgmAudio.addEventListener('play', () => {
+        this.isBgmPlaying = true;
+        this.notifyBgmListeners();
+      });
+      this.bgmAudio.addEventListener('pause', () => {
+        this.isBgmPlaying = false;
+        this.notifyBgmListeners();
+      });
+      this.bgmAudio.addEventListener('ended', () => {
+        if (this.bgmAudio) {
+          this.bgmAudio.currentTime = 0;
+          this.bgmAudio.play().catch(() => {});
+        }
+      });
+    } catch (err) {
+      console.warn('Could not initialize BGM audio element', err);
+    }
+  }
+
+  public registerAutoplayOnFirstGesture() {
+    if (this.hasRegisteredGesture || typeof window === 'undefined') return;
+    this.hasRegisteredGesture = true;
+
+    const onFirstUserGesture = () => {
+      this.initContext();
+      this.initBGM();
+      if (this.bgmAudio && !this.isMuted && !this.isBgmPlaying) {
+        this.playBGM();
+      }
+      window.removeEventListener('pointerdown', onFirstUserGesture);
+      window.removeEventListener('keydown', onFirstUserGesture);
+    };
+
+    window.addEventListener('pointerdown', onFirstUserGesture, { once: true, passive: true });
+    window.addEventListener('keydown', onFirstUserGesture, { once: true, passive: true });
+  }
+
+  public playBGM() {
+    this.initContext();
+    this.initBGM();
+    if (!this.bgmAudio) return;
+    this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
+    const playPromise = this.bgmAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.isBgmPlaying = true;
+          this.notifyBgmListeners();
+        })
+        .catch((err) => {
+          console.warn('Autoplay prevented by browser, waiting for user gesture:', err);
+          const resumeOnNext = () => {
+            if (this.bgmAudio && !this.isMuted) {
+              this.bgmAudio.play().then(() => {
+                this.isBgmPlaying = true;
+                this.notifyBgmListeners();
+              }).catch(() => {});
+            }
+            window.removeEventListener('pointerdown', resumeOnNext);
+          };
+          window.addEventListener('pointerdown', resumeOnNext, { once: true });
+        });
+    }
+  }
+
+  public pauseBGM() {
+    if (this.bgmAudio) {
+      this.bgmAudio.pause();
+      this.isBgmPlaying = false;
+      this.notifyBgmListeners();
+    }
+  }
+
+  public toggleBGM(): boolean {
+    if (this.isBgmPlaying) {
+      this.pauseBGM();
+      return false;
+    } else {
+      this.playBGM();
+      return true;
+    }
+  }
+
+  public setBGMVolume(volume: number) {
+    this.bgmVolume = Math.max(0, Math.min(1, volume));
+    if (this.bgmAudio && !this.isMuted) {
+      this.bgmAudio.volume = this.bgmVolume;
+    }
+    this.notifyBgmListeners();
+  }
+
+  public getBGMVolume(): number {
+    return this.bgmVolume;
+  }
+
+  public getIsBgmPlaying(): boolean {
+    return this.isBgmPlaying;
+  }
+
+  public addBgmListener(callback: (isPlaying: boolean, volume: number) => void): () => void {
+    this.bgmListeners.push(callback);
+    callback(this.isBgmPlaying, this.bgmVolume);
+    return () => {
+      this.bgmListeners = this.bgmListeners.filter((l) => l !== callback);
+    };
+  }
+
+  private notifyBgmListeners() {
+    this.bgmListeners.forEach((fn) => fn(this.isBgmPlaying, this.bgmVolume));
   }
 
   /**

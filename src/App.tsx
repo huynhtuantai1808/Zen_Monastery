@@ -24,7 +24,10 @@ import {
   Bell,
   Globe,
   Menu,
-  ScrollText
+  ScrollText,
+  Music,
+  Play,
+  Pause
 } from 'lucide-react';
 import { BUDDHIST_DHARMA_SESSIONS } from './data/buddhistDharma';
 import { CharacterCreationModal } from './components/CharacterCreationModal';
@@ -253,6 +256,21 @@ export default function App() {
   const [isBellRinging, setIsBellRinging] = useState<boolean>(false);
   const [ambientBellActive, setAmbientBellActive] = useState<boolean>(true);
   const [isSweepingAnim, setIsSweepingAnim] = useState<boolean>(false);
+  // Nhạc nền thiền On Rainy Days BGM
+  const [isBgmPlaying, setIsBgmPlaying] = useState<boolean>(soundEngine.getIsBgmPlaying());
+  const [bgmVolume, setBgmVolume] = useState<number>(soundEngine.getBGMVolume());
+
+  useEffect(() => {
+    soundEngine.registerAutoplayOnFirstGesture();
+    soundEngine.playBGM();
+
+    const unsub = soundEngine.addBgmListener((playing, vol) => {
+      setIsBgmPlaying(playing);
+      setBgmVolume(vol);
+    });
+    return () => unsub();
+  }, []);
+
 
   // Chế độ thế giới mở 2D (Open World)
   const [worldMode, setWorldMode] = useState<'3D' | 'OPEN_WORLD' | 'FOCUS'>('3D');
@@ -1194,15 +1212,56 @@ export default function App() {
                 onClick={() => {
                   const next = !soundEnabled;
                   setSoundEnabled(next);
-                  if (next) soundEngine.playBell(528, 1.5);
+                  if (next) {
+                    if (soundEngine.getMuted()) soundEngine.toggleMute();
+                    soundEngine.playBell(528, 1.5);
+                    soundEngine.playBGM();
+                  } else {
+                    if (!soundEngine.getMuted()) soundEngine.toggleMute();
+                  }
                 }}
-                title="Bật/Tắt âm thanh"
+                title={soundEnabled ? 'Tắt toàn bộ âm thanh' : 'Bật toàn bộ âm thanh'}
                 className={`p-2 rounded-xl border transition cursor-pointer ${
                   soundEnabled ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200' : 'bg-stone-900 border-stone-800 text-stone-500'
                 }`}
               >
                 {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
+
+              {/* BGM: On Rainy Days Relaxing Sleep Music */}
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-900/90 border border-emerald-500/40 backdrop-blur-md shadow-md"
+                title="Nhạc nền thiền & thư giãn sâu: On Rainy Days"
+              >
+                <button
+                  onClick={() => soundEngine.toggleBGM()}
+                  className="flex items-center gap-1.5 text-xs font-serif font-bold text-emerald-300 hover:text-emerald-200 cursor-pointer"
+                  title={isBgmPlaying ? 'Tạm dừng nhạc On Rainy Days' : 'Phát nhạc thiền On Rainy Days'}
+                >
+                  {isBgmPlaying ? (
+                    <span className="flex items-end gap-0.5 h-3.5">
+                      <span className="w-0.5 bg-emerald-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite] h-2.5"></span>
+                      <span className="w-0.5 bg-emerald-300 rounded-full animate-[pulse_0.6s_ease-in-out_infinite_0.2s] h-3.5"></span>
+                      <span className="w-0.5 bg-emerald-400 rounded-full animate-[pulse_0.7s_ease-in-out_infinite_0.4s] h-2"></span>
+                    </span>
+                  ) : (
+                    <Music className="w-3.5 h-3.5 text-stone-400" />
+                  )}
+                  <span className="text-[11px] hidden sm:inline">On Rainy Days</span>
+                  {isBgmPlaying ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3 text-emerald-400 fill-current" />}
+                </button>
+
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={bgmVolume}
+                  onChange={(e) => soundEngine.setBGMVolume(parseFloat(e.target.value))}
+                  className="w-12 sm:w-16 accent-emerald-500 h-1 bg-stone-700 rounded-lg cursor-pointer"
+                  title={`Âm lượng nhạc thiền: ${Math.round(bgmVolume * 100)}%`}
+                />
+              </div>
 
               {/* Bảng Công Quả & Mốc Nhiệm Vụ */}
               <button

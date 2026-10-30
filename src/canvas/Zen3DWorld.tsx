@@ -16,7 +16,8 @@ import {
   Moon,
   Sun,
   Layers,
-  Sparkles
+  Sparkles,
+  Music
 } from 'lucide-react';
 
 interface Zen3DWorldProps {
@@ -60,6 +61,298 @@ export interface TempleZoneInfo {
     | 'NIGHT';
 }
 
+export interface CircleObstacle {
+  type: 'circle';
+  x: number;
+  z: number;
+  r: number;
+  minY?: number;
+  maxY?: number;
+  name?: string;
+}
+
+export interface BoxObstacle {
+  type: 'box';
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  minY?: number;
+  maxY?: number;
+  name?: string;
+}
+
+export type MonasteryObstacle = CircleObstacle | BoxObstacle;
+
+export const MONK_COLLISION_RADIUS = 0.45;
+
+// Comprehensive monastery collision geometry (Circles & AABB Boxes)
+export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
+  // 1. Cổng Tam Quan (Zone 1 Gate) - 4 stone pillars + lanterns & flagpoles (3 open gates)
+  { type: 'circle', x: -6.5, z: 66.0, r: 0.85, name: 'Gate Pillar 1' },
+  { type: 'circle', x: -2.2, z: 66.0, r: 0.85, name: 'Gate Pillar 2' },
+  { type: 'circle', x: 2.2, z: 66.0, r: 0.85, name: 'Gate Pillar 3' },
+  { type: 'circle', x: 6.5, z: 66.0, r: 0.85, name: 'Gate Pillar 4' },
+  { type: 'circle', x: -6.5, z: 67.6, r: 0.7, name: 'Gate Lantern 1' },
+  { type: 'circle', x: -2.2, z: 67.6, r: 0.7, name: 'Gate Lantern 2' },
+  { type: 'circle', x: 2.2, z: 67.6, r: 0.7, name: 'Gate Lantern 3' },
+  { type: 'circle', x: 6.5, z: 67.6, r: 0.7, name: 'Gate Lantern 4' },
+  { type: 'circle', x: -7.2, z: 67.2, r: 0.4, name: 'Flagpole L' },
+  { type: 'circle', x: 7.2, z: 67.2, r: 0.4, name: 'Flagpole R' },
+
+  // 2. Sân Chùa (Zone 2 Courtyard) - Bronze Censer, Bonsai pots & Stone lanterns
+  { type: 'circle', x: 0.0, z: 22.0, r: 2.2, name: 'Bronze Censer' },
+  { type: 'circle', x: -20.0, z: 33.0, r: 1.45, name: 'Bonsai 1' },
+  { type: 'circle', x: -20.0, z: 15.0, r: 1.45, name: 'Bonsai 2' },
+  { type: 'circle', x: 20.0, z: 33.0, r: 1.45, name: 'Bonsai 3' },
+  { type: 'circle', x: 20.0, z: 15.0, r: 1.45, name: 'Bonsai 4' },
+  { type: 'circle', x: -12.0, z: 35.0, r: 1.45, name: 'Bonsai 5' },
+  { type: 'circle', x: 12.0, z: 35.0, r: 1.45, name: 'Bonsai 6' },
+  { type: 'circle', x: -8.0, z: 34.0, r: 0.85, name: 'Courtyard Lantern 1' },
+  { type: 'circle', x: 8.0, z: 34.0, r: 0.85, name: 'Courtyard Lantern 2' },
+  { type: 'circle', x: -14.0, z: 18.0, r: 0.85, name: 'Courtyard Lantern 3' },
+  { type: 'circle', x: 14.0, z: 18.0, r: 0.85, name: 'Courtyard Lantern 4' },
+
+  // 3. Bảo Tháp Men Ngọc (Zone 3 Pagoda) - Central tower body & terrace outer balustrades
+  { type: 'box', minX: 33.1, maxX: 42.9, minZ: -24.9, maxZ: -15.1, name: 'Pagoda Body' },
+  { type: 'box', minX: 31.2, maxX: 44.8, minZ: -26.8, maxZ: -26.2, name: 'Pagoda Rail North' },
+  { type: 'box', minX: 44.2, maxX: 44.8, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Rail East' },
+  { type: 'box', minX: 31.2, maxX: 31.8, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Rail West' },
+  { type: 'box', minX: 31.2, maxX: 36.0, minZ: -13.6, maxZ: -13.0, name: 'Pagoda Rail South L' },
+  { type: 'box', minX: 40.0, maxX: 44.8, minZ: -13.6, maxZ: -13.0, name: 'Pagoda Rail South R' },
+
+  // 4. Lầu Chuông (Zone 4 Bell Tower) - Columns, Great Bell & Bronze Drum
+  { type: 'circle', x: -29.6, z: -23.6, r: 0.55, name: 'Bell Col 1' },
+  { type: 'circle', x: -29.6, z: -16.4, r: 0.55, name: 'Bell Col 2' },
+  { type: 'circle', x: -22.4, z: -23.6, r: 0.55, name: 'Bell Col 3' },
+  { type: 'circle', x: -22.4, z: -16.4, r: 0.55, name: 'Bell Col 4' },
+  { type: 'circle', x: -26.0, z: -20.0, r: 1.7, name: 'Great Bell' },
+  { type: 'circle', x: -29.0, z: -22.4, r: 1.35, name: 'Bell Drum' },
+
+  // 5. Hiên Nước & Suối Ngọc (Zone 5 On Rainy Days) - Tatami deck & bridge fully walkable, water blocked
+  { type: 'box', minX: -26.0, maxX: -13.0, minZ: 38.0, maxZ: 47.0, name: 'Stream Water North' },
+  { type: 'box', minX: -26.0, maxX: -13.0, minZ: 25.0, maxZ: 34.0, name: 'Stream Water South' },
+  { type: 'box', minX: -39.0, maxX: -13.0, minZ: 46.5, maxZ: 47.5, name: 'Stream North Rim' },
+  { type: 'box', minX: -39.0, maxX: -13.0, minZ: 24.5, maxZ: 25.5, name: 'Stream South Rim' },
+  { type: 'box', minX: -39.0, maxX: -38.0, minZ: 25.0, maxZ: 47.0, name: 'Stream West Wall' },
+
+  // 6. Dãy Hành Lang Cột Gỗ (Zone 6 Corridor) - Side wooden columns (center aisle open)
+  { type: 'circle', x: 15.4, z: -3.0, r: 0.45 },
+  { type: 'circle', x: 20.6, z: -3.0, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 2.5, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 2.5, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 8.0, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 8.0, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 13.5, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 13.5, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 19.0, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 19.0, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 24.5, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 24.5, r: 0.45 },
+  { type: 'circle', x: 15.4, z: 27.0, r: 0.45 },
+  { type: 'circle', x: 20.6, z: 27.0, r: 0.45 },
+
+  // 7. Đại Hùng Bảo Điện (Zone 7 Main Sanctuary)
+  // Ground Level: Front retaining walls (Staircases at [-2.6, 2.6], [-10.6, -7.0], [7.0, 10.6] open)
+  { type: 'box', minX: -23.0, maxX: -10.6, minZ: -1.0, maxZ: 1.0, maxY: 2.2, name: 'Podium Front L1' },
+  { type: 'box', minX: -7.0, maxX: -2.6, minZ: -1.0, maxZ: 1.0, maxY: 2.2, name: 'Podium Front L2' },
+  { type: 'box', minX: 2.6, maxX: 7.0, minZ: -1.0, maxZ: 1.0, maxY: 2.2, name: 'Podium Front R1' },
+  { type: 'box', minX: 10.6, maxX: 23.0, minZ: -1.0, maxZ: 1.0, maxY: 2.2, name: 'Podium Front R2' },
+  { type: 'box', minX: -23.0, maxX: -21.4, minZ: -33.0, maxZ: -1.0, maxY: 2.2, name: 'Podium Side L' },
+  { type: 'box', minX: 21.4, maxX: 23.0, minZ: -33.0, maxZ: -1.0, maxY: 2.2, name: 'Podium Side R' },
+  { type: 'box', minX: -23.0, maxX: 23.0, minZ: -33.5, maxZ: -31.5, maxY: 2.2, name: 'Podium Rear' },
+
+  // Upper Level: Perimeter building walls (3 entrance doors open) & Buddha Altar
+  { type: 'box', minX: -16.2, maxX: 16.2, minZ: -27.3, maxZ: -26.7, minY: 2.0, name: 'Sanctuary Rear Wall' },
+  { type: 'box', minX: -16.3, maxX: -15.7, minZ: -27.3, maxZ: -4.8, minY: 2.0, name: 'Sanctuary Left Wall' },
+  { type: 'box', minX: 15.7, maxX: 16.3, minZ: -27.3, maxZ: -4.8, minY: 2.0, name: 'Sanctuary Right Wall' },
+  { type: 'box', minX: -16.0, maxX: -6.4, minZ: -5.3, maxZ: -4.7, minY: 2.0, name: 'Sanctuary Front Wall L' },
+  { type: 'box', minX: -3.0, maxX: -2.0, minZ: -5.3, maxZ: -4.7, minY: 2.0, name: 'Sanctuary Front Wall ML' },
+  { type: 'box', minX: 2.0, maxX: 3.0, minZ: -5.3, maxZ: -4.7, minY: 2.0, name: 'Sanctuary Front Wall MR' },
+  { type: 'box', minX: 6.4, maxX: 16.0, minZ: -5.3, maxZ: -4.7, minY: 2.0, name: 'Sanctuary Front Wall R' },
+  // Buddha Altar (Cannot walk through holy statue)
+  { type: 'box', minX: -4.5, maxX: 4.5, minZ: -23.5, maxZ: -19.5, minY: 2.0, name: 'Buddha Altar' },
+
+  // Side pavilions columns
+  { type: 'circle', x: -21.9, z: -5.9, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: -21.9, z: -1.1, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: -17.1, z: -5.9, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: -17.1, z: -1.1, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: 17.1, z: -5.9, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: 17.1, z: -1.1, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: 21.9, z: -5.9, r: 0.45, minY: 2.0 },
+  { type: 'circle', x: 21.9, z: -1.1, r: 0.45, minY: 2.0 },
+
+  // 8. Phòng Thiền Nguyệt Môn (Zone 8 Meditation) - Moon wall (center circular opening open)
+  { type: 'box', minX: -31.5, maxX: -26.2, minZ: -0.5, maxZ: 0.1, name: 'Moon Wall L' },
+  { type: 'box', minX: -21.8, maxX: -16.5, minZ: -0.5, maxZ: 0.1, name: 'Moon Wall R' },
+
+  // 9. Tàng Kinh Các (Zone 9 Library) - 3 Bookshelves (aisles open)
+  { type: 'box', minX: 17.5, maxX: 30.5, minZ: -0.6, maxZ: 0.6, name: 'Library Shelf 1' },
+  { type: 'box', minX: 17.5, maxX: 30.5, minZ: 5.4, maxZ: 6.6, name: 'Library Shelf 2' },
+  { type: 'box', minX: 17.5, maxX: 30.5, minZ: 11.4, maxZ: 12.6, name: 'Library Shelf 3' },
+
+  // 10. Sân Sau (Zone 10 Back Garden) - Ancient well, kitchen & stone arch posts
+  { type: 'circle', x: 11.0, z: -46.0, r: 1.7, name: 'Ancient Well' },
+  { type: 'box', minX: -21.8, maxX: -10.2, minZ: -52.0, maxZ: -44.0, name: 'Kitchen House' },
+  { type: 'box', minX: -3.3, maxX: -1.9, minZ: -30.8, maxZ: -29.2, name: 'Stone Arch Post L' },
+  { type: 'box', minX: 1.9, maxX: 3.3, minZ: -30.8, maxZ: -29.2, name: 'Stone Arch Post R' },
+];
+
+/**
+ * Resolves character position against monastery obstacle geometry.
+ * Returns the adjusted (x, z) coordinates with smooth surface sliding.
+ */
+export function resolveMonkCollision(
+  px: number,
+  py: number,
+  pz: number,
+  bodyRadius: number = MONK_COLLISION_RADIUS
+): { x: number; z: number } {
+  let curX = px;
+  let curZ = pz;
+
+  // 2 relaxation iterations for corner / adjacent obstacles
+  for (let iteration = 0; iteration < 2; iteration++) {
+    for (let i = 0; i < MONASTERY_OBSTACLES.length; i++) {
+      const obs = MONASTERY_OBSTACLES[i];
+      if (obs.minY !== undefined && py < obs.minY) continue;
+      if (obs.maxY !== undefined && py > obs.maxY) continue;
+
+      if (obs.type === 'circle') {
+        const dx = curX - obs.x;
+        const dz = curZ - obs.z;
+        const dist = Math.hypot(dx, dz);
+        const minDist = obs.r + bodyRadius;
+        if (dist < minDist) {
+          if (dist > 0.0001) {
+            const push = minDist - dist;
+            curX += (dx / dist) * push;
+            curZ += (dz / dist) * push;
+          } else {
+            curZ += minDist;
+          }
+        }
+      } else if (obs.type === 'box') {
+        const minX = obs.minX;
+        const maxX = obs.maxX;
+        const minZ = obs.minZ;
+        const maxZ = obs.maxZ;
+
+        const expMinX = minX - bodyRadius;
+        const expMaxX = maxX + bodyRadius;
+        const expMinZ = minZ - bodyRadius;
+        const expMaxZ = maxZ + bodyRadius;
+
+        if (curX > expMinX && curX < expMaxX && curZ > expMinZ && curZ < expMaxZ) {
+          if (curX >= minX && curX <= maxX && curZ >= minZ && curZ <= maxZ) {
+            const dLeft = curX - expMinX;
+            const dRight = expMaxX - curX;
+            const dBack = curZ - expMinZ;
+            const dFront = expMaxZ - curZ;
+            const minD = Math.min(dLeft, dRight, dBack, dFront);
+            if (minD === dLeft) curX = expMinX;
+            else if (minD === dRight) curX = expMaxX;
+            else if (minD === dBack) curZ = expMinZ;
+            else curZ = expMaxZ;
+          } else {
+            const closestX = Math.max(minX, Math.min(maxX, curX));
+            const closestZ = Math.max(minZ, Math.min(maxZ, curZ));
+            const cdx = curX - closestX;
+            const cdz = curZ - closestZ;
+            const cornerDist = Math.hypot(cdx, cdz);
+            if (cornerDist < bodyRadius) {
+              if (cornerDist > 0.0001) {
+                const push = bodyRadius - cornerDist;
+                curX += (cdx / cornerDist) * push;
+                curZ += (cdz / cornerDist) * push;
+              } else {
+                curX += bodyRadius;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Clamped Monastery Terrain Bounds
+  curX = Math.max(-46.0, Math.min(46.0, curX));
+  curZ = Math.max(-68.0, Math.min(86.0, curZ));
+
+  return { x: curX, z: curZ };
+}
+
+/**
+ * Accurately determines the true floor elevation (Y) at coordinate (x, z)
+ * across all multi-tier podiums, grand staircases, indoor halls, pavilions, and bridges.
+ */
+export function getTerrainFloorElevation(x: number, z: number, currentY: number = 0.42): number {
+  // 1. Đại Hùng Bảo Điện (Zone 7 Main Sanctuary Complex)
+  // Sanctuary complex centered at (0, -16), podium spans X in [-22.5, 22.5], Z in [-34.0, 5.5]
+  if (x >= -22.5 && x <= 22.5 && z >= -34.0 && z <= 5.5) {
+    const isCenterStair = Math.abs(x) <= 2.8;
+    const isLeftStair = x >= -10.8 && x <= -6.8;
+    const isRightStair = x >= 6.8 && x <= 10.8;
+
+    // Climbing the 3 grand parallel staircases (Z from 5.5 down to -0.5)
+    if ((isCenterStair || isLeftStair || isRightStair) && z >= -0.5 && z <= 5.5) {
+      const t = Math.max(0.0, Math.min(1.0, (5.5 - z) / 6.0));
+      return 0.42 + t * (3.30 - 0.42);
+    }
+
+    // Upper Terrace & Indoor Sanctuary Hall
+    if (z <= -0.5) {
+      // 2nd Floor Balcony (Lầu Gác)
+      if (currentY >= 5.5 && z >= -30.0 && z <= -6.0 && Math.abs(x) <= 15.0) {
+        return 7.50;
+      }
+      return 3.30;
+    }
+  }
+
+  // 2. Bảo Tháp Men Ngọc (Zone 3 Pagoda Tower at 38, -20)
+  if (x >= 30.5 && x <= 45.5 && z >= -27.5 && z <= -9.0) {
+    // Front stone steps leading to Tier 1 terrace (Z from -9.5 down to -14.5)
+    if (x >= 35.0 && x <= 41.0 && z >= -14.5 && z <= -9.5) {
+      const t = Math.max(0.0, Math.min(1.0, (-9.5 - z) / 5.0));
+      return 0.42 + t * (3.10 - 0.42);
+    }
+    if (z <= -14.0) {
+      return 3.10;
+    }
+  }
+
+  // 3. Lầu Chuông (Zone 4 Bell Tower at -26, -20)
+  if (x >= -31.5 && x <= -20.5 && z >= -25.5 && z <= -14.5) {
+    return 0.89;
+  }
+
+  // 4. Hiên Nước & Suối Ngọc (Zone 5 On Rainy Days Tatami Deck & Bridge)
+  // Wooden Engawa Tatami Deck (matching On Rainy Days reference)
+  if (x >= -38.5 && x <= -26.0 && z >= 26.5 && z <= 45.5) {
+    return 0.89;
+  }
+  // Stone Bridge connecting to courtyard
+  if (x >= -26.0 && x <= -13.0 && z >= 34.0 && z <= 38.0) {
+    const arch = Math.max(0.0, 1.0 - Math.abs(x - (-19.5)) / 6.5);
+    return 0.65 + arch * 0.24;
+  }
+
+  // 5. Phòng Thiền Nguyệt Môn (Zone 8 Meditation Hall at -24, 6)
+  if (x >= -31.5 && x <= -16.5 && z >= -0.5 && z <= 12.5) {
+    return 0.49;
+  }
+
+  // 6. Tàng Kinh Các (Zone 9 Library at 24, 6)
+  if (x >= 15.5 && x <= 32.5 && z >= -1.0 && z <= 13.0) {
+    return 0.49;
+  }
+
+  // 7. Sân gạch nung Bát Tràng & Vườn Chùa (Default ground)
+  return 0.42;
+}
+
 // 14 STYLIZED ZONES IN THE ISOMETRIC FANTASY ZEN MONASTERY
 export const TEMPLE_ZONES: TempleZoneInfo[] = [
   {
@@ -69,7 +362,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '22 × 12 m',
     icon: '⛩️',
     desc: 'Cổng đá cách điệu với mái ngói đao cong, cờ ngũ sắc và đèn đá sân vườn.',
-    pos: { x: 0, z: 66 },
+    pos: { x: 0, y: 0.42, z: 66 },
     actionKey: 'GATE',
   },
   {
@@ -79,7 +372,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '52 × 38 m',
     icon: '🧹',
     desc: 'Khuôn viên sân gạch Bát Tràng ấm áp với lư hương đồng, chậu cây cảnh bonsai và đèn đá.',
-    pos: { x: 0, z: 20 },
+    pos: { x: 0, y: 0.42, z: 18 },
     actionKey: 'COURTYARD',
   },
   {
@@ -89,7 +382,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '18 × 18 m',
     icon: '🏯',
     desc: 'Bảo tháp kiến trúc truyền thống theo bản vẽ: 3 tầng mái cong ngói men ngọc, thân gỗ ấm, cửa vòm nguyệt môn, đài sen tam cấp và đỉnh búp sen hoàng kim.',
-    pos: { x: 38, z: -20 },
+    pos: { x: 38, y: 3.10, z: -10.5 },
     actionKey: 'TOWER',
   },
   {
@@ -99,17 +392,17 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '14 × 14 m',
     icon: '🔔',
     desc: 'Lầu chuông gỗ lim cổ kính với Đại Hồng Chung treo quai rồng và chày kình gõ chuông.',
-    pos: { x: -26, y: 1.2, z: -20 },
+    pos: { x: -26, y: 0.89, z: -17.5 },
     actionKey: 'BELL',
   },
   {
     id: 'pond',
-    name: '5. Hồ Sen & Vườn Thiền',
-    subtitle: 'Mặt hồ lam biếc, cá Koi vàng & Thủy Đình bát giác',
+    name: '5. Hiên Nước & Suối Ngọc (On Rainy Days)',
+    subtitle: 'Hiên gỗ tatami ven suối ngọc • Nằm thảnh thơi, ngắm cá Koi & mưa hè',
     dimensions: '28 × 22 m',
-    icon: '🪷',
-    desc: 'Hồ sen ngát hương soi bóng Thủy Đình, cầu đá uốn cong và đàn cá Koi lượn sóng.',
-    pos: { x: -26, z: 36 },
+    icon: '🍉',
+    desc: 'Hiên gỗ kiểu Nhật lợp chiếu tatami xanh ngọc ven dòng suối trong vắt soi bóng đàn cá Koi, đĩa dưa hấu thanh mát, quạt gió mùa hè và vòm lá xanh komorebi rợp bóng.',
+    pos: { x: -30.0, y: 0.89, z: 36.0 },
     actionKey: 'POND',
   },
   {
@@ -119,7 +412,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '36 × 6 m',
     icon: '🏮',
     desc: 'Dãy hành lang cột gỗ lim song song với vì kèo chạm trổ và hàng đèn lồng đỏ ấm áp.',
-    pos: { x: 18, z: 12 },
+    pos: { x: 18, y: 0.42, z: 12 },
     actionKey: 'CORRIDOR',
   },
   {
@@ -129,7 +422,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '46 × 36 m',
     icon: '🏛️',
     desc: 'Tòa chính điện quy mô tráng lệ theo bản vẽ phát thảo: nền tam cấp cao ráo với 3 lối cầu thang đá chạm rồng, hai lầu đình tả hữu, hệ mái trùng thiềm điệp ốc ngói men ngọc và Đại Tượng Phật Thích Ca hoàng kim.',
-    pos: { x: 0, y: 3.2, z: -12 },
+    pos: { x: 0, y: 3.30, z: -12 },
     actionKey: 'SANCTUARY',
   },
   {
@@ -139,7 +432,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '16 × 14 m',
     icon: '🧘',
     desc: 'Không gian tĩnh mịch với cửa sổ tròn nan gỗ nhìn ra rừng trúc, bồ đoàn tĩnh tọa an nhiên.',
-    pos: { x: -24, z: 6 },
+    pos: { x: -24, y: 0.49, z: 6 },
     actionKey: 'MEDITATION',
   },
   {
@@ -149,7 +442,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '18 × 15 m',
     icon: '📜',
     desc: 'Tàng Kinh Các lưu giữ kinh điển, giá sách chạm trần, nghiên mực và ấm trà gốm mộc mạc.',
-    pos: { x: 24, z: 6 },
+    pos: { x: 24, y: 0.49, z: 3.2 },
     actionKey: 'LIBRARY',
   },
   {
@@ -159,7 +452,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '36 × 30 m',
     icon: '🎋',
     desc: 'Lối đá rêu phong dẫn vào sân sau với bếp củi, giếng nước ngọc đá ong và rặng trúc xanh.',
-    pos: { x: 0, z: -50 },
+    pos: { x: 0, y: 0.42, z: -50 },
     actionKey: 'BACK_GARDEN',
   },
   {
@@ -169,7 +462,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '28 × 8 m',
     icon: '🪟',
     desc: 'Lầu cao lộng gió nhìn ra toàn cảnh sân chùa, tháp chuông và mây núi bảng lảng.',
-    pos: { x: 0, y: 7.2, z: -16 },
+    pos: { x: 0, y: 7.50, z: -16 },
     actionKey: 'BALCONY',
   },
   {
@@ -179,7 +472,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '14 × 8 m',
     icon: '🪜',
     desc: 'Bậc thang đá hoa cương rêu phong dài dốc dẫn lên lầu cao và Bảo Tháp sừng sững.',
-    pos: { x: 28, z: -6 },
+    pos: { x: 28, y: 2.80, z: -6 },
     actionKey: 'STAIRS',
   },
   {
@@ -199,7 +492,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: 'Toàn cảnh',
     icon: '🌕',
     desc: 'Khung cảnh sơn tự về đêm tĩnh mịch với ánh trăng rằm và muôn ngọn đèn hoa đăng lung linh.',
-    pos: { x: 0, z: 20 },
+    pos: { x: 0, y: 0.42, z: 18 },
     actionKey: 'NIGHT',
   },
 ];
@@ -428,9 +721,14 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const [currentBuilding, setCurrentBuilding] = useState<string | null>(null);
   const [isNightMode, setIsNightMode] = useState<boolean>(timePhase === 'EVENING');
 
-  // Camera Mode: 'THIRD_PERSON' (Panoramic surroundings at eye level) vs 'ISOMETRIC' (Top-down)
-  const [cameraMode, setCameraMode] = useState<'ISOMETRIC' | 'THIRD_PERSON'>('THIRD_PERSON');
-  const cameraModeRef = useRef<'ISOMETRIC' | 'THIRD_PERSON'>('THIRD_PERSON');
+  // Camera Mode: 'THIRD_PERSON' (Panoramic) vs 'ISOMETRIC' (Top-down) vs 'ON_RAINY_DAYS' (Aesthetic overhead deck & stream)
+  const [cameraMode, setCameraMode] = useState<'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS'>('THIRD_PERSON');
+  const cameraModeRef = useRef<'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS'>('THIRD_PERSON');
+
+  // Character Relaxation Pose on the deck: 'STAND' | 'LIE_DOWN' | 'SIT_EDGE'
+  const [monkPose, setMonkPose] = useState<'STAND' | 'LIE_DOWN' | 'SIT_EDGE'>('STAND');
+  const monkPoseRef = useRef<'STAND' | 'LIE_DOWN' | 'SIT_EDGE'>('STAND');
+  const fanBladesRef = useRef<THREE.Group | null>(null);
 
   // State change trackers
   const isWalkingStateRef = useRef<boolean>(false);
@@ -451,6 +749,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const cursorGroundPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0.25, 70));
   const hasGroundTargetRef = useRef<boolean>(false);
   const cursorMarkerGroupRef = useRef<THREE.Group | null>(null);
+  const stuckCountRef = useRef<number>(0);
 
   // Callback props ref
   const propsRef = useRef({
@@ -500,7 +799,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const monkLeftArmRef = useRef<THREE.Group | null>(null);
   const monkRightArmRef = useRef<THREE.Group | null>(null);
 
-  const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.25, z: 80 });
+  const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.42, z: 80 });
   const targetPosRef = useRef<{ x: number; y?: number; z: number } | null>({ x: 0, z: 66 });
   const walkPhaseRef = useRef<number>(0);
   const isWalkingRef = useRef<boolean>(true);
@@ -555,26 +854,32 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     cameraModeRef.current = cameraMode;
   }, [cameraMode]);
 
-  // Toggle Camera Mode: 3rd-Person Eye-Level (Surroundings) vs Isometric Top-Down
+  // Toggle Camera Mode: 3rd-Person Eye-Level vs On Rainy Days Top-Down vs Isometric
   const toggleCameraMode = () => {
     setCameraMode((prev) => {
-      const next = prev === 'THIRD_PERSON' ? 'ISOMETRIC' : 'THIRD_PERSON';
-      if (next === 'THIRD_PERSON') {
-        cameraPitchRef.current = -0.12;
-        cameraDistRef.current = 6.5;
-        cameraYawRef.current = 0;
-      } else {
+      let next: 'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS' = 'THIRD_PERSON';
+      if (prev === 'THIRD_PERSON') {
+        next = 'ON_RAINY_DAYS';
+      } else if (prev === 'ON_RAINY_DAYS') {
+        next = 'ISOMETRIC';
         cameraPitchRef.current = 0.86;
         cameraDistRef.current = 24.0;
         cameraYawRef.current = Math.PI * 0.78;
+      } else {
+        next = 'THIRD_PERSON';
+        cameraPitchRef.current = -0.12;
+        cameraDistRef.current = 6.5;
+        cameraYawRef.current = 0;
       }
+      cameraModeRef.current = next;
       return next;
     });
   };
 
   // Navigate character to a specific zone (Silent on click)
   const navigateToZone = (zone: TempleZoneInfo) => {
-    targetPosRef.current = { x: zone.pos.x, y: zone.pos.y, z: zone.pos.z };
+    const floorY = getTerrainFloorElevation(zone.pos.x, zone.pos.z, zone.pos.y ?? 0.42);
+    targetPosRef.current = { x: zone.pos.x, y: floorY, z: zone.pos.z };
     setIsWalking(true);
     setIsTourPlaying(false);
     isTourPlayingRef.current = false;
@@ -587,7 +892,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     }
 
     if (destinationMarkerRef.current) {
-      destinationMarkerRef.current.position.set(zone.pos.x, (zone.pos.y || 0) + 0.35, zone.pos.z);
+      destinationMarkerRef.current.position.set(zone.pos.x, floorY + 0.08, zone.pos.z);
       destinationMarkerRef.current.visible = true;
     }
   };
@@ -602,13 +907,18 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       const nextIdx = (tourIndexRef.current + 1) % TEMPLE_ZONES.length;
       tourIndexRef.current = nextIdx;
       const nextZone = TEMPLE_ZONES[nextIdx];
-      targetPosRef.current = { x: nextZone.pos.x, y: nextZone.pos.y, z: nextZone.pos.z };
+      const floorY = getTerrainFloorElevation(nextZone.pos.x, nextZone.pos.z, nextZone.pos.y ?? 0.42);
+      targetPosRef.current = { x: nextZone.pos.x, y: floorY, z: nextZone.pos.z };
+      if (destinationMarkerRef.current) {
+        destinationMarkerRef.current.position.set(nextZone.pos.x, floorY + 0.08, nextZone.pos.z);
+        destinationMarkerRef.current.visible = true;
+      }
     }
   };
 
   const restartFromGate = () => {
-    playerPosRef.current = { x: 0, y: 0.25, z: 80 };
-    targetPosRef.current = { x: 0, z: 66 };
+    playerPosRef.current = { x: 0, y: 0.42, z: 80 };
+    targetPosRef.current = { x: 0, y: 0.42, z: 66 };
     tourIndexRef.current = 0;
     tourWaitRef.current = 0;
     setIsTourPlaying(false);
@@ -808,8 +1118,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     const matStoneGrey = new THREE.MeshStandardMaterial({ map: texStone, roughness: 0.8 });
     const matBronze = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.75 });
     const matGold = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.88 });
-    const matWater = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.08, metalness: 0.2, transparent: true, opacity: 0.85 });
-    const matLanternRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.65, roughness: 0.5 });
+        const matLanternRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.65, roughness: 0.5 });
 
     // 6. STYLIZED ISOMETRIC DIORAMA TERRAIN BASE
     const baseGeo = new THREE.BoxGeometry(140, 2.5, 180);
@@ -1004,73 +1313,317 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     bellTowerGroup.add(bellRoof);
     scene.add(bellTowerGroup);
 
-    // [ZONE 5: HỒ SEN, CẦU ĐÁ & THỦY ĐÌNH]
+    // [ZONE 5: HIÊN NƯỚC & SUỐI NGỌC - ON RAINY DAYS (THEO HÌNH MẪU PHÁT THẢO)]
     const pondGroup = new THREE.Group();
     pondGroup.position.set(-26, 0, 36);
 
+    // 1. Natural Stone Perimeter Rim
     const pondRim = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 22), matStoneGrey);
     pondRim.position.set(0, 0.4, 0);
     pondGroup.add(pondRim);
 
-    const waterMesh = new THREE.Mesh(new THREE.PlaneGeometry(23.5, 19.5, 16, 16), matWater);
+    // 2. Sandy Pebble Riverbed on the right side
+    const riverbed = new THREE.Mesh(
+      new THREE.PlaneGeometry(13.2, 21.0),
+      new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.95 })
+    );
+    riverbed.rotateX(-Math.PI / 2);
+    riverbed.position.set(6.2, 0.05, 0);
+    pondGroup.add(riverbed);
+
+    // 3. Submerged Mossy River Boulders & Smooth River Pebbles (Underwater Stones)
+    const stoneMats = [
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.75 }), // Slate river stone
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 }),  // Dark river pebble
+      new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7 }),  // Mossy green boulder
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.65 }),
+    ];
+    const riverStoneCoords = [
+      [2.5, -7.0, 1.6, 0.6, 1.4, 2],
+      [5.5, -4.5, 2.2, 0.7, 1.8, 0],
+      [8.5, -7.5, 1.4, 0.5, 1.3, 1],
+      [3.8, -1.5, 1.8, 0.6, 1.5, 2],
+      [7.2, 0.5, 2.4, 0.8, 2.0, 0],
+      [9.5, 3.5, 1.5, 0.5, 1.4, 3],
+      [3.0, 4.0, 1.7, 0.6, 1.5, 2],
+      [6.0, 7.0, 2.1, 0.7, 1.9, 0],
+      [9.0, 8.0, 1.3, 0.5, 1.2, 1],
+      [1.5, -4.0, 1.1, 0.4, 1.0, 3],
+      [1.8, 1.5, 1.2, 0.45, 1.1, 1],
+      [1.5, 7.5, 1.3, 0.5, 1.2, 2],
+      [11.0, -2.0, 1.4, 0.5, 1.3, 0],
+      [11.2, 5.0, 1.5, 0.55, 1.4, 2],
+    ];
+    riverStoneCoords.forEach(([sx, sz, rx, ry, rz, mIdx]) => {
+      const stone = new THREE.Mesh(new THREE.SphereGeometry(1.0, 10, 8), stoneMats[mIdx % stoneMats.length]);
+      stone.scale.set(rx, ry, rz);
+      stone.position.set(sx, ry * 0.45, sz);
+      stone.receiveShadow = true;
+      pondGroup.add(stone);
+    });
+
+    // 4. Crystal-Clear Emerald Turquoise Water
+    const matCrystalWater = new THREE.MeshStandardMaterial({
+      color: 0x06b6d4,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.12,
+      roughness: 0.04,
+      metalness: 0.15,
+      transparent: true,
+      opacity: 0.74,
+    });
+    const waterMesh = new THREE.Mesh(new THREE.PlaneGeometry(13.2, 21.0, 16, 16), matCrystalWater);
     waterMesh.rotateX(-Math.PI / 2);
-    waterMesh.position.set(0, 0.85, 0);
+    waterMesh.position.set(6.2, 0.82, 0);
     pondGroup.add(waterMesh);
 
-    // Glowing lotus blooms
-    for (let l = 0; l < 12; l++) {
-      const pad = new THREE.Mesh(new THREE.CircleGeometry(0.9, 8), new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6 }));
-      pad.rotateX(-Math.PI / 2);
-      pad.position.set((Math.random() - 0.5) * 18, 0.88, (Math.random() - 0.5) * 14);
-      pondGroup.add(pad);
+    // 5. THE WOODEN ENGAWA & TATAMI WATER DECK (HIÊN GỖ THIỀN ĐỊNH THEO TRANH MẪU)
+    const deckGroup = new THREE.Group();
+    deckGroup.position.set(-6.2, 0, 0);
 
-      const flower = new THREE.Mesh(
-        new THREE.ConeGeometry(0.36, 0.58, 6),
-        new THREE.MeshStandardMaterial({ color: 0xf472b6, emissive: 0xec4899, emissiveIntensity: 0.4 })
-      );
-      flower.position.set(pad.position.x, 1.15, pad.position.z);
-      pondGroup.add(flower);
+    // Cedar Timber Foundation Platform
+    const deckBase = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.42, 21.0), matWoodWarm);
+    deckBase.position.set(0, 0.68, 0);
+    deckBase.receiveShadow = true;
+    deckGroup.add(deckBase);
+
+    // Bamboo Slat Walkway on Left Edge
+    const walkway = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.1, 20.8), matDarkTimber);
+    walkway.position.set(-5.0, 0.94, 0);
+    deckGroup.add(walkway);
+
+    // Bamboo Railing Posts along left border
+    for (let pz = -9.5; pz <= 9.5; pz += 3.8) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.8, 8), matWoodWarm);
+      post.position.set(-6.1, 1.7, pz);
+      deckGroup.add(post);
+    }
+    const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 20.0), matWoodWarm);
+    topRail.position.set(-6.1, 2.5, 0);
+    deckGroup.add(topRail);
+
+    // 6 Large Square Teal-Green Tatami Mats (Chiếu Tatami theo tranh mẫu)
+    const matTatami = new THREE.MeshStandardMaterial({ color: 0x115e59, roughness: 0.85 }); // Emerald/teal green
+    const matTatamiBorder = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.7 });
+    for (let col = 0; col < 2; col++) {
+      for (let row = -1; row <= 1; row++) {
+        const mx = -2.2 + col * 4.2;
+        const mz = row * 6.6;
+        const matMesh = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.08, 6.4), matTatami);
+        matMesh.position.set(mx, 0.94, mz);
+        deckGroup.add(matMesh);
+
+        // Border seams
+        const borderX = new THREE.Mesh(new THREE.BoxGeometry(4.02, 0.09, 0.16), matTatamiBorder);
+        borderX.position.set(mx, 0.95, mz + 3.15);
+        deckGroup.add(borderX);
+      }
     }
 
-    // Koi fish
+    // 6. PROPS ON DECK: Watermelon Plate, Vintage Retro Fan & Companion Figure
+    // A. Plate of Sliced Watermelon (Đĩa dưa hấu thanh mát mùa hè)
+    const watermelonGroup = new THREE.Group();
+    watermelonGroup.position.set(-1.0, 0.99, 1.5);
+    const plate = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.65, 0.52, 0.06, 16),
+      new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.25 })
+    );
+    plate.position.set(0, 0.03, 0);
+    watermelonGroup.add(plate);
+
+    const matWRed = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.35 });
+    const matWGreen = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+    for (let s = -1; s <= 1; s++) {
+      const slice = new THREE.Group();
+      slice.position.set(s * 0.28, 0.18, 0);
+      slice.rotation.z = Math.PI / 12 * s;
+
+      const rind = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.1, 10, 1, false, 0, Math.PI * 0.42), matWGreen);
+      rind.rotateZ(Math.PI / 2);
+      slice.add(rind);
+
+      const flesh = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.09, 10, 1, false, 0, Math.PI * 0.4), matWRed);
+      flesh.rotateZ(Math.PI / 2);
+      slice.add(flesh);
+
+      watermelonGroup.add(slice);
+    }
+    deckGroup.add(watermelonGroup);
+
+    // B. Vintage Green Retro Electric Fan (Quạt máy con cóc cổ điển mùa hè)
+    const fanGroup = new THREE.Group();
+    fanGroup.position.set(-3.5, 0.99, -5.5);
+    const matRetroGreen = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.45 });
+
+    const fanBase = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.52, 0.15, 12), matRetroGreen);
+    fanBase.position.set(0, 0.08, 0);
+    fanGroup.add(fanBase);
+
+    const fanStem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), matGold);
+    fanStem.position.set(0, 0.48, 0);
+    fanGroup.add(fanStem);
+
+    const fanMotor = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.38, 10), matRetroGreen);
+    fanMotor.rotation.x = Math.PI / 2;
+    fanMotor.position.set(0, 0.85, 0);
+    fanGroup.add(fanMotor);
+
+    const fanCage = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.04, 8, 20), matRetroGreen);
+    fanCage.position.set(0, 0.85, 0.22);
+    fanGroup.add(fanCage);
+
+    const fanBlades = new THREE.Group();
+    fanBlades.position.set(0, 0.85, 0.2);
+    for (let b = 0; b < 3; b++) {
+      const bladeAngle = (b / 3) * Math.PI * 2;
+      const blade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.18, 0.48, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.6, roughness: 0.3 })
+      );
+      blade.position.set(Math.cos(bladeAngle) * 0.28, Math.sin(bladeAngle) * 0.28, 0);
+      blade.rotation.z = bladeAngle + Math.PI / 6;
+      fanBlades.add(blade);
+    }
+    fanGroup.add(fanBlades);
+    fanBladesRef.current = fanBlades;
+    deckGroup.add(fanGroup);
+
+    // C. Relaxing Companion Figure (Cô gái nằm thảnh thơi trên sàn tatami như trong tranh)
+    const companionGroup = new THREE.Group();
+    companionGroup.position.set(0.8, 1.05, -1.8);
+
+    const cMatSkin = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.7 });
+    const cMatTop = new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.8 }); // Light blue sleeveless top
+    const cMatShorts = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.75 }); // Navy blue shorts
+    const cMatHair = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+
+    // Head resting flat
+    const cHead = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 12), cMatSkin);
+    cHead.position.set(0, 0, -2.1);
+    companionGroup.add(cHead);
+
+    const cHair = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), cMatHair);
+    cHair.position.set(0, 0.05, -2.15);
+    companionGroup.add(cHair);
+
+    // Torso lying flat
+    const cTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.45, 1.35, 10), cMatTop);
+    cTorso.rotation.x = Math.PI / 2;
+    cTorso.position.set(0, 0, -1.1);
+    companionGroup.add(cTorso);
+
+    // Outstretched relaxed arms
+    for (const side of [-1, 1]) {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.25, 8), cMatSkin);
+      arm.rotation.z = side * (Math.PI / 2.3);
+      arm.position.set(side * 0.85, 0, -1.35);
+      companionGroup.add(arm);
+    }
+
+    // Shorts
+    const cShorts = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.48, 0.7, 10), cMatShorts);
+    cShorts.rotation.x = Math.PI / 2;
+    cShorts.position.set(0, 0, -0.2);
+    companionGroup.add(cShorts);
+
+    // Legs relaxed
+    for (const side of [-1, 1]) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 1.45, 8), cMatSkin);
+      leg.rotation.x = Math.PI / 2;
+      leg.rotation.z = side * 0.12;
+      leg.position.set(side * 0.28, 0, 0.95);
+      companionGroup.add(leg);
+    }
+    deckGroup.add(companionGroup);
+
+    pondGroup.add(deckGroup);
+
+    // 7. SWIMMING KOI FISH IN CRYSTAL TURQUOISE WATER
     koiFishListRef.current = [];
-    for (let k = 0; k < 7; k++) {
+    const koiColors = [
+      { body: 0xea580c, fin: 0xfef08a }, // Orange Kohaku
+      { body: 0xfacc15, fin: 0xffffff }, // Golden Ogon
+      { body: 0xd97706, fin: 0xfde047 },
+      { body: 0xef4444, fin: 0xfef08a }, // Scarlet
+      { body: 0xf8fafc, fin: 0xea580c }, // White/Orange Tancho
+      { body: 0x0f172a, fin: 0xef4444 }, // Black Showa
+      { body: 0xf59e0b, fin: 0xffffff },
+      { body: 0xd97706, fin: 0xfacc15 },
+    ];
+    for (let k = 0; k < 8; k++) {
       const koiG = new THREE.Group();
+      const colScheme = koiColors[k % koiColors.length];
       const koiB = new THREE.Mesh(
-        new THREE.ConeGeometry(0.32, 1.3, 6),
-        new THREE.MeshStandardMaterial({ color: k % 2 === 0 ? 0xea580c : 0xfacc15, roughness: 0.25 })
+        new THREE.ConeGeometry(0.35, 1.5, 8),
+        new THREE.MeshStandardMaterial({ color: colScheme.body, roughness: 0.25 })
       );
       koiB.rotateZ(Math.PI / 2);
       koiG.add(koiB);
-      koiG.position.set((Math.random() - 0.5) * 14, 0.72, (Math.random() - 0.5) * 12);
+
+      // Tail fin
+      const tailFin = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.45, 0.45),
+        new THREE.MeshStandardMaterial({ color: colScheme.fin, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+      );
+      tailFin.position.set(-0.9, 0, 0);
+      tailFin.rotateY(Math.PI / 4);
+      koiG.add(tailFin);
+
+      // Side fins
+      for (const fs of [-1, 1]) {
+        const fin = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.35, 0.2),
+          new THREE.MeshStandardMaterial({ color: colScheme.fin, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+        );
+        fin.position.set(0.2, 0, fs * 0.35);
+        fin.rotateX(fs * Math.PI / 6);
+        koiG.add(fin);
+      }
+
+      // Initial positions in stream
+      koiG.position.set(2.5 + Math.random() * 8.0, 0.65, (Math.random() - 0.5) * 16.0);
       pondGroup.add(koiG);
+
       koiFishListRef.current.push({
         mesh: koiG,
-        angle: k * (Math.PI / 3.5),
-        speed: 0.02 + Math.random() * 0.012,
-        radius: 3.5 + Math.random() * 4.2,
+        angle: k * (Math.PI / 4),
+        speed: 0.018 + Math.random() * 0.014,
+        radius: 3.5 + Math.random() * 4.5,
       });
     }
 
-    // Thủy Đình Bát Giác & Cầu Đá Vòm
-    const pavilionGroup = new THREE.Group();
-    pavilionGroup.position.set(-7.5, 0.8, -7.5);
-    for (const cpx of [-2.4, 2.4]) {
-      for (const cpz of [-2.4, 2.4]) {
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 5.5, 8), matWoodWarm);
-        col.position.set(cpx, 2.75, cpz);
-        pavilionGroup.add(col);
-      }
-    }
-    const pavRoof = createStylizedCurvedRoof(7.5, 7.5, matRoofTile);
-    pavRoof.position.set(0, 5.8, 0);
-    pavilionGroup.add(pavRoof);
-    pondGroup.add(pavilionGroup);
+    // 8. OVERHEAD LEAFY CANOPY BRANCHES (VÒM LÁ XANH RỢP BÓNG - KOMOREBI)
+    const canopyGroup = new THREE.Group();
+    canopyGroup.position.set(0, 5.8, 0);
+    const matLeafGreen1 = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.75, transparent: true, opacity: 0.92 });
+    const matLeafGreen2 = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7, transparent: true, opacity: 0.9 });
+    const matLeafGreen3 = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.8, transparent: true, opacity: 0.95 });
 
-    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 2.2, 16, 1, false, 0, Math.PI), matStoneGrey);
-    bridge.rotateZ(Math.PI / 2);
-    bridge.position.set(5.5, 0.4, 0);
+    const canopyPuffs: [number, number, number, THREE.MeshStandardMaterial][] = [
+      [-10.0, 8.5, 2.5, matLeafGreen1],
+      [-7.5, 9.0, 2.8, matLeafGreen2],
+      [-4.0, 8.0, 2.4, matLeafGreen3],
+      [4.0, 8.5, 2.6, matLeafGreen1],
+      [8.5, 9.0, 3.2, matLeafGreen2],
+      [11.0, 7.5, 2.5, matLeafGreen3],
+      [-11.0, -8.0, 2.7, matLeafGreen1],
+      [-7.0, -9.0, 3.0, matLeafGreen2],
+      [6.0, -8.5, 2.8, matLeafGreen1],
+      [10.0, -8.0, 3.0, matLeafGreen3],
+    ];
+    canopyPuffs.forEach(([cx, cz, cr, mat]) => {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 8), mat);
+      puff.position.set(cx, (Math.random() - 0.5) * 0.8, cz);
+      puff.scale.set(1.4, 0.75, 1.2);
+      canopyGroup.add(puff);
+    });
+    pondGroup.add(canopyGroup);
+
+    // 9. Arched Stone Bridge connecting Deck to Courtyard
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.45, 2.6), matStoneGrey);
+    bridge.position.set(6.2, 0.75, 0);
     pondGroup.add(bridge);
+
     scene.add(pondGroup);
 
     // [ZONE 6: DÃY HÀNH LANG CỘT GỖ]
@@ -1321,14 +1874,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     const handlePointerUp = (e: MouseEvent) => {
       isDraggingOrbitRef.current = false;
 
-      // Click on ground to move (Point & Click)
+      // Click on ground to move (Point & Click with Obstacle & Elevation Resolution)
       const distMoved = Math.hypot(e.clientX - lastPointerDownPosRef.current.x, e.clientY - lastPointerDownPosRef.current.y);
       if (distMoved < 6 && hasGroundTargetRef.current) {
-        const targetX = Math.max(-46, Math.min(46, cursorGroundPosRef.current.x));
-        const targetZ = Math.max(-68, Math.min(88, cursorGroundPosRef.current.z));
-        targetPosRef.current = { x: targetX, y: 0.25, z: targetZ };
+        const rawTargetX = cursorGroundPosRef.current.x;
+        const rawTargetZ = cursorGroundPosRef.current.z;
+        const currentPy = playerPosRef.current.y || 0.42;
+        const resolved = resolveMonkCollision(rawTargetX, currentPy, rawTargetZ);
+        const floorY = getTerrainFloorElevation(resolved.x, resolved.z, currentPy);
+
+        targetPosRef.current = { x: resolved.x, y: floorY, z: resolved.z };
+        stuckCountRef.current = 0;
         if (destinationMarkerRef.current) {
-          destinationMarkerRef.current.position.set(targetX, 0.35, targetZ);
+          destinationMarkerRef.current.position.set(resolved.x, floorY + 0.08, resolved.z);
           destinationMarkerRef.current.visible = true;
         }
       }
@@ -1404,6 +1962,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         let isCurrentlyWalking = false;
 
         if (isManualMoving) {
+          if (monkPoseRef.current !== 'STAND') {
+            monkPoseRef.current = 'STAND';
+            setMonkPose('STAND');
+          }
           isCurrentlyWalking = true;
           isWalkingRef.current = true;
           if (!isWalkingStateRef.current) {
@@ -1424,11 +1986,12 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           const len = Math.hypot(moveX, moveZ);
 
           if (len > 0.001) {
-            currentP.x += (moveX / len) * walkSpeed;
-            currentP.z += (moveZ / len) * walkSpeed;
+            const nextX = currentP.x + (moveX / len) * walkSpeed;
+            const nextZ = currentP.z + (moveZ / len) * walkSpeed;
 
-            currentP.x = Math.max(-46, Math.min(46, currentP.x));
-            currentP.z = Math.max(-68, Math.min(86, currentP.z));
+            const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
+            currentP.x = resolved.x;
+            currentP.z = resolved.z;
 
             let targetAngle = Math.atan2(moveX, moveZ);
             playerRotationRef.current = targetAngle;
@@ -1439,7 +2002,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
 
           if (stepCount % 14 === 0) {
-            spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef);
+            spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
           }
         } else if (targetPosRef.current) {
           const targetP = targetPosRef.current;
@@ -1456,12 +2019,30 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             }
             walkPhaseRef.current += 0.16;
 
-            currentP.x += (dx / dist) * Math.min(walkSpeed, dist);
-            currentP.z += (dz / dist) * Math.min(walkSpeed, dist);
+            const stepDist = Math.min(walkSpeed, dist);
+            const nextX = currentP.x + (dx / dist) * stepDist;
+            const nextZ = currentP.z + (dz / dist) * stepDist;
 
-            if (targetP.y !== undefined) {
-              currentP.y += ((targetP.y || 0.25) - currentP.y) * 0.1;
+            const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
+            const actualMoved = Math.hypot(resolved.x - currentP.x, resolved.z - currentP.z);
+            currentP.x = resolved.x;
+            currentP.z = resolved.z;
+
+            // Prevent running against obstacles indefinitely
+            if (actualMoved < 0.02) {
+              stuckCountRef.current = (stuckCountRef.current || 0) + 1;
+              if (stuckCountRef.current > 35) {
+                targetPosRef.current = null;
+                stuckCountRef.current = 0;
+                if (destinationMarkerRef.current) {
+                  destinationMarkerRef.current.visible = false;
+                }
+              }
+            } else {
+              stuckCountRef.current = 0;
             }
+
+
 
             const targetAngle = Math.atan2(dx, dz);
             playerRotationRef.current = targetAngle;
@@ -1471,7 +2052,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             monkGroupRef.current.rotation.y += diff * 0.18;
 
             if (stepCount % 14 === 0) {
-              spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef);
+              spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
             }
           } else {
             isWalkingRef.current = false;
@@ -1515,34 +2096,87 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
         }
 
-        // Arm & Leg Walking Kinematics
+        // Dynamic Ground Elevation & Anti-Sink Calculation
+        const targetFloorY = getTerrainFloorElevation(currentP.x, currentP.z, currentP.y);
+
+        // Smooth elevation transition
+        currentP.y += (targetFloorY - currentP.y) * 0.28;
+
+        // Hard Anti-Sink Guarantee: Character feet never penetrate below the solid floor surface!
+        if (currentP.y < targetFloorY) {
+          currentP.y = targetFloorY;
+        }
+
+        // Arm & Leg Walking Kinematics (Refined stylized natural monk stride)
         const phase = walkPhaseRef.current;
         if (isCurrentlyWalking) {
           if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.x = Math.sin(phase) * 0.48;
-            monkRightLegRef.current.rotation.x = -Math.sin(phase) * 0.48;
+            monkLeftLegRef.current.rotation.x = Math.sin(phase) * 0.44;
+            monkRightLegRef.current.rotation.x = -Math.sin(phase) * 0.44;
           }
           if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.x = -Math.sin(phase) * 0.38;
-            monkRightArmRef.current.rotation.x = Math.sin(phase) * 0.38;
+            monkLeftArmRef.current.rotation.x = -Math.sin(phase) * 0.35;
+            monkRightArmRef.current.rotation.x = Math.sin(phase) * 0.35;
+            monkLeftArmRef.current.rotation.z = 0.04 + Math.abs(Math.sin(phase)) * 0.03;
+            monkRightArmRef.current.rotation.z = -0.04 - Math.abs(Math.sin(phase)) * 0.03;
           }
           if (monkTorsoRef.current) {
-            monkTorsoRef.current.position.y = 1.4 + Math.sin(phase * 2) * 0.035;
-            monkTorsoRef.current.rotation.y = Math.sin(phase) * 0.04;
+            // Torso bobs buoyant upward with each step, strictly above baseline
+            monkTorsoRef.current.position.y = 1.4 + Math.abs(Math.sin(phase)) * 0.042;
+            monkTorsoRef.current.rotation.y = Math.sin(phase) * 0.035;
+            monkTorsoRef.current.rotation.z = Math.sin(phase) * 0.02;
           }
         } else {
           if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.x += (0 - monkLeftLegRef.current.rotation.x) * 0.18;
-            monkRightLegRef.current.rotation.x += (0 - monkRightLegRef.current.rotation.x) * 0.18;
+            monkLeftLegRef.current.rotation.x += (0 - monkLeftLegRef.current.rotation.x) * 0.2;
+            monkRightLegRef.current.rotation.x += (0 - monkRightLegRef.current.rotation.x) * 0.2;
           }
           if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.x += (0 - monkLeftArmRef.current.rotation.x) * 0.18;
-            monkRightArmRef.current.rotation.x += (0 - monkRightArmRef.current.rotation.x) * 0.18;
+            monkLeftArmRef.current.rotation.x += (0 - monkLeftArmRef.current.rotation.x) * 0.2;
+            monkRightArmRef.current.rotation.x += (0 - monkRightArmRef.current.rotation.x) * 0.2;
+            monkLeftArmRef.current.rotation.z += (0 - monkLeftArmRef.current.rotation.z) * 0.2;
+            monkRightArmRef.current.rotation.z += (0 - monkRightArmRef.current.rotation.z) * 0.2;
           }
           if (monkTorsoRef.current) {
-            monkTorsoRef.current.position.y += (1.4 - monkTorsoRef.current.position.y) * 0.18;
-            monkTorsoRef.current.rotation.y += (0 - monkTorsoRef.current.rotation.y) * 0.18;
+            monkTorsoRef.current.position.y += (1.4 - monkTorsoRef.current.position.y) * 0.2;
+            monkTorsoRef.current.rotation.y += (0 - monkTorsoRef.current.rotation.y) * 0.2;
+            monkTorsoRef.current.rotation.z += (0 - monkTorsoRef.current.rotation.z) * 0.2;
           }
+        }
+
+        // Handle Relaxed Character Poses on Deck
+        if (monkPoseRef.current === 'LIE_DOWN') {
+          // Monk lies flat on back on the tatami deck with arms spread out wide in peaceful bliss
+          monkGroupRef.current.rotation.set(-Math.PI / 2, 0, 0);
+          if (monkLeftArmRef.current && monkRightArmRef.current) {
+            monkLeftArmRef.current.rotation.set(0, 0, Math.PI / 2.2);
+            monkRightArmRef.current.rotation.set(0, 0, -Math.PI / 2.2);
+          }
+          if (monkLeftLegRef.current && monkRightLegRef.current) {
+            monkLeftLegRef.current.rotation.set(0, 0, -0.15);
+            monkRightLegRef.current.rotation.set(0, 0, 0.15);
+          }
+          if (monkTorsoRef.current) {
+            monkTorsoRef.current.position.y = 1.4;
+            monkTorsoRef.current.rotation.set(0, 0, 0);
+          }
+          currentP.y = 0.96;
+        } else if (monkPoseRef.current === 'SIT_EDGE') {
+          // Monk sitting at the edge of the wooden deck dipping feet into the cool water
+          monkGroupRef.current.rotation.set(0, -Math.PI / 2, 0);
+          if (monkLeftLegRef.current && monkRightLegRef.current) {
+            monkLeftLegRef.current.rotation.set(Math.PI / 2.1, 0, -0.05);
+            monkRightLegRef.current.rotation.set(Math.PI / 2.1, 0, 0.05);
+          }
+          if (monkLeftArmRef.current && monkRightArmRef.current) {
+            monkLeftArmRef.current.rotation.set(0.3, 0, 0.1);
+            monkRightArmRef.current.rotation.set(0.3, 0, -0.1);
+          }
+          if (monkTorsoRef.current) {
+            monkTorsoRef.current.position.y = 0.95;
+            monkTorsoRef.current.rotation.set(0, 0, 0);
+          }
+          currentP.y = 0.89;
         }
 
         monkGroupRef.current.position.set(currentP.x, currentP.y, currentP.z);
@@ -1576,8 +2210,45 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Quét Lá Đa Chánh Niệm', action: p.onOpenSweeping, icon: '🧹' });
               actionsList.push({ title: 'Thắp Nén Hương Lòng', action: () => p.onAddMerit(10, 50, 40, 'Thắp Hương Tam Bảo'), icon: '🪔' });
             } else if (zKey === 'POND') {
-              actionsList.push({ title: 'Rải Mồi Đàn Cá Koi', action: handleFeedKoiFish, icon: '🪷' });
-              actionsList.push({ title: 'Hiên Trà Thủy Đình', action: p.onOpenTeaHouse, icon: '🍵' });
+              actionsList.push({
+                title: 'Nằm Thảnh Thơi (On Rainy Days)',
+                action: () => {
+                  setMonkPose('LIE_DOWN');
+                  monkPoseRef.current = 'LIE_DOWN';
+                  playerPosRef.current.x = -30.0;
+                  playerPosRef.current.z = 36.0;
+                  p.onAddMerit(30, 50, 40, 'Nằm Thảnh Thơi An Yên');
+                },
+                icon: '🛌'
+              });
+              actionsList.push({
+                title: 'Ngồi Thả Chân Xuống Suối',
+                action: () => {
+                  setMonkPose('SIT_EDGE');
+                  monkPoseRef.current = 'SIT_EDGE';
+                  playerPosRef.current.x = -26.5;
+                  playerPosRef.current.z = 36.0;
+                  p.onAddMerit(20, 50, 40, 'Thả Chân Tắm Suối');
+                },
+                icon: '🌊'
+              });
+              actionsList.push({
+                title: 'Thưởng Thức Dưa Hấu',
+                action: () => {
+                  p.onAddMerit(25, 50, 40, 'Dưa Hấu Mát Lạnh Mùa Hè');
+                },
+                icon: '🍉'
+              });
+              actionsList.push({ title: 'Rải Mồi Đàn Cá Koi', action: handleFeedKoiFish, icon: '🐟' });
+              actionsList.push({ title: 'Hiên Trà Suối Tiên', action: p.onOpenTeaHouse, icon: '🍵' });
+              actionsList.push({
+                title: 'Đứng Dậy Bước Đi',
+                action: () => {
+                  setMonkPose('STAND');
+                  monkPoseRef.current = 'STAND';
+                },
+                icon: '🚶'
+              });
             } else if (zKey === 'TOWER') {
               actionsList.push({ title: 'Chiêm Bái Bảo Tháp', action: () => p.onAddMerit(25, 50, 40, 'Chiêm Bái Bảo Tháp'), icon: '🏯' });
             } else if (zKey === 'BELL') {
@@ -1604,26 +2275,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           setNearInteractions([]);
         }
 
-        // Dynamic Ground Elevation for Grand Podium & 3 Parallel Staircases
-        let targetFloorY = 0.25;
-        if (currentP.z <= 1.0 && currentP.z >= -34 && Math.abs(currentP.x) <= 22) {
-          if (currentP.z <= -5.5) {
-            targetFloorY = 3.2; // On upper podium & inside sanctuary
-          } else {
-            // Climbing the 3 grand staircases (Z from 1.0 down to -5.5)
-            const stairProgress = (1.0 - currentP.z) / 6.5;
-            targetFloorY = 0.25 + stairProgress * 2.95;
-          }
-        }
-
         // Indoor Building Detection
         const inSanctuary = currentP.z <= -4 && currentP.z >= -32 && Math.abs(currentP.x) <= 17 && currentP.y < 6.0;
         const inBalcony = currentP.y >= 6.0 && currentP.z <= -6 && currentP.z >= -30;
-        if (inBalcony) {
-          targetFloorY = 7.5;
-        }
-
-        currentP.y += (targetFloorY - currentP.y) * 0.16;
         const inMeditation = Math.hypot(currentP.x - (-24), currentP.z - 6) < 8;
         const inLibrary = Math.hypot(currentP.x - 24, currentP.z - 6) < 8.5;
         const inBell = Math.hypot(currentP.x - (-26), currentP.z - (-20)) < 7;
@@ -1640,9 +2294,39 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           setCurrentBuilding(buildingName);
         }
 
-        // Smooth roof fading when inside
+        // Smooth roof fading when inside buildings
         sanctuaryRoofsRef.current.forEach((roof) => {
           const targetOpacity = inSanctuary ? 0.08 : 1.0;
+          roof.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+              mat.transparent = true;
+              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
+            }
+          });
+        });
+        meditationRoofsRef.current.forEach((roof) => {
+          const targetOpacity = inMeditation ? 0.08 : 1.0;
+          roof.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+              mat.transparent = true;
+              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
+            }
+          });
+        });
+        libraryRoofsRef.current.forEach((roof) => {
+          const targetOpacity = inLibrary ? 0.08 : 1.0;
+          roof.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+              mat.transparent = true;
+              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
+            }
+          });
+        });
+        bellRoofsRef.current.forEach((roof) => {
+          const targetOpacity = inBell ? 0.08 : 1.0;
           roof.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
               const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
@@ -1659,7 +2343,26 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         const pitch = cameraPitchRef.current; // ranges from -0.92 (looking up at sky/pagoda) to 0.95 (looking down)
         const yaw = cameraYawRef.current;
 
-        if (cameraModeRef.current === 'THIRD_PERSON') {
+        if (cameraModeRef.current === 'ON_RAINY_DAYS') {
+          // Dedicated High-Angle Top-Down View matching the "On Rainy Days" anime artwork
+          const targetCamX = -27.5;
+          const targetCamY = 16.8;
+          const targetCamZ = 36.05;
+
+          camera.position.x += (targetCamX - camera.position.x) * 0.08;
+          camera.position.y += (targetCamY - camera.position.y) * 0.08;
+          camera.position.z += (targetCamZ - camera.position.z) * 0.08;
+
+          const lookTargetX = -27.5;
+          const lookTargetY = 0.85;
+          const lookTargetZ = 36.0;
+
+          cameraLookAtRef.current.x += (lookTargetX - cameraLookAtRef.current.x) * 0.1;
+          cameraLookAtRef.current.y += (lookTargetY - cameraLookAtRef.current.y) * 0.1;
+          cameraLookAtRef.current.z += (lookTargetZ - cameraLookAtRef.current.z) * 0.1;
+
+          camera.lookAt(cameraLookAtRef.current);
+        } else if (cameraModeRef.current === 'THIRD_PERSON') {
           // Unit vector for camera forward look direction
           const forwardDirX = -Math.sin(yaw) * Math.cos(pitch);
           const forwardDirY = -Math.sin(pitch); // When pitch < 0, forwardDirY > 0 (points UP into the sky!)
@@ -1781,6 +2484,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         bG.rotation.z = Math.sin(stepCount * 0.02 + idx) * 0.05;
       });
 
+      // Vintage Fan Rotating Blades (On Rainy Days Deck)
+      if (fanBladesRef.current) {
+        fanBladesRef.current.rotation.z += 0.28;
+      }
+
       // Incense Smoke
       if (smokeParticlesRef.current) {
         const posAttr = smokeParticlesRef.current.geometry.attributes.position;
@@ -1833,6 +2541,110 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         ref={mountRef}
         className="w-full h-full block cursor-crosshair active:cursor-grabbing"
       />
+
+      {/* "ON RAINY DAYS" WATERCOLOR ANIME TITLE BADGE (MATCHING REFERENCE ARTWORK) */}
+      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
+        <div className="absolute top-5 left-6 z-30 pointer-events-auto select-none animate-fadeIn flex flex-col">
+          <span className="font-serif text-2xl sm:text-3xl font-light tracking-wide text-white/95 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] flex items-center gap-2">
+            <span>On Rainy Days</span>
+          </span>
+          <span className="text-[11px] sm:text-xs font-serif text-emerald-200/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)] tracking-wider">
+            Hiên Chiếu Tatami Ven Suối Ngọc · Thanh Tịnh Mùa Hạ
+          </span>
+          <button
+            onClick={() => soundEngine.toggleBGM()}
+            className="mt-1.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-400/60 backdrop-blur-md text-[11px] text-emerald-200 shadow-xl transition cursor-pointer self-start"
+            title="Bật/Tắt nhạc nền On Rainy Days"
+          >
+            <Music className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Nhạc thư giãn · On Rainy Days</span>
+          </button>
+        </div>
+      )}
+
+      {/* KOMOREBI FOLIAGE CANOPY OVERLAY (Lush translucent green leaves framing the scene) */}
+      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
+        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+          {/* Top-left leafy branch */}
+          <svg className="absolute -top-3 -left-3 w-48 sm:w-72 h-36 sm:h-56 opacity-85 transition-transform duration-1000 ease-in-out" viewBox="0 0 200 150" fill="none">
+            <path d="M-10,0 Q60,30 110,80 Q130,100 160,110" stroke="#14532d" strokeWidth="3" fill="none" opacity="0.6"/>
+            <ellipse cx="40" cy="25" rx="22" ry="12" fill="#22c55e" opacity="0.75" transform="rotate(25 40 25)"/>
+            <ellipse cx="65" cy="35" rx="24" ry="13" fill="#4ade80" opacity="0.85" transform="rotate(40 65 35)"/>
+            <ellipse cx="90" cy="55" rx="20" ry="11" fill="#16a34a" opacity="0.8" transform="rotate(50 90 55)"/>
+            <ellipse cx="115" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.85" transform="rotate(30 115 75)"/>
+            <ellipse cx="138" cy="95" rx="16" ry="9" fill="#22c55e" opacity="0.75" transform="rotate(65 138 95)"/>
+            <ellipse cx="30" cy="45" rx="18" ry="10" fill="#15803d" opacity="0.7" transform="rotate(10 30 45)"/>
+            <ellipse cx="70" cy="65" rx="22" ry="11" fill="#4ade80" opacity="0.8" transform="rotate(-15 70 65)"/>
+          </svg>
+
+          {/* Top-right leafy canopy */}
+          <svg className="absolute -top-3 -right-3 w-56 sm:w-80 h-40 sm:h-64 opacity-90 transition-transform duration-1000 ease-in-out" viewBox="0 0 220 160" fill="none">
+            <path d="M230,-10 Q160,40 100,70 Q60,90 20,105" stroke="#14532d" strokeWidth="3.5" fill="none" opacity="0.6"/>
+            <ellipse cx="180" cy="30" rx="26" ry="14" fill="#22c55e" opacity="0.85" transform="rotate(-30 180 30)"/>
+            <ellipse cx="145" cy="48" rx="24" ry="13" fill="#4ade80" opacity="0.9" transform="rotate(-45 145 48)"/>
+            <ellipse cx="110" cy="68" rx="22" ry="12" fill="#86efac" opacity="0.85" transform="rotate(-20 110 68)"/>
+            <ellipse cx="75" cy="88" rx="19" ry="10" fill="#16a34a" opacity="0.8" transform="rotate(-55 75 88)"/>
+            <ellipse cx="45" cy="100" rx="16" ry="9" fill="#4ade80" opacity="0.85" transform="rotate(-10 45 100)"/>
+            <ellipse cx="160" cy="70" rx="20" ry="11" fill="#15803d" opacity="0.75" transform="rotate(25 160 70)"/>
+            <ellipse cx="120" cy="95" rx="18" ry="10" fill="#22c55e" opacity="0.8" transform="rotate(-35 120 95)"/>
+          </svg>
+
+          {/* Bottom-right leafy cluster */}
+          <svg className="absolute -bottom-3 -right-3 w-48 sm:w-64 h-36 sm:h-52 opacity-85" viewBox="0 0 180 140" fill="none">
+            <ellipse cx="150" cy="110" rx="28" ry="15" fill="#16a34a" opacity="0.8" transform="rotate(15 150 110)"/>
+            <ellipse cx="120" cy="95" rx="24" ry="13" fill="#22c55e" opacity="0.85" transform="rotate(-25 120 95)"/>
+            <ellipse cx="95" cy="115" rx="20" ry="11" fill="#4ade80" opacity="0.9" transform="rotate(35 95 115)"/>
+            <ellipse cx="140" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.8" transform="rotate(-10 140 75)"/>
+          </svg>
+        </div>
+      )}
+
+      {/* ON RAINY DAYS INTERACTIVE POSE CONTROLLER */}
+      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
+        <div className="absolute top-18 sm:top-20 right-3 sm:right-6 z-30 pointer-events-auto flex items-center gap-1.5 bg-stone-900/92 backdrop-blur-md p-1.5 rounded-2xl border border-emerald-500/40 shadow-2xl">
+          <span className="text-[11px] font-serif text-emerald-300 px-2 font-bold hidden md:inline">Tư thế:</span>
+          <button
+            onClick={() => {
+              setMonkPose('LIE_DOWN');
+              monkPoseRef.current = 'LIE_DOWN';
+              playerPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
+              targetPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
+            }}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
+              monkPose === 'LIE_DOWN' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+            }`}
+            title="Nằm thảnh thơi dang rộng tay trên chiếu tatami như nhân vật trong tranh"
+          >
+            <span>🛌 Nằm dang tay</span>
+          </button>
+          <button
+            onClick={() => {
+              setMonkPose('SIT_EDGE');
+              monkPoseRef.current = 'SIT_EDGE';
+              playerPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
+              targetPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
+            }}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
+              monkPose === 'SIT_EDGE' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+            }`}
+            title="Ngồi ven hiên gỗ thả chân ngâm dòng suối trong vắt ngắm đàn cá bơi lội"
+          >
+            <span>🌊 Ngồi thả chân</span>
+          </button>
+          <button
+            onClick={() => {
+              setMonkPose('STAND');
+              monkPoseRef.current = 'STAND';
+            }}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
+              monkPose === 'STAND' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+            }`}
+            title="Đứng dậy bước đi dạo quanh khuôn viên chùa"
+          >
+            <span>🚶 Đứng</span>
+          </button>
+        </div>
+      )}
 
       {/* INDOOR SANCTUARY / ROOM BADGE */}
       {currentBuilding && (
@@ -1923,10 +2735,40 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         <button
           onClick={toggleCameraMode}
           className="px-3 py-2 rounded-2xl font-serif text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border backdrop-blur-md bg-stone-900/90 hover:bg-stone-800 text-amber-300 border-amber-500/30"
-          title="Chuyển đổi góc nhìn: Góc người thứ 3 (Thấy toàn cảnh xung quanh) / Góc từ trên xuống"
+          title="Chuyển đổi góc nhìn: Toàn Cảnh xung quanh / On Rainy Days (Nhìn từ trên xuống) / Góc Trên Cao"
         >
           <Layers className="w-3.5 h-3.5 text-amber-400" />
-          <span>{cameraMode === 'THIRD_PERSON' ? '🎥 Góc Toàn Cảnh' : '📐 Góc Trên Cao'}</span>
+          <span>{cameraMode === 'THIRD_PERSON' ? '🎥 Toàn Cảnh' : cameraMode === 'ON_RAINY_DAYS' ? '🍃 On Rainy Days' : '📐 Trên Cao'}</span>
+        </button>
+
+        {/* Dedicated "On Rainy Days" Aesthetic View Switcher */}
+        <button
+          onClick={() => {
+            if (cameraMode === 'ON_RAINY_DAYS') {
+              setCameraMode('THIRD_PERSON');
+              cameraModeRef.current = 'THIRD_PERSON';
+              cameraPitchRef.current = -0.12;
+              cameraDistRef.current = 6.5;
+            } else {
+              playerPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
+              targetPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
+              setCameraMode('ON_RAINY_DAYS');
+              cameraModeRef.current = 'ON_RAINY_DAYS';
+              setMonkPose('SIT_EDGE');
+              monkPoseRef.current = 'SIT_EDGE';
+              const pondZone = TEMPLE_ZONES.find((z) => z.id === 'pond') || TEMPLE_ZONES[4];
+              setCurrentZone(pondZone);
+              setZoneBanner(pondZone);
+            }
+          }}
+          className={`px-3 py-2 rounded-2xl font-serif text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border backdrop-blur-md ${
+            cameraMode === 'ON_RAINY_DAYS'
+              ? 'bg-emerald-600 text-white border-emerald-300 ring-2 ring-emerald-400/50'
+              : 'bg-stone-900/90 hover:bg-stone-800 text-emerald-300 border-emerald-500/40'
+          }`}
+          title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days' (Hiên gỗ tatami & suối ngọc mùa hè)"
+        >
+          <span>🍃 On Rainy Days</span>
         </button>
 
         {/* Quick Pitch Tilt Button (Look Up at Pagoda & Sky) */}
@@ -2960,7 +3802,7 @@ function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group {
 // Stylized 3D Monk Rig
 function createStylized3DMonk(character: CharacterAppearance) {
   const monkGroup = new THREE.Group();
-  monkGroup.position.set(0, 0.25, 80);
+  monkGroup.position.set(0, 0.42, 80);
 
   const robeColors: Record<string, number> = {
     brown: 0x6d3917,
@@ -3078,7 +3920,8 @@ function spawnLotusFootstep(
   scene: THREE.Scene,
   x: number,
   z: number,
-  footstepsRef: React.MutableRefObject<{ mesh: THREE.Mesh; life: number }[]>
+  footstepsRef: React.MutableRefObject<{ mesh: THREE.Mesh; life: number }[]>,
+  y: number = 0.42
 ) {
   const flower = new THREE.Mesh(
     new THREE.CircleGeometry(0.48, 8),
@@ -3091,7 +3934,7 @@ function spawnLotusFootstep(
     })
   );
   flower.rotateX(-Math.PI / 2);
-  flower.position.set(x, 0.32, z);
+  flower.position.set(x, y + 0.04, z);
   scene.add(flower);
   footstepsRef.current.push({ mesh: flower, life: 60 });
 }
