@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { soundEngine } from '../services/audioEngine';
+import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
 import { loadRealisticCharacter } from '../services/characterLoader';
 import {
@@ -713,6 +714,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   onAddMerit,
   spendStamina,
 }) => {
+  const graphicsQuality = useGameStore((state) => state.graphicsQuality);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [isTourPlaying, setIsTourPlaying] = useState<boolean>(false);
   const [currentZone, setCurrentZone] = useState<TempleZoneInfo>(TEMPLE_ZONES[0]);
@@ -1064,12 +1066,14 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     camera.position.set(0, 2.8, 86.5);
     cameraRef.current = camera;
 
-    // 3. Renderer with soft shadow maps and vibrant tone mapping
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    // 3. Renderer with optimized shadow maps and pixel ratio limit (1.0 - 1.25)
+    const isHighQuality = graphicsQuality === 'HIGH';
+    const maxPixelRatio = isHighQuality ? 1.25 : 1.0;
+    const renderer = new THREE.WebGLRenderer({ antialias: isHighQuality, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
+    renderer.shadowMap.enabled = isHighQuality;
+    renderer.shadowMap.type = THREE.PCFShadowMap; // Bỏ chữ soft (PCFSoftShadowMap -> PCFShadowMap)
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     rendererRef.current = renderer;
@@ -1090,9 +1094,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
     const sunLight = new THREE.DirectionalLight(0xffedd5, 1.95);
     sunLight.position.set(55, 95, 45);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
+    sunLight.castShadow = isHighQuality;
+    const shadowMapDim = isHighQuality ? 1024 : 512;
+    sunLight.shadow.mapSize.width = shadowMapDim;
+    sunLight.shadow.mapSize.height = shadowMapDim;
     sunLight.shadow.camera.near = 10;
     sunLight.shadow.camera.far = 300;
     sunLight.shadow.camera.left = -80;
@@ -2508,6 +2513,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
     };
     window.addEventListener('resize', handleResize);
 
@@ -2521,9 +2527,33 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
       renderer.domElement.removeEventListener('wheel', handleWheel);
+
+      // Giải phóng bộ nhớ RAM & VRAM: dispose toàn bộ Geometries, Materials và Textures khi unmount/chuyển cảnh
+      scene.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const mesh = obj as THREE.Mesh;
+          if (mesh.geometry) {
+            mesh.geometry.dispose();
+          }
+          if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+              mesh.material.forEach((mat) => {
+                const m = mat as THREE.Material & { map?: THREE.Texture };
+                if (m.map) m.map.dispose();
+                m.dispose();
+              });
+            } else {
+              const m = mesh.material as THREE.Material & { map?: THREE.Texture };
+              if (m.map) m.map.dispose();
+              m.dispose();
+            }
+          }
+        }
+      });
+      scene.clear();
       renderer.dispose();
     };
-  }, [handleFeedKoiFish, handleRingBell]);
+  }, [handleFeedKoiFish, handleRingBell, graphicsQuality]);
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-stone-950 font-sans">

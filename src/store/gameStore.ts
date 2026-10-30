@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PlayerStats, ZoneId, ZoneInfo, Quest, JournalEntry, CharacterAppearance } from '../types/game';
+import type { PlayerStats, ZoneId, ZoneInfo, Quest, JournalEntry, CharacterAppearance, GraphicsQuality } from '../types/game';
 import { soundEngine } from '../services/audioEngine';
 
 export const ZONES: Record<ZoneId, ZoneInfo> = {
@@ -138,6 +138,16 @@ export interface GameState {
   clickStreak: number;
   activeModal: 'dialogue' | 'dharma' | 'breathing' | 'sweep' | 'tea' | 'journal' | 'map' | 'guest' | 'character' | null;
 
+  // Graphics Settings
+  graphicsQuality: GraphicsQuality;
+  setGraphicsQuality: (quality: GraphicsQuality) => void;
+
+  // Quest & Knowledge Progress
+  questProgress: Record<string, { current: number; completed: boolean }>;
+  updateQuestProgress: (key: string, current: number, completed?: boolean) => void;
+  unlockedQuotes: string[];
+  addUnlockedQuote: (quote: string) => void;
+
   // Actions
   addCongDuc: (amount: number, reason?: string) => void;
   spendTamLuc: (amount: number) => boolean;
@@ -157,14 +167,15 @@ export interface GameState {
 }
 
 const STORAGE_KEY = 'tinh_tam_son_tu_save_v1';
+const LEGACY_STORAGE_KEY = 'tinh_tam_son_tu_fullscreen_v2';
 
 export const useGameStore = create<GameState>((set, get) => ({
   stats: {
-    congDuc: 0,
+    congDuc: 40,
     maxCongDucForLevel: 50,
     level: 1,
     title: 'Người Tập Sự',
-    tamLuc: 100,
+    tamLuc: 85,
     maxTamLuc: 100,
     dinhLuc: 20,
     tamSangBuff: false,
@@ -188,6 +199,51 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastActionTime: 0,
   clickStreak: 0,
   activeModal: null,
+
+  // Graphics setting default to HIGH with optimized PCF shadows
+  graphicsQuality: 'HIGH',
+  setGraphicsQuality: (quality: GraphicsQuality) => {
+    set({ graphicsQuality: quality });
+    get().saveToStorage();
+  },
+
+  // Quest progress tracking
+  questProgress: {
+    chop_wood: { current: 0, completed: false },
+    carry_water: { current: 0, completed: false },
+    clean_altar: { current: 0, completed: false },
+    charity_food: { current: 0, completed: false },
+    sweep_courtyard: { current: 0, completed: false },
+    guest_tea: { current: 0, completed: false },
+    dharma_meditate: { current: 0, completed: false },
+    feed_koi: { current: 0, completed: false },
+  },
+  updateQuestProgress: (key: string, current: number, completed?: boolean) => {
+    const { questProgress } = get();
+    set({
+      questProgress: {
+        ...questProgress,
+        [key]: {
+          current,
+          completed: completed !== undefined ? completed : current >= 5,
+        },
+      },
+    });
+    get().saveToStorage();
+  },
+
+  unlockedQuotes: [
+    'Bước chân chạm đất biết mình đang an, hơi thở vào ra biết lòng đang tịnh.',
+    'Một nhát chổi quét sân, một nhát chổi quét bụi trần trong tâm.',
+    'Tâm không dao động trước được - mất, khen - chê, đó là điềm lành lớn nhất.',
+  ],
+  addUnlockedQuote: (quote: string) => {
+    const { unlockedQuotes } = get();
+    if (!unlockedQuotes.includes(quote)) {
+      set({ unlockedQuotes: [quote, ...unlockedQuotes] });
+      get().saveToStorage();
+    }
+  },
 
   updateCharacter: (character: CharacterAppearance) => {
     const { stats } = get();
@@ -455,8 +511,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   saveToStorage: () => {
     try {
-      const { stats, quests, journal } = get();
-      const payload = { stats, quests, journal };
+      const { stats, quests, journal, graphicsQuality, questProgress, unlockedQuotes } = get();
+      const payload = { stats, quests, journal, graphicsQuality, questProgress, unlockedQuotes };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Ignore storage errors
@@ -465,19 +521,49 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   loadFromStorage: () => {
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
+      let data = localStorage.getItem(STORAGE_KEY);
+      if (!data) {
+        // Fallback check for legacy App.tsx save key
+        data = localStorage.getItem(LEGACY_STORAGE_KEY);
+      }
       if (data) {
         const parsed = JSON.parse(data);
-        if (parsed.stats && parsed.quests) {
-          set({
-            stats: parsed.stats,
-            quests: parsed.quests,
-            journal: parsed.journal || INITIAL_JOURNAL,
-          });
-        }
+        const current = get();
+        // Support both gameStore payload and legacy App.tsx payload
+        const char = parsed.character || parsed.stats?.character || current.stats.character;
+        const lvl = typeof parsed.level === 'number' ? parsed.level : (parsed.stats?.level ?? current.stats.level);
+        const merit = typeof parsed.merit === 'number' ? parsed.merit : (parsed.stats?.congDuc ?? current.stats.congDuc);
+        const stam = typeof parsed.stamina === 'number' ? parsed.stamina : (parsed.stats?.tamLuc ?? current.stats.tamLuc);
+
+        set({
+          stats: {
+            ...current.stats,
+            ...(parsed.stats || {}),
+            character: char,
+            level: lvl,
+            congDuc: merit,
+            tamLuc: stam,
+            maxCongDucForLevel: getMaxCongDuc(lvl),
+            title: getTitleForLevel(lvl),
+          },
+          quests: parsed.quests || current.quests,
+          journal: parsed.journal || current.journal,
+          graphicsQuality: parsed.graphicsQuality || current.graphicsQuality,
+          questProgress: parsed.questProgress || current.questProgress,
+          unlockedQuotes: parsed.unlockedQuotes || current.unlockedQuotes,
+        });
       }
     } catch {
       // Ignore parse errors
     }
   },
 }));
+
+// Automatically load from localStorage when running in browser
+if (typeof window !== 'undefined') {
+  try {
+    useGameStore.getState().loadFromStorage();
+  } catch {
+    // Ignore
+  }
+}

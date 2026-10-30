@@ -2,6 +2,8 @@ export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
 export type WeatherType = 'sunny' | 'misty' | 'rainy';
 
+export type GraphicsQuality = 'LOW' | 'HIGH';
+
 export type ZoneId = 'sanChua' | 'vuonTra' | 'chanhDien' | 'hoLienHoa' | 'nhaBep' | 'tangKinhCac';
 
 export type GenderType = 'male' | 'female';
