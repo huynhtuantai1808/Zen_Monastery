@@ -68,11 +68,10 @@ export const QuestBar: React.FC = () => {
               <div
                 key={q.id}
                 onClick={() => handleQuestClick(q)}
-                className={`p-2.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${
-                  q.completed
+                className={`p-2.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${q.completed
                     ? 'bg-emerald-950/25 border-emerald-500/30 text-purple-200/50 opacity-60'
                     : 'bg-purple-950/40 border-pink-400/25 hover:bg-purple-900/50 hover:border-pink-300 hover:shadow-[0_0_16px_rgba(244,114,182,0.25)] text-purple-100 hover:translate-x-1'
-                }`}
+                  }`}
               >
                 <div className="mt-0.5">
                   {q.completed ? (

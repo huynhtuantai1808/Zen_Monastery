@@ -46,7 +46,7 @@ export const HeaderHUD: React.FC = () => {
     <header className="absolute top-0 left-0 right-0 z-30 pointer-events-none p-2.5 sm:p-4 flex flex-col gap-2">
       {/* Top Bar Anime Glass Panel */}
       <div className="anime-glass-panel rounded-3xl px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-3 pointer-events-auto border border-pink-400/30">
-        
+
         {/* Left: Player Identity & Level (Anime Avatar Card) */}
         <div className="flex items-center gap-3">
           <div className="relative group">

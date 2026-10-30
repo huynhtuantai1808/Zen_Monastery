@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { soundEngine } from '../services/audioEngine';
 import type { CharacterAppearance } from '../types/game';
+import { loadRealisticCharacter } from '../services/characterLoader';
 import {
   Play,
   Pause,
@@ -799,6 +800,13 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const monkLeftArmRef = useRef<THREE.Group | null>(null);
   const monkRightArmRef = useRef<THREE.Group | null>(null);
 
+  // Realistic Skinned Character & Animation Refs
+  const charMixerRef = useRef<THREE.AnimationMixer | null>(null);
+  const charActionsRef = useRef<{ walk?: THREE.AnimationAction; idle?: THREE.AnimationAction; sit?: THREE.AnimationAction }>({});
+  const currentActionRef = useRef<string>('idle');
+  const realisticModelLoadedRef = useRef<boolean>(false);
+  const realisticModelRef = useRef<THREE.Group | null>(null);
+
   const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.42, z: 80 });
   const targetPosRef = useRef<{ x: number; y?: number; z: number } | null>({ x: 0, z: 66 });
   const walkPhaseRef = useRef<number>(0);
@@ -853,6 +861,39 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   useEffect(() => {
     cameraModeRef.current = cameraMode;
   }, [cameraMode]);
+
+  // Load / Reload Realistic Skinned 3D Character when customization changes
+  useEffect(() => {
+    if (!monkGroupRef.current) return;
+    let cancelled = false;
+
+    loadRealisticCharacter(character).then((rig) => {
+      if (cancelled) return;
+      charMixerRef.current = rig.mixer;
+      charActionsRef.current = rig.actions;
+      rig.actions.idle.play();
+      currentActionRef.current = 'idle';
+
+      // Hide procedural placeholder blocks
+      if (monkTorsoRef.current) monkTorsoRef.current.visible = false;
+      if (monkLeftLegRef.current) monkLeftLegRef.current.visible = false;
+      if (monkRightLegRef.current) monkRightLegRef.current.visible = false;
+
+      // Remove previous realistic model if any
+      if (realisticModelRef.current) {
+        monkGroupRef.current?.remove(realisticModelRef.current);
+      }
+      realisticModelRef.current = rig.modelGroup;
+      monkGroupRef.current?.add(rig.modelGroup);
+      realisticModelLoadedRef.current = true;
+    }).catch((err) => {
+      console.warn('Procedural fallback used:', err);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [character]);
 
   // Toggle Camera Mode: 3rd-Person Eye-Level vs On Rainy Days Top-Down vs Isometric
   const toggleCameraMode = () => {
@@ -1795,6 +1836,27 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     monkRightArmRef.current = monk.monkRightArm;
     scene.add(monk.monkGroup);
 
+    // Initial load of realistic 3D character
+    loadRealisticCharacter(character).then((rig) => {
+      charMixerRef.current = rig.mixer;
+      charActionsRef.current = rig.actions;
+      rig.actions.idle.play();
+      currentActionRef.current = 'idle';
+
+      if (monkTorsoRef.current) monkTorsoRef.current.visible = false;
+      if (monkLeftLegRef.current) monkLeftLegRef.current.visible = false;
+      if (monkRightLegRef.current) monkRightLegRef.current.visible = false;
+
+      if (realisticModelRef.current) {
+        monkGroupRef.current?.remove(realisticModelRef.current);
+      }
+      realisticModelRef.current = rig.modelGroup;
+      monk.monkGroup.add(rig.modelGroup);
+      realisticModelLoadedRef.current = true;
+    }).catch((err) => {
+      console.warn('Procedural fallback used:', err);
+    });
+
     // Puffy Cartoon Incense Smoke
     const smokeCount = 70;
     const smokeGeo = new THREE.BufferGeometry();
@@ -2107,40 +2169,63 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           currentP.y = targetFloorY;
         }
 
-        // Arm & Leg Walking Kinematics (Refined stylized natural monk stride)
-        const phase = walkPhaseRef.current;
-        if (isCurrentlyWalking) {
-          if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.x = Math.sin(phase) * 0.44;
-            monkRightLegRef.current.rotation.x = -Math.sin(phase) * 0.44;
+        // Realistic Human Animation vs Procedural Fallback
+        if (charMixerRef.current && realisticModelLoadedRef.current) {
+          let target = 'idle';
+          if (monkPoseRef.current === 'SIT_EDGE') {
+            target = 'sit';
+          } else if (isCurrentlyWalking) {
+            target = 'walk';
           }
-          if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.x = -Math.sin(phase) * 0.35;
-            monkRightArmRef.current.rotation.x = Math.sin(phase) * 0.35;
-            monkLeftArmRef.current.rotation.z = 0.04 + Math.abs(Math.sin(phase)) * 0.03;
-            monkRightArmRef.current.rotation.z = -0.04 - Math.abs(Math.sin(phase)) * 0.03;
+
+          if (target !== currentActionRef.current) {
+            const prevAction = charActionsRef.current[currentActionRef.current as keyof typeof charActionsRef.current];
+            const nextAction = charActionsRef.current[target as keyof typeof charActionsRef.current];
+            if (prevAction && nextAction) {
+              prevAction.fadeOut(0.2);
+              nextAction.reset().fadeIn(0.2).play();
+            } else if (nextAction) {
+              nextAction.reset().play();
+            }
+            currentActionRef.current = target;
           }
-          if (monkTorsoRef.current) {
-            // Torso bobs buoyant upward with each step, strictly above baseline
-            monkTorsoRef.current.position.y = 1.4 + Math.abs(Math.sin(phase)) * 0.042;
-            monkTorsoRef.current.rotation.y = Math.sin(phase) * 0.035;
-            monkTorsoRef.current.rotation.z = Math.sin(phase) * 0.02;
-          }
+
+          charMixerRef.current.update(0.016);
         } else {
-          if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.x += (0 - monkLeftLegRef.current.rotation.x) * 0.2;
-            monkRightLegRef.current.rotation.x += (0 - monkRightLegRef.current.rotation.x) * 0.2;
-          }
-          if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.x += (0 - monkLeftArmRef.current.rotation.x) * 0.2;
-            monkRightArmRef.current.rotation.x += (0 - monkRightArmRef.current.rotation.x) * 0.2;
-            monkLeftArmRef.current.rotation.z += (0 - monkLeftArmRef.current.rotation.z) * 0.2;
-            monkRightArmRef.current.rotation.z += (0 - monkRightArmRef.current.rotation.z) * 0.2;
-          }
-          if (monkTorsoRef.current) {
-            monkTorsoRef.current.position.y += (1.4 - monkTorsoRef.current.position.y) * 0.2;
-            monkTorsoRef.current.rotation.y += (0 - monkTorsoRef.current.rotation.y) * 0.2;
-            monkTorsoRef.current.rotation.z += (0 - monkTorsoRef.current.rotation.z) * 0.2;
+          // Procedural fallback animation while model loads
+          const phase = walkPhaseRef.current;
+          if (isCurrentlyWalking) {
+            if (monkLeftLegRef.current && monkRightLegRef.current) {
+              monkLeftLegRef.current.rotation.x = Math.sin(phase) * 0.44;
+              monkRightLegRef.current.rotation.x = -Math.sin(phase) * 0.44;
+            }
+            if (monkLeftArmRef.current && monkRightArmRef.current) {
+              monkLeftArmRef.current.rotation.x = -Math.sin(phase) * 0.35;
+              monkRightArmRef.current.rotation.x = Math.sin(phase) * 0.35;
+              monkLeftArmRef.current.rotation.z = 0.04 + Math.abs(Math.sin(phase)) * 0.03;
+              monkRightArmRef.current.rotation.z = -0.04 - Math.abs(Math.sin(phase)) * 0.03;
+            }
+            if (monkTorsoRef.current) {
+              monkTorsoRef.current.position.y = 1.4 + Math.abs(Math.sin(phase)) * 0.042;
+              monkTorsoRef.current.rotation.y = Math.sin(phase) * 0.035;
+              monkTorsoRef.current.rotation.z = Math.sin(phase) * 0.02;
+            }
+          } else {
+            if (monkLeftLegRef.current && monkRightLegRef.current) {
+              monkLeftLegRef.current.rotation.x += (0 - monkLeftLegRef.current.rotation.x) * 0.2;
+              monkRightLegRef.current.rotation.x += (0 - monkRightLegRef.current.rotation.x) * 0.2;
+            }
+            if (monkLeftArmRef.current && monkRightArmRef.current) {
+              monkLeftArmRef.current.rotation.x += (0 - monkLeftArmRef.current.rotation.x) * 0.2;
+              monkRightArmRef.current.rotation.x += (0 - monkRightArmRef.current.rotation.x) * 0.2;
+              monkLeftArmRef.current.rotation.z += (0 - monkLeftArmRef.current.rotation.z) * 0.2;
+              monkRightArmRef.current.rotation.z += (0 - monkRightArmRef.current.rotation.z) * 0.2;
+            }
+            if (monkTorsoRef.current) {
+              monkTorsoRef.current.position.y += (1.4 - monkTorsoRef.current.position.y) * 0.2;
+              monkTorsoRef.current.rotation.y += (0 - monkTorsoRef.current.rotation.y) * 0.2;
+              monkTorsoRef.current.rotation.z += (0 - monkTorsoRef.current.rotation.z) * 0.2;
+            }
           }
         }
 
