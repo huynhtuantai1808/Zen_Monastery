@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Sparkles,
   Sun,
@@ -1779,25 +1779,26 @@ export default function App() {
       )}
 
       {/* Modal Sổ Tay Tỉnh Thức */}
+      {/* Modal Sổ Tay Tỉnh Thức */}
       {showJournalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="zen-paper-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 relative flex flex-col border border-amber-500/50 shadow-2xl max-h-[85vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+          <div className="anime-paper-panel max-w-2xl w-full rounded-[32px] p-6 sm:p-8 relative flex flex-col border-2 border-pink-400/40 shadow-[0_20px_60px_rgba(244,114,182,0.25)] max-h-[85vh] overflow-hidden">
             <button
               onClick={() => setShowJournalModal(false)}
-              className="absolute top-5 right-5 text-stone-500 hover:text-stone-800 p-2 rounded-full cursor-pointer"
+              className="absolute top-5 right-5 text-purple-900/50 hover:text-pink-600 p-2.5 rounded-full hover:bg-pink-100 transition-colors cursor-pointer"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center gap-3 border-b border-amber-900/15 pb-4 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-200 flex items-center justify-center text-2xl text-amber-900">
+            <div className="flex items-center gap-3 border-b border-purple-200/60 pb-4 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-2xl text-white shadow-[0_4px_16px_rgba(244,114,182,0.4)] border border-white/50">
                 <BookOpen className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-heading text-xl font-bold text-stone-900">
+                <h3 className="font-heading text-xl font-black text-purple-950">
                   Sổ Tay Tỉnh Thức
                 </h3>
-                <p className="text-xs text-stone-600 font-serif">
+                <p className="text-xs text-purple-800/80 font-sans font-semibold">
                   Kho tàng pháp ngữ & các câu kệ ngộ đạo thu thập qua các buổi thính pháp.
                 </p>
               </div>
@@ -1807,9 +1808,9 @@ export default function App() {
               {unlockedQuotes.map((q, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300/80 text-xs text-stone-800 italic font-serif leading-relaxed shadow-sm flex items-start gap-2.5"
+                  className="p-3.5 rounded-2xl bg-white/80 border-2 border-pink-200/70 text-xs text-purple-950 italic font-serif leading-relaxed shadow-sm flex items-start gap-2.5 hover:bg-pink-50/70 transition-colors"
                 >
-                  <span className="text-amber-600 text-sm">📜</span>
+                  <span className="text-pink-500 text-sm">📜</span>
                   <span>&ldquo;{q}&rdquo;</span>
                 </div>
               ))}
@@ -1823,34 +1824,34 @@ export default function App() {
         {!showShaderControl ? (
           <button
             onClick={() => setShowShaderControl(true)}
-            className="px-3 py-1.5 rounded-xl bg-stone-900/80 hover:bg-stone-800 backdrop-blur-md border border-stone-700 text-xs text-stone-300 flex items-center gap-1.5 cursor-pointer font-serif shadow-lg"
+            className="px-3.5 py-2 rounded-2xl anime-glass-panel border border-pink-400/30 text-xs text-pink-200 hover:text-white flex items-center gap-2 cursor-pointer font-heading font-bold shadow-[0_4px_16px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform"
           >
-            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <Sliders className="w-3.5 h-3.5 text-pink-400" />
             <span>Test Shader Màu Nước</span>
           </button>
         ) : (
-          <div className="bg-stone-900/90 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 flex items-center gap-3 text-xs shadow-2xl">
-            <span className="font-serif text-stone-300">Cấp độ {effectiveLevel}:</span>
+          <div className="anime-glass-panel border border-pink-400/40 rounded-3xl p-3.5 flex items-center gap-3 text-xs shadow-2xl">
+            <span className="font-heading font-bold text-pink-200">Cấp độ {effectiveLevel}:</span>
             <input
               type="range"
               min={1}
               max={32}
               value={effectiveLevel}
               onChange={(e) => setPreviewLevelOverride(Number(e.target.value))}
-              className="w-28 accent-amber-400 cursor-pointer"
+              className="w-28 accent-pink-500 cursor-pointer"
             />
-            <span className="font-mono text-amber-300 text-[11px]">(Xám {grayscalePercent}%)</span>
+            <span className="font-mono text-pink-300 text-[11px] font-bold">(Xám {grayscalePercent}%)</span>
             {previewLevelOverride !== null && (
               <button
                 onClick={() => setPreviewLevelOverride(null)}
-                className="text-[10px] px-2 py-0.5 rounded bg-stone-800 text-stone-300 cursor-pointer"
+                className="text-[10px] px-2.5 py-1 rounded-xl bg-pink-500/20 text-pink-200 hover:bg-pink-500/40 cursor-pointer font-bold transition-colors"
               >
                 Reset
               </button>
             )}
             <button
               onClick={() => setShowShaderControl(false)}
-              className="text-stone-400 hover:text-stone-200 cursor-pointer ml-1"
+              className="text-purple-300 hover:text-white cursor-pointer ml-1 text-sm font-bold"
             >
               ✕
             </button>

@@ -14,15 +14,15 @@ const NAME_SUGGESTIONS_MALE = ['Tuệ Minh', 'Tịnh An', 'Chân Thiện', 'Minh
 const NAME_SUGGESTIONS_FEMALE = ['Diệu Tâm', 'Ngọc Tâm', 'Tịnh Như', 'Diệu Âm', 'Liên Hoa', 'Thanh Tịnh'];
 
 const ROBE_COLORS: { id: RobeColorType; name: string; hex: string; desc: string }[] = [
-  { id: 'lam', name: 'Áo Lam Thanh Tịnh', hex: '#3b82f6', desc: 'Sắc lam dịu mát của người cư sĩ tại gia' },
-  { id: 'nau', name: 'Nâu Sồng Đạm Bạc', hex: '#78350f', desc: 'Màu đất mộc mạc, nhẫn nại và khiêm cung' },
-  { id: 'xam', name: 'Xám Khói Thiền Môn', hex: '#57534e', desc: 'Sắc xám tĩnh lặng như sương sớm đỉnh núi' },
+  { id: 'lam', name: 'Lam Thanh Tịnh', hex: '#60a5fa', desc: 'Sắc lam anime dịu mát trẻ trung' },
+  { id: 'nau', name: 'Nâu Trầm Ấm', hex: '#92400e', desc: 'Màu đất mộc mạc, nhẫn nại và khiêm cung' },
+  { id: 'xam', name: 'Xám Khói Thiền Môn', hex: '#64748b', desc: 'Sắc xám tĩnh lặng như sương sớm đỉnh núi' },
   { id: 'bach', name: 'Bạch Y Thuần Khiết', hex: '#f8fafc', desc: 'Màu trắng thanh khiết, tâm không tì vết' },
 ];
 
 const HAIR_STYLES: { id: HairStyleType; name: string; icon: string }[] = [
-  { id: 'short', name: 'Tóc Ngắn Gọn Gàng', icon: '👦' },
-  { id: 'bun', name: 'Tóc Búi Thiền Môn', icon: '👱' },
+  { id: 'short', name: 'Tóc Ngắn Anime', icon: '👦' },
+  { id: 'bun', name: 'Tóc Búi Duyên Dáng', icon: '👱' },
   { id: 'shaved', name: 'Quy Y Thanh Tịnh', icon: '🧑‍🦲' },
 ];
 
@@ -69,52 +69,57 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
   const currentRobe = ROBE_COLORS.find((r) => r.id === character.robeColor) || ROBE_COLORS[0];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto">
-      <div className="zen-paper-panel max-w-4xl w-full rounded-3xl p-5 sm:p-8 relative flex flex-col border border-amber-500/50 shadow-2xl my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-xl overflow-y-auto">
+      <div className="anime-paper-panel max-w-4xl w-full rounded-[32px] p-5 sm:p-8 relative flex flex-col border-2 border-pink-400/40 shadow-[0_25px_60px_rgba(244,114,182,0.25)] my-auto">
         {!isFirstTime && (
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 text-stone-500 hover:text-stone-800 p-2 rounded-full cursor-pointer z-10"
+            className="absolute top-5 right-5 text-purple-900/50 hover:text-pink-600 p-2.5 rounded-full hover:bg-pink-100 transition-colors cursor-pointer z-10"
           >
             <X className="w-6 h-6" />
           </button>
         )}
 
-        {/* Header */}
+        {/* Anime Header Banner */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-serif font-bold uppercase tracking-wider mb-1.5 border border-amber-300">
-            <Sparkles className="w-3.5 h-3.5" /> {isFirstTime ? 'Khởi Duyên Tu Tập' : 'Tùy Biến Diện Mạo'}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500/15 via-purple-500/15 to-indigo-500/15 text-pink-700 text-xs font-heading font-black tracking-wider mb-2 border border-pink-400/40 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-spin-slow" /> {isFirstTime ? 'Khởi Tạo Nhân Vật • Anime Edition' : 'Tùy Biến Diện Mạo • Anime Edition'}
           </div>
-          <h2 className="font-heading text-2xl sm:text-3xl text-stone-900 font-extrabold tracking-wide">
-            {isFirstTime ? 'Tạo Nhân Vật Cư Sĩ' : 'Chỉnh Sửa Pháp Danh & Trang Phục'}
+          <h2 className="font-heading text-2xl sm:text-3xl text-purple-950 font-black tracking-tight">
+            {isFirstTime ? 'Thiết Kế Nhân Vật Anime' : 'Chỉnh Sửa Pháp Danh & Trang Phục'}
           </h2>
-          <p className="text-xs sm:text-sm text-stone-600 font-serif max-w-md mx-auto mt-1">
-            Chọn giới tính, pháp danh và y phục thanh tịnh trước khi bước chân lên cổng Chùa Vân Ẩn.
+          <p className="text-xs sm:text-sm text-purple-800/80 font-sans max-w-md mx-auto mt-1 font-semibold">
+            Chọn giới tính, pháp danh và phong cách thanh tịnh trước khi bước vào thế giới tu tập Chùa Vân Ẩn.
           </p>
         </div>
 
         {/* Main 2-Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          {/* Cột trái: Live Avatar Preview (5 cols) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center bg-gradient-to-b from-stone-900 via-stone-900/90 to-stone-950 p-6 rounded-3xl border border-amber-500/30 shadow-inner">
-            <div className="relative w-48 h-56 flex items-center justify-center">
-              {/* Aura Halo */}
-              <div className="absolute w-36 h-36 rounded-full bg-amber-500/20 blur-xl animate-pulse" />
+          {/* Cột trái: Live Anime Avatar Preview (5 cols) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center bg-gradient-to-b from-[#1c1335] via-[#150d2b] to-[#0c071d] p-6 rounded-[28px] border-2 border-pink-400/40 shadow-[0_12px_36px_rgba(236,72,153,0.3)] relative overflow-hidden">
+            {/* Anime Sparkles & Star Particles in Background */}
+            <div className="absolute top-3 left-4 text-pink-300 text-xs opacity-75 animate-bounce">✦</div>
+            <div className="absolute bottom-6 right-5 text-purple-300 text-xs opacity-75 animate-pulse">✦</div>
+            <div className="absolute top-10 right-8 text-amber-300 text-sm opacity-60">✧</div>
 
-              {/* Dynamic 2D SVG Character */}
-              <svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-2xl">
+            <div className="relative w-48 h-56 flex items-center justify-center">
+              {/* Anime Magic Circle Glow */}
+              <div className="absolute w-40 h-40 rounded-full bg-gradient-to-tr from-pink-500/30 to-purple-500/30 blur-2xl animate-pulse" />
+
+              {/* Dynamic 2D SVG Anime Character */}
+              <svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]">
                 {/* Shadow */}
-                <ellipse cx="80" cy="180" rx="45" ry="12" fill="rgba(0,0,0,0.4)" />
+                <ellipse cx="80" cy="182" rx="42" ry="10" fill="rgba(0,0,0,0.5)" />
 
                 {/* Robe Body */}
                 <path
-                  d="M50,110 L110,110 L125,175 L35,175 Z"
+                  d="M50,110 L110,110 L124,175 L36,175 Z"
                   fill={currentRobe.hex}
-                  stroke="#292524"
+                  stroke="#3b0764"
                   strokeWidth="2"
                 />
-                {/* Sash / Dây đai */}
-                <rect x="46" y="125" width="68" height="10" fill="#f59e0b" rx="2" />
+                {/* Sash / Dây đai vàng */}
+                <rect x="46" y="125" width="68" height="10" fill="#fbbf24" rx="3" />
 
                 {/* Shoulders */}
                 <path
@@ -126,93 +131,120 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                 <rect x="73" y="65" width="14" height="20" fill="#fed7aa" rx="4" />
                 <circle cx="80" cy="55" r="24" fill="#fed7aa" />
 
-                {/* Face details */}
-                {/* Eyes - Serene smile */}
-                <path d="M70,52 Q74,48 78,52" fill="none" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
-                <path d="M82,52 Q86,48 90,52" fill="none" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
-                {/* Gentle mouth smile */}
-                <path d="M76,64 Q80,68 84,64" fill="none" stroke="#9a3412" strokeWidth="1.5" strokeLinecap="round" />
+                {/* Anime Eyes with Highlights */}
+                {character.gender === 'female' ? (
+                  <g>
+                    {/* Big Anime Eyes */}
+                    <ellipse cx="73" cy="53" rx="5" ry="6" fill="#1e1b4b" />
+                    <ellipse cx="87" cy="53" rx="5" ry="6" fill="#1e1b4b" />
+                    {/* Highlights */}
+                    <circle cx="71.5" cy="51" r="1.8" fill="#ffffff" />
+                    <circle cx="85.5" cy="51" r="1.8" fill="#ffffff" />
+                    {/* Upper Lashes */}
+                    <path d="M67,49 Q73,46 78,50" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M82,50 Q87,46 93,49" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
+                    {/* Cute Blush */}
+                    <circle cx="68" cy="60" r="3.5" fill="#f43f5e" opacity="0.4" />
+                    <circle cx="92" cy="60" r="3.5" fill="#f43f5e" opacity="0.4" />
+                  </g>
+                ) : (
+                  <g>
+                    {/* Male Anime Eyes */}
+                    <ellipse cx="73" cy="53" rx="4.5" ry="5.5" fill="#0f172a" />
+                    <ellipse cx="87" cy="53" rx="4.5" ry="5.5" fill="#0f172a" />
+                    <circle cx="72" cy="51" r="1.5" fill="#ffffff" />
+                    <circle cx="86" cy="51" r="1.5" fill="#ffffff" />
+                    {/* Brows */}
+                    <path d="M68,47 Q73,45 78,48" fill="none" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M82,48 Q87,45 92,47" fill="none" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
+                  </g>
+                )}
+
+                {/* Cute smile */}
+                <path d="M77,65 Q80,68 83,65" fill="none" stroke="#e11d48" strokeWidth="1.8" strokeLinecap="round" />
 
                 {/* Hair styles */}
                 {character.hairStyle === 'short' && (
                   <path
-                    d="M56,50 Q80,25 104,50 Q98,35 80,32 Q62,35 56,50 Z"
-                    fill="#1c1917"
+                    d="M54,50 Q80,22 106,50 Q100,34 80,30 Q60,34 54,50 Z"
+                    fill="#180800"
                   />
                 )}
                 {character.hairStyle === 'bun' && (
                   <g>
                     <path
-                      d="M56,52 Q80,28 104,52 Q98,36 80,34 Q62,36 56,52 Z"
-                      fill="#1c1917"
+                      d="M54,52 Q80,26 106,52 Q100,34 80,31 Q60,34 54,52 Z"
+                      fill="#180800"
                     />
-                    {/* Búi tóc trên đỉnh đầu */}
-                    <circle cx="80" cy="26" r="10" fill="#1c1917" />
-                    <rect x="74" y="24" width="12" height="3" fill="#f59e0b" rx="1" />
+                    {/* Flowing side locks for anime female */}
+                    <path d="M56,54 Q50,72 54,88" fill="none" stroke="#180800" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M104,54 Q110,72 106,88" fill="none" stroke="#180800" strokeWidth="3" strokeLinecap="round" />
+                    {/* Búi tóc trên đỉnh đầu + ribbon */}
+                    <circle cx="80" cy="24" r="11" fill="#180800" />
+                    <rect x="74" y="22" width="12" height="4" fill="#f472b6" rx="2" />
                   </g>
                 )}
                 {character.hairStyle === 'shaved' && (
-                  <circle cx="80" cy="40" r="2.5" fill="#d97706" />
+                  <circle cx="80" cy="38" r="2.5" fill="#f59e0b" />
                 )}
 
                 {/* Accessories */}
                 {character.accessory === 'beads' && (
                   <g>
-                    {/* Chuỗi hạt vòng qua cổ */}
-                    <ellipse cx="80" cy="98" rx="22" ry="18" fill="none" stroke="#b45309" strokeWidth="3" strokeDasharray="3 3" />
-                    <circle cx="80" cy="116" r="4" fill="#f59e0b" />
+                    <ellipse cx="80" cy="98" rx="22" ry="18" fill="none" stroke="#92400e" strokeWidth="3" strokeDasharray="3 3" />
+                    <circle cx="80" cy="116" r="4.5" fill="#fbbf24" />
                   </g>
                 )}
                 {character.accessory === 'bag' && (
-                  <path d="M96,115 L120,135 L115,155 L90,135 Z" fill="#1e3a8a" opacity="0.9" />
+                  <path d="M96,115 L120,135 L115,155 L90,135 Z" fill="#6366f1" opacity="0.9" />
                 )}
                 {character.accessory === 'hat' && (
-                  <path d="M40,38 L80,10 L120,38 Z" fill="#fde047" stroke="#b45309" strokeWidth="1.5" opacity="0.9" />
+                  <path d="M40,36 L80,8 L120,36 Z" fill="#fde047" stroke="#b45309" strokeWidth="1.5" opacity="0.95" />
                 )}
               </svg>
             </div>
 
             <div className="mt-4 text-center">
-              <span className="text-lg font-bold text-amber-200 font-heading block">
+              <span className="text-xl font-black text-white font-heading block drop-shadow-[0_2px_8px_rgba(244,114,182,0.6)]">
                 {character.name || 'Cư Sĩ'}
               </span>
-              <span className="text-xs text-stone-400 font-serif">
-                {character.gender === 'male' ? 'Nam Cư Sĩ' : 'Nữ Cư Sĩ'} • {currentRobe.name}
+              <span className="text-xs text-pink-200/90 font-bold mt-0.5 inline-block px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40">
+                {character.gender === 'male' ? 'Nam Cư Sĩ 👦' : 'Nữ Cư Sĩ 👧'} • {currentRobe.name}
               </span>
             </div>
           </div>
 
           {/* Cột phải: Form tùy chọn (7 cols) */}
-          <div className="md:col-span-7 flex flex-col gap-4 max-h-[460px] overflow-y-auto pr-1">
+          <div className="md:col-span-7 flex flex-col gap-4 max-h-[480px] overflow-y-auto pr-2">
             {/* 1. Chọn Giới Tính */}
             <div>
-              <label className="text-xs font-serif font-bold text-amber-900 uppercase tracking-wider block mb-1.5">
-                1. Giới Tính:
+              <label className="text-xs font-heading font-black text-purple-950 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-pink-500 text-white inline-flex items-center justify-center text-[11px]">1</span> Giới Tính Nhân Vật:
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => handleGenderChange('male')}
-                  className={`p-3 rounded-2xl border flex items-center justify-center gap-2 font-serif text-sm transition cursor-pointer ${
+                  className={`p-3 rounded-2xl border-2 flex items-center justify-center gap-2 font-heading font-bold text-sm transition-all cursor-pointer ${
                     character.gender === 'male'
-                      ? 'bg-amber-600 text-white border-amber-500 shadow-md font-bold'
-                      : 'bg-white/80 text-stone-700 border-amber-900/15 hover:bg-amber-50'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-indigo-400 shadow-[0_6px_20px_rgba(99,102,241,0.4)] scale-[1.02]'
+                      : 'bg-white/80 text-purple-900 border-purple-200/80 hover:bg-purple-50'
                   }`}
                 >
-                  <span>👦</span>
+                  <span className="text-lg">👦</span>
                   <span>Nam Cư Sĩ</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleGenderChange('female')}
-                  className={`p-3 rounded-2xl border flex items-center justify-center gap-2 font-serif text-sm transition cursor-pointer ${
+                  className={`p-3 rounded-2xl border-2 flex items-center justify-center gap-2 font-heading font-bold text-sm transition-all cursor-pointer ${
                     character.gender === 'female'
-                      ? 'bg-amber-600 text-white border-amber-500 shadow-md font-bold'
-                      : 'bg-white/80 text-stone-700 border-amber-900/15 hover:bg-amber-50'
+                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white border-pink-400 shadow-[0_6px_20px_rgba(244,114,182,0.5)] scale-[1.02]'
+                      : 'bg-white/80 text-purple-900 border-purple-200/80 hover:bg-pink-50'
                   }`}
                 >
-                  <span>👧</span>
+                  <span className="text-lg">👧</span>
                   <span>Nữ Cư Sĩ</span>
                 </button>
               </div>
@@ -221,13 +253,13 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
             {/* 2. Pháp Danh / Tên */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-serif font-bold text-amber-900 uppercase tracking-wider">
-                  2. Pháp Danh / Tên Gọi:
+                <label className="text-xs font-heading font-black text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-purple-500 text-white inline-flex items-center justify-center text-[11px]">2</span> Pháp Danh / Tên Gọi:
                 </label>
                 <button
                   type="button"
                   onClick={handleRandomizeName}
-                  className="text-xs text-amber-800 hover:text-amber-950 font-serif flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-bold text-pink-600 hover:text-pink-800 flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg bg-pink-100 hover:bg-pink-200"
                 >
                   <Shuffle className="w-3.5 h-3.5" /> Chọn Ngẫu Nhiên
                 </button>
@@ -237,14 +269,14 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                 value={character.name}
                 onChange={(e) => setCharacter({ ...character, name: e.target.value })}
                 placeholder="Nhập pháp danh của bạn..."
-                className="w-full px-4 py-2.5 rounded-xl border border-amber-900/20 bg-white font-serif text-stone-900 focus:outline-none focus:border-amber-500 text-sm shadow-sm"
+                className="w-full px-4 py-2.5 rounded-2xl border-2 border-purple-200 bg-white font-sans font-bold text-purple-950 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-100 text-sm shadow-inner transition-all"
               />
             </div>
 
-            {/* 3. Màu Sắc Pháp Phục */}
+            {/* 3. Màu Sắc Y Phục */}
             <div>
-              <label className="text-xs font-serif font-bold text-amber-900 uppercase tracking-wider block mb-1.5">
-                3. Màu Y Phục Cư Sĩ:
+              <label className="text-xs font-heading font-black text-purple-950 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white inline-flex items-center justify-center text-[11px]">3</span> Màu Y Phục Anime:
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {ROBE_COLORS.map((r) => (
@@ -255,28 +287,28 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                       soundEngine.playWoodenFish();
                       setCharacter({ ...character, robeColor: r.id });
                     }}
-                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border-2 text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                       character.robeColor === r.id
-                        ? 'bg-amber-100/90 border-amber-500 ring-2 ring-amber-500/30'
-                        : 'bg-white/70 border-stone-200 hover:bg-amber-50/60'
+                        ? 'bg-purple-100/90 border-purple-500 ring-2 ring-pink-400/50 shadow-md scale-[1.02]'
+                        : 'bg-white/80 border-purple-100 hover:bg-purple-50'
                     }`}
                   >
                     <span
-                      className="w-5 h-5 rounded-full border border-stone-400 shrink-0"
+                      className="w-5 h-5 rounded-full border-2 border-white shadow-sm shrink-0"
                       style={{ backgroundColor: r.hex }}
                     />
                     <div className="min-w-0">
-                      <div className="text-xs font-serif font-bold text-stone-900 truncate">{r.name}</div>
+                      <div className="text-xs font-heading font-bold text-purple-950 truncate">{r.name}</div>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 4. Kiểu Tóc & Diện Mạo */}
+            {/* 4. Kiểu Tóc */}
             <div>
-              <label className="text-xs font-serif font-bold text-amber-900 uppercase tracking-wider block mb-1.5">
-                4. Kiểu Tóc & Diện Mạo:
+              <label className="text-xs font-heading font-black text-purple-950 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white inline-flex items-center justify-center text-[11px]">4</span> Kiểu Tóc & Diện Mạo:
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {HAIR_STYLES.map((h) => (
@@ -287,23 +319,23 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                       soundEngine.playWoodenFish();
                       setCharacter({ ...character, hairStyle: h.id });
                     }}
-                    className={`p-2.5 rounded-xl border text-center flex flex-col items-center gap-1 transition cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border-2 text-center flex flex-col items-center gap-1 transition-all cursor-pointer ${
                       character.hairStyle === h.id
-                        ? 'bg-amber-100/90 border-amber-500 font-bold'
-                        : 'bg-white/70 border-stone-200 hover:bg-amber-50/60'
+                        ? 'bg-pink-100/90 border-pink-500 font-black shadow-md scale-[1.02]'
+                        : 'bg-white/80 border-purple-100 hover:bg-purple-50'
                     }`}
                   >
                     <span className="text-xl">{h.icon}</span>
-                    <span className="text-[11px] font-serif text-stone-800">{h.name}</span>
+                    <span className="text-[11px] font-heading font-bold text-purple-950">{h.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 5. Pháp Bảo Tùy Thân (Accessory) */}
+            {/* 5. Pháp Bảo Tùy Thân */}
             <div>
-              <label className="text-xs font-serif font-bold text-amber-900 uppercase tracking-wider block mb-1.5">
-                5. Pháp Bảo Tùy Thân:
+              <label className="text-xs font-heading font-black text-purple-950 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white inline-flex items-center justify-center text-[11px]">5</span> Pháp Bảo Tùy Thân:
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {ACCESSORIES.map((acc) => (
@@ -314,16 +346,16 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                       soundEngine.playWoodenFish();
                       setCharacter({ ...character, accessory: acc.id });
                     }}
-                    className={`p-2.5 rounded-xl border text-left flex items-start gap-2 transition cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border-2 text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       character.accessory === acc.id
-                        ? 'bg-amber-100/90 border-amber-500 font-bold ring-2 ring-amber-500/20'
-                        : 'bg-white/70 border-stone-200 hover:bg-amber-50/60'
+                        ? 'bg-amber-100/90 border-amber-500 font-bold shadow-md ring-2 ring-amber-400/40 scale-[1.02]'
+                        : 'bg-white/80 border-purple-100 hover:bg-purple-50'
                     }`}
                   >
                     <span className="text-xl shrink-0">{acc.icon}</span>
                     <div>
-                      <div className="text-xs font-serif text-stone-900">{acc.name}</div>
-                      <div className="text-[10px] text-stone-500 font-serif leading-tight">{acc.desc}</div>
+                      <div className="text-xs font-heading font-bold text-purple-950">{acc.name}</div>
+                      <div className="text-[10px] text-purple-700 font-sans leading-tight mt-0.5">{acc.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -333,12 +365,12 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
         </div>
 
         {/* Footer Submit Button */}
-        <div className="mt-6 pt-4 border-t border-amber-900/15 flex justify-end gap-3">
+        <div className="mt-6 pt-4 border-t border-purple-200/60 flex justify-end gap-3">
           {!isFirstTime && (
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-100 font-serif text-sm cursor-pointer"
+              className="px-6 py-3 rounded-2xl border-2 border-purple-200 text-purple-800 hover:bg-purple-100 font-heading font-bold text-sm cursor-pointer transition-all"
             >
               Hủy Bỏ
             </button>
@@ -347,7 +379,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            className="zen-btn-gold px-8 py-3 rounded-xl font-serif font-bold text-base flex items-center gap-2 shadow-xl cursor-pointer"
+            className="zen-btn-gold px-8 py-3.5 rounded-2xl font-heading font-black text-base flex items-center gap-2.5 shadow-[0_6px_25px_rgba(244,114,182,0.5)] cursor-pointer"
           >
             <Check className="w-5 h-5" />
             <span>{isFirstTime ? 'Bắt Đầu Hành Trình Tu Tập' : 'Lưu Thay Đổi'}</span>

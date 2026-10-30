@@ -2656,30 +2656,30 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         </div>
       )}
 
-      {/* TOP BANNER: CURRENT TEMPLE ZONE NOTIFICATION */}
+      {/* TOP BANNER: CURRENT TEMPLE ZONE NOTIFICATION (ANIME STYLE) */}
       {zoneBanner && (
         <div className="absolute top-18 sm:top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto animate-fadeIn max-w-[92vw]">
-          <div className="bg-stone-950/92 backdrop-blur-xl border-2 border-amber-500/60 px-4 py-2 sm:px-6 sm:py-2.5 rounded-2xl shadow-2xl flex items-center gap-3">
-            <span className="text-2xl sm:text-3xl shrink-0 p-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40">
+          <div className="anime-glass-panel border-2 border-pink-400/60 px-4 py-2 sm:px-6 sm:py-2.5 rounded-[24px] shadow-[0_12px_36px_rgba(244,114,182,0.35)] flex items-center gap-3">
+            <span className="text-2xl sm:text-3xl shrink-0 p-1.5 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-400/40">
               {zoneBanner.icon}
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="font-heading font-bold text-amber-200 text-sm sm:text-base">
+                <MapPin className="w-4 h-4 text-pink-400 shrink-0" />
+                <span className="font-heading font-black text-white text-sm sm:text-base drop-shadow">
                   {zoneBanner.name}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-mono">
+                <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-200 border border-pink-400/30 text-[10px] font-mono font-bold">
                   {zoneBanner.dimensions}
                 </span>
               </div>
-              <div className="text-[11px] sm:text-xs text-stone-300 font-serif line-clamp-1">
+              <div className="text-[11px] sm:text-xs text-purple-200/90 font-sans font-medium line-clamp-1">
                 {zoneBanner.subtitle}
               </div>
             </div>
             <button
               onClick={() => setZoneBanner(null)}
-              className="text-stone-500 hover:text-stone-300 ml-2 text-xs p-1 cursor-pointer"
+              className="text-purple-300 hover:text-white ml-2 text-xs p-1 cursor-pointer font-bold"
             >
               ✕
             </button>
@@ -2687,14 +2687,14 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         </div>
       )}
 
-      {/* FLOATING ACTION BUTTONS WHEN IN ZONE */}
+      {/* FLOATING ACTION BUTTONS WHEN IN ZONE (ANIME GLOWING PROMPTS) */}
       {nearInteractions.length > 0 && (
         <div className="absolute bottom-26 sm:bottom-22 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center justify-center gap-2 max-w-[90vw]">
           {nearInteractions.map((act, i) => (
             <button
               key={i}
               onClick={act.action}
-              className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 font-serif font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 active:scale-95 transition cursor-pointer border-2 border-amber-300 animate-pulse hover:animate-none"
+              className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-heading font-black text-xs sm:text-sm shadow-[0_8px_25px_rgba(244,114,182,0.5)] flex items-center gap-2.5 active:scale-95 transition cursor-pointer border border-white/50 animate-bounce"
             >
               <span className="text-lg sm:text-xl">{act.icon}</span>
               <span>{act.title}</span>
@@ -2703,21 +2703,21 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         </div>
       )}
 
-      {/* TOP-LEFT CONTROLLER BAR (ISOMETRIC TOGGLE & TOUR) */}
+      {/* TOP-LEFT CONTROLLER BAR (ANIME GLASS STYLE) */}
       <div className="absolute top-18 sm:top-20 left-3 sm:left-6 z-30 pointer-events-auto flex items-center gap-2">
         <button
           onClick={toggleTour}
-          className={`px-3.5 py-2 rounded-2xl font-serif text-xs font-bold shadow-2xl flex items-center gap-2 transition-all cursor-pointer border ${
+          className={`px-3.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-2 transition-all cursor-pointer border ${
             isTourPlaying
-              ? 'bg-amber-500 text-stone-950 border-amber-300 ring-2 ring-amber-400/50'
-              : 'bg-stone-900/90 hover:bg-stone-800 text-amber-300 border-amber-500/40 backdrop-blur-md'
+              ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-300 ring-2 ring-pink-400/50 shadow-[0_0_18px_rgba(244,114,182,0.5)]'
+              : 'anime-glass-panel hover:bg-white/10 text-pink-200 border-pink-400/40 backdrop-blur-md'
           }`}
           title="Tự động dẫn nhân vật vãn cảnh qua 14 danh thắng chùa"
         >
-          {isTourPlaying ? <Pause className="w-4 h-4 text-stone-950 fill-current" /> : <Play className="w-4 h-4 text-amber-400 fill-current" />}
+          {isTourPlaying ? <Pause className="w-4 h-4 text-white fill-current" /> : <Play className="w-4 h-4 text-pink-400 fill-current" />}
           <span>{isTourPlaying ? 'Tạm Dừng Vãn Cảnh' : '14 Cảnh Sơn Tự'}</span>
           {isTourPlaying && (
-            <span className="px-1.5 py-0.5 rounded-full bg-stone-950/20 text-stone-950 text-[10px] font-mono">
+            <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-mono">
               {tourIndexRef.current + 1}/14
             </span>
           )}
@@ -2726,7 +2726,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         <button
           onClick={restartFromGate}
           title="Bắt đầu lại bước chân từ Cổng Chùa Tam Quan"
-          className="p-2 rounded-2xl bg-stone-900/90 hover:bg-stone-800 text-stone-300 hover:text-amber-300 border border-amber-500/30 backdrop-blur-md shadow-xl transition cursor-pointer"
+          className="p-2.5 rounded-2xl anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-pink-300 border border-pink-400/30 backdrop-blur-md shadow-xl transition cursor-pointer"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
@@ -2734,11 +2734,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         {/* Panoramic 3rd-Person vs Isometric Mode Switcher */}
         <button
           onClick={toggleCameraMode}
-          className="px-3 py-2 rounded-2xl font-serif text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border backdrop-blur-md bg-stone-900/90 hover:bg-stone-800 text-amber-300 border-amber-500/30"
-          title="Chuyển đổi góc nhìn: Toàn Cảnh xung quanh / On Rainy Days (Nhìn từ trên xuống) / Góc Trên Cao"
+          className="px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-white border-pink-400/30"
+          title="Chuyển đổi góc nhìn: Toàn Cảnh / On Rainy Days / Trên Cao"
         >
-          <Layers className="w-3.5 h-3.5 text-amber-400" />
-          <span>{cameraMode === 'THIRD_PERSON' ? '🎥 Toàn Cảnh' : cameraMode === 'ON_RAINY_DAYS' ? '🍃 On Rainy Days' : '📐 Trên Cao'}</span>
+          <Layers className="w-3.5 h-3.5 text-pink-400" />
+          <span>{cameraMode === 'THIRD_PERSON' ? '👁️ Toàn Cảnh' : cameraMode === 'ON_RAINY_DAYS' ? '🌧️ On Rainy Days' : '📐 Trên Cao'}</span>
         </button>
 
         {/* Dedicated "On Rainy Days" Aesthetic View Switcher */}
@@ -2761,41 +2761,40 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               setZoneBanner(pondZone);
             }
           }}
-          className={`px-3 py-2 rounded-2xl font-serif text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border backdrop-blur-md ${
+          className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${
             cameraMode === 'ON_RAINY_DAYS'
-              ? 'bg-emerald-600 text-white border-emerald-300 ring-2 ring-emerald-400/50'
-              : 'bg-stone-900/90 hover:bg-stone-800 text-emerald-300 border-emerald-500/40'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 ring-2 ring-emerald-400/50 shadow-[0_0_16px_rgba(52,211,153,0.5)]'
+              : 'anime-glass-panel hover:bg-white/10 text-emerald-300 border-emerald-500/40'
           }`}
-          title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days' (Hiên gỗ tatami & suối ngọc mùa hè)"
+          title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days'"
         >
-          <span>🍃 On Rainy Days</span>
+          <span>🌸 On Rainy Days</span>
         </button>
 
-        {/* Quick Pitch Tilt Button (Look Up at Pagoda & Sky) */}
+        {/* Quick Pitch Tilt Button */}
         <button
           onClick={() => {
-            // Toggle between looking up at the pagoda spire (-0.62) and horizontal view (-0.08)
             cameraPitchRef.current = cameraPitchRef.current < -0.3 ? -0.08 : -0.62;
           }}
-          className="px-2.5 py-2 rounded-2xl font-serif text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border backdrop-blur-md bg-stone-900/90 hover:bg-stone-800 text-amber-300 border-amber-500/30"
-          title="Bấm để ngước nhìn lên cao (ngắm tháp & mây trời) hoặc nhìn ngang"
+          className="px-2.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-white border-pink-400/30"
+          title="Bấm để ngước nhìn lên cao hoặc nhìn ngang"
         >
-          <span>🔭 Ngước Lên Trời</span>
+          <span>✨ Ngước Lên Trời</span>
         </button>
 
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-stone-900/90 border border-amber-500/30 backdrop-blur-md text-amber-300 text-xs font-serif shadow-xl">
-          <Eye className="w-3.5 h-3.5 text-amber-400" />
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl anime-glass-panel border border-pink-400/30 text-pink-200 text-xs font-sans font-bold shadow-xl">
+          <Eye className="w-3.5 h-3.5 text-pink-400" />
           <span>Click chuột để đi • Kéo xoay góc nhìn • Lăn chuột thu phóng</span>
         </div>
       </div>
 
-      {/* ON-SCREEN DIRECTIONAL D-PAD CONTROLLER */}
+      {/* ON-SCREEN DIRECTIONAL D-PAD CONTROLLER (ANIME GAMEPAD) */}
       <div className="absolute bottom-20 sm:bottom-18 left-3 sm:left-6 z-30 pointer-events-auto flex flex-col items-center">
         <button
           onPointerDown={() => handleDirectionStart('up')}
           onPointerUp={() => handleDirectionEnd('up')}
           onPointerLeave={() => handleDirectionEnd('up')}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-stone-900/90 hover:bg-stone-800 active:bg-amber-500 border border-amber-500/40 text-amber-300 active:text-stone-950 shadow-2xl flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
           title="Tiến thẳng theo hướng nhìn (W hoặc Mũi tên lên)"
         >
           <ChevronUp className="w-6 h-6" />
@@ -2806,21 +2805,21 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             onPointerDown={() => handleDirectionStart('left')}
             onPointerUp={() => handleDirectionEnd('left')}
             onPointerLeave={() => handleDirectionEnd('left')}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-stone-900/90 hover:bg-stone-800 active:bg-amber-500 border border-amber-500/40 text-amber-300 active:text-stone-950 shadow-2xl flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
             title="Rẽ trái (A hoặc Mũi tên trái)"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-950/80 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs sm:text-sm select-none shadow-inner" title="WASD / Phím Mũi Tên">
-            🪷
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-950/60 border border-pink-400/30 flex items-center justify-center text-pink-400 text-xs sm:text-sm select-none shadow-inner font-bold" title="WASD / Phím Mũi Tên">
+            ✦
           </div>
 
           <button
             onPointerDown={() => handleDirectionStart('right')}
             onPointerUp={() => handleDirectionEnd('right')}
             onPointerLeave={() => handleDirectionEnd('right')}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-stone-900/90 hover:bg-stone-800 active:bg-amber-500 border border-amber-500/40 text-amber-300 active:text-stone-950 shadow-2xl flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
             title="Rẽ phải (D hoặc Mũi tên phải)"
           >
             <ChevronRight className="w-6 h-6" />
@@ -2831,19 +2830,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           onPointerDown={() => handleDirectionStart('down')}
           onPointerUp={() => handleDirectionEnd('down')}
           onPointerLeave={() => handleDirectionEnd('down')}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-stone-900/90 hover:bg-stone-800 active:bg-amber-500 border border-amber-500/40 text-amber-300 active:text-stone-950 shadow-2xl flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
           title="Lùi lại (S hoặc Mũi tên xuống)"
         >
           <ChevronDown className="w-6 h-6" />
         </button>
       </div>
 
-      {/* BOTTOM DOCK: 14 ARCHITECTURAL ZONES DOCK */}
+      {/* BOTTOM DOCK: 14 ARCHITECTURAL ZONES DOCK (ANIME HORIZONTAL SCROLL) */}
       <div className="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 z-20 pointer-events-auto">
-        <div className="bg-stone-900/90 backdrop-blur-2xl border border-amber-500/40 p-2 sm:p-2.5 rounded-2xl shadow-2xl flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+        <div className="anime-glass-panel border border-pink-400/40 p-2 sm:p-2.5 rounded-[24px] shadow-2xl flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-xs font-serif font-bold text-amber-300 px-2 flex items-center gap-1 shrink-0 hidden md:flex">
-              <Footprints className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-heading font-black text-pink-300 px-2 flex items-center gap-1.5 shrink-0 hidden md:flex">
+              <Footprints className="w-4 h-4 text-pink-400" />
               <span>14 Cảnh Chùa:</span>
             </span>
 
@@ -2854,16 +2853,16 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
                   key={zone.id}
                   onClick={() => navigateToZone(zone)}
                   title={`${zone.name} (${zone.subtitle})`}
-                  className={`px-2.5 py-1.5 rounded-xl font-serif text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl font-heading text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
                     isHere
-                      ? 'bg-amber-500 text-stone-950 font-bold shadow-lg ring-2 ring-amber-300 scale-105'
-                      : 'bg-stone-950/70 hover:bg-stone-800 border border-stone-800 text-stone-300'
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black shadow-[0_0_15px_rgba(244,114,182,0.6)] border border-white/50 scale-105'
+                      : 'bg-purple-950/40 hover:bg-purple-900/50 border border-pink-400/20 text-purple-200 hover:text-white'
                   }`}
                 >
                   <span>{zone.icon}</span>
-                  <span className="text-[11px] hidden sm:inline">{zone.name.split('.')[1] || zone.name}</span>
+                  <span className="text-[11px] font-bold hidden sm:inline">{zone.name.split('.')[1] || zone.name}</span>
                   {idx < TEMPLE_ZONES.length - 1 && (
-                    <ChevronRight className="w-3 h-3 text-stone-500 hidden xl:inline" />
+                    <ChevronRight className="w-3 h-3 text-purple-400/40 hidden xl:inline" />
                   )}
                 </button>
               );
@@ -2874,8 +2873,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           <button
             onClick={() => setIsNightMode(!isNightMode)}
             title="Bật/Tắt chế độ Ánh Sáng Đèn Lồng Ban Đêm"
-            className={`p-2 rounded-xl text-xs font-serif transition cursor-pointer border shrink-0 ${
-              isNightMode ? 'bg-amber-500 text-stone-950 border-amber-300' : 'text-stone-300 hover:bg-stone-800 border-stone-800'
+            className={`p-2.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer border shrink-0 ${
+              isNightMode ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
             }`}
           >
             {isNightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -2885,7 +2884,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     </div>
   );
 };
-
 // ==========================================
 // STYLIZED 3D ASSET BUILDERS (FANTASY ZEN MONASTERY)
 // ==========================================

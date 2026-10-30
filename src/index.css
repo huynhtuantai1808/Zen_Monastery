@@ -1,30 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&family=Nunito:wght@400;600;700;800;900&family=Noto+Serif+JP:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Zen Color Palette */
-  --zen-bg: #0c0a09;
-  --zen-paper: #fbf7ee;
-  --zen-paper-dark: #1f1a16;
-  --zen-paper-warm: #f4ece1;
-  --zen-ink: #1a1614;
-  --zen-ink-light: #574e47;
-  --zen-amber: #d97706;
-  --zen-amber-glow: rgba(217, 119, 6, 0.35);
-  --zen-gold: #f59e0b;
-  --zen-bamboo: #3d6a45;
-  --zen-bamboo-light: #65a30d;
-  --zen-lotus: #e11d48;
-  --zen-lotus-soft: #f43f5e;
-  --zen-border: rgba(217, 119, 6, 0.25);
-  --zen-border-subtle: rgba(255, 255, 255, 0.1);
-  --zen-glass: rgba(24, 20, 17, 0.85);
-  --zen-glass-paper: rgba(251, 247, 238, 0.88);
+  /* Anime & Zen Pastel Aesthetic Palette */
+  --zen-bg: #090614;
+  --zen-paper: #fff5f7;
+  --zen-paper-dark: #161226;
+  --zen-paper-warm: #fdf2f4;
+  --zen-ink: #1e152f;
+  --zen-ink-light: #6e6485;
+  
+  /* Anime Colors */
+  --anime-pink: #f472b6;
+  --anime-pink-glow: rgba(244, 114, 182, 0.45);
+  --anime-rose: #fb7185;
+  --anime-purple: #c084fc;
+  --anime-purple-glow: rgba(192, 132, 252, 0.4);
+  --anime-indigo: #818cf8;
+  --anime-sky: #38bdf8;
+  --anime-emerald: #34d399;
+  --anime-gold: #fbbf24;
+  --anime-amber: #f59e0b;
+  --anime-amber-glow: rgba(245, 158, 11, 0.4);
+  
+  /* Glassmorphic Surfaces */
+  --zen-border: rgba(244, 114, 182, 0.3);
+  --zen-border-subtle: rgba(255, 255, 255, 0.15);
+  --zen-glass: rgba(15, 11, 30, 0.82);
+  --zen-glass-paper: rgba(255, 245, 248, 0.92);
   
   /* Fonts */
-  --font-heading: 'Cinzel', serif;
-  --font-serif: 'Noto Serif', serif;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'M PLUS Rounded 1c', 'Nunito', sans-serif;
+  --font-serif: 'Noto Serif JP', 'Nunito', serif;
+  --font-sans: 'Nunito', 'M PLUS Rounded 1c', sans-serif;
 }
 
 * {
@@ -37,8 +45,8 @@
 html, body {
   width: 100%;
   min-height: 100%;
-  background-color: #0c0a09;
-  color: #f3efe6;
+  background-color: #090614;
+  color: #fdf2f8;
   font-family: var(--font-sans);
   overflow-x: hidden;
 }
@@ -65,125 +73,161 @@ html, body {
   font-family: var(--font-sans);
 }
 
-/* Zen Glassmorphic Cards */
-.zen-glass-panel {
-  background: var(--zen-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--zen-border);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+/* Anime Glassmorphic Surfaces */
+.zen-glass-panel, .anime-glass-panel {
+  background: linear-gradient(135deg, rgba(23, 14, 43, 0.85) 0%, rgba(13, 9, 28, 0.88) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(244, 114, 182, 0.28);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 20px rgba(192, 132, 252, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
-.zen-paper-panel {
-  background: #fdfaf3;
-  color: #2b241d;
-  border: 1px solid rgba(138, 98, 59, 0.3);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(180, 140, 90, 0.08);
+.zen-paper-panel, .anime-paper-panel {
+  background: linear-gradient(135deg, #fff7fa 0%, #fdf2f8 100%);
+  color: #261933;
+  border: 1.5px solid rgba(244, 114, 182, 0.4);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 30px rgba(244, 114, 182, 0.15),
+    inset 0 0 20px rgba(255, 255, 255, 0.8);
 }
 
-/* Gold button */
-.zen-btn-gold {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  color: #fffaf0;
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
-  transition: all 0.25s ease;
-  font-family: var(--font-serif);
+/* Anime Glowing Buttons */
+.zen-btn-gold, .anime-btn-primary {
+  background: linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #818cf8 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 18px rgba(244, 114, 182, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: var(--font-heading);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
-.zen-btn-gold:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5);
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+.zen-btn-gold:hover, .anime-btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(244, 114, 182, 0.65), 0 0 15px rgba(192, 132, 252, 0.4);
+  background: linear-gradient(135deg, #fb7185 0%, #e879f9 50%, #a78bfa 100%);
 }
 
-.zen-btn-gold:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+.zen-btn-gold:active, .anime-btn-primary:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 10px rgba(244, 114, 182, 0.4);
 }
 
-.zen-btn-subtle {
+.zen-btn-subtle, .anime-btn-subtle {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #e5ded3;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f3e8ff;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.zen-btn-subtle:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(251, 191, 36, 0.4);
-  color: #fff;
+.zen-btn-subtle:hover, .anime-btn-subtle:hover {
+  background: rgba(244, 114, 182, 0.22);
+  border-color: rgba(244, 114, 182, 0.55);
+  color: #ffffff;
+  transform: translateY(-1.5px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(244, 114, 182, 0.35);
 }
 
-/* Animations */
-@keyframes zenPulse {
+/* Anime Glass Pill Badge */
+.anime-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Anime Stat Bar Highlight */
+.anime-stat-bar-track {
+  background: rgba(18, 12, 33, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.anime-stat-bar-shine {
+  position: relative;
+}
+.anime-stat-bar-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+/* Anime Animations */
+@keyframes animeGlowPulse {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.9;
+    box-shadow: 0 0 15px rgba(244, 114, 182, 0.4);
   }
   50% {
-    transform: scale(1.04);
-    opacity: 1;
-    filter: drop-shadow(0 0 16px var(--zen-amber-glow));
+    transform: scale(1.03);
+    box-shadow: 0 0 28px rgba(192, 132, 252, 0.7), 0 0 12px rgba(244, 114, 182, 0.9);
   }
 }
 
-@keyframes floatGentle {
+@keyframes animeFloat {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-6px) rotate(0.8deg);
   }
 }
 
-@keyframes breathExpand {
+@keyframes sakuraFall {
   0% {
-    transform: scale(0.65);
-    opacity: 0.6;
+    transform: translate(0, -10px) rotate(0deg) scale(0.9);
+    opacity: 0;
   }
-  50% {
-    transform: scale(1.15);
-    opacity: 1;
+  15% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.85;
   }
   100% {
-    transform: scale(0.65);
-    opacity: 0.6;
+    transform: translate(40px, 120px) rotate(220deg) scale(1);
+    opacity: 0;
   }
 }
 
-.animate-zen-pulse {
-  animation: zenPulse 3s infinite ease-in-out;
+.animate-anime-glow {
+  animation: animeGlowPulse 2.8s infinite ease-in-out;
 }
 
-.animate-float {
-  animation: floatGentle 4s infinite ease-in-out;
+.animate-anime-float {
+  animation: animeFloat 3.5s infinite ease-in-out;
 }
 
-/* Custom Scrollbar */
+/* Custom Anime Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(13, 9, 28, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(217, 119, 6, 0.4);
+  background: linear-gradient(180deg, #f472b6 0%, #c084fc 100%);
   border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(217, 119, 6, 0.7);
+  background: linear-gradient(180deg, #fb7185 0%, #a855f7 100%);
 }
-
-/* Watercolor texture overlay simulation */
-.watercolor-texture {
-  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 80%),
-                    repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 4px);
-}
-
