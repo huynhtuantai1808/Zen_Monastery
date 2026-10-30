@@ -3799,385 +3799,425 @@ function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group {
   return g;
 }
 
-// Casual Anime Character Rig v2 — proportions matching design sheet
+// ══════════════════════════════════════════════════════════════════════════════
+// Anime Cel-Shaded Character — MeshToonMaterial + canvas face texture
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** Build a tiny 4-stop gradient texture for MeshToonMaterial */
+function makeToonGradient(stops: [number, string][]): THREE.DataTexture {
+  const size = 256;
+  const data  = new Uint8Array(size * 4);
+  for (let i = 0; i < size; i++) {
+    const t = i / (size - 1);
+    let r = 0, g = 0, b = 0;
+    for (let s = stops.length - 1; s >= 0; s--) {
+      if (t >= stops[s][0]) {
+        const c = new THREE.Color(stops[s][1]);
+        r = Math.round(c.r * 255);
+        g = Math.round(c.g * 255);
+        b = Math.round(c.b * 255);
+        break;
+      }
+    }
+    data[i * 4]     = r;
+    data[i * 4 + 1] = g;
+    data[i * 4 + 2] = b;
+    data[i * 4 + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, size, 1);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Draw an anime face onto a CanvasTexture */
+function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
+  const W = 512, H = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Skin base
+  ctx.fillStyle = '#f2c49a';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Eyebrows ──────────────────────────────────────────────────────────────
+  ctx.strokeStyle = '#2a1a0a';
+  ctx.lineWidth   = isFemale ? 7 : 9;
+  ctx.lineCap     = 'round';
+
+  // Left brow
+  ctx.beginPath();
+  ctx.moveTo(130, isFemale ? 188 : 192);
+  ctx.quadraticCurveTo(168, isFemale ? 174 : 176, 210, isFemale ? 182 : 190);
+  ctx.stroke();
+  // Right brow
+  ctx.beginPath();
+  ctx.moveTo(302, isFemale ? 182 : 190);
+  ctx.quadraticCurveTo(344, isFemale ? 174 : 176, 382, isFemale ? 188 : 192);
+  ctx.stroke();
+
+  // ── Eyes ──────────────────────────────────────────────────────────────────
+  const eyeLX = 170, eyeRX = 342, eyeY = 240;
+  const eyeW = isFemale ? 72 : 66, eyeH = isFemale ? 56 : 50;
+
+  function drawEye(cx: number, cy: number) {
+    // White sclera
+    ctx.fillStyle   = '#ffffff';
+    ctx.strokeStyle = '#1a0a00';
+    ctx.lineWidth   = 3;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, eyeW / 2, eyeH / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Iris gradient
+    const grad = ctx.createRadialGradient(cx - 5, cy - 5, 2, cx, cy, eyeW * 0.38);
+    grad.addColorStop(0, isFemale ? '#8b6fb5' : '#3a7fd5');
+    grad.addColorStop(0.5, isFemale ? '#5b3f8a' : '#1a4a90');
+    grad.addColorStop(1, '#0a0820');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, eyeW * 0.40, eyeH * 0.46, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupil
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, eyeW * 0.20, eyeH * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main highlight (big)
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    ctx.ellipse(cx - eyeW * 0.14, cy - eyeH * 0.18, eyeW * 0.12, eyeH * 0.14, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    // Small highlight
+    ctx.beginPath();
+    ctx.ellipse(cx + eyeW * 0.16, cy + eyeH * 0.12, eyeW * 0.06, eyeH * 0.07, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Upper lash line
+    ctx.strokeStyle = '#0a0820';
+    ctx.lineWidth   = isFemale ? 5 : 4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - eyeH * 0.10, eyeW / 2 + 2, eyeH / 2, 0, Math.PI, Math.PI * 2);
+    ctx.stroke();
+
+    // Lower lash line (thinner)
+    ctx.strokeStyle = '#2a1a10';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + eyeH * 0.08, eyeW / 2, eyeH / 2 - 4, 0, 0, Math.PI);
+    ctx.stroke();
+  }
+
+  drawEye(eyeLX, eyeY);
+  drawEye(eyeRX, eyeY);
+
+  // ── Nose — minimal ────────────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(180,120,80,0.6)';
+  ctx.lineWidth   = 3;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(246, 290);
+  ctx.lineTo(240, 308);
+  ctx.lineTo(272, 308);
+  ctx.stroke();
+
+  // ── Mouth ─────────────────────────────────────────────────────────────────
+  ctx.strokeStyle = '#b06060';
+  ctx.lineWidth   = isFemale ? 3.5 : 4;
+  ctx.lineCap     = 'round';
+  // Upper lip bow
+  ctx.beginPath();
+  ctx.moveTo(208, 346);
+  ctx.quadraticCurveTo(256, 334, 304, 346);
+  ctx.stroke();
+  // Lower lip smile
+  ctx.beginPath();
+  ctx.moveTo(208, 346);
+  ctx.quadraticCurveTo(256, 372, 304, 346);
+  ctx.stroke();
+
+  // ── Female blush ──────────────────────────────────────────────────────────
+  if (isFemale) {
+    const blushGrad = (bx: number) => {
+      const g = ctx.createRadialGradient(bx, 292, 0, bx, 292, 40);
+      g.addColorStop(0, 'rgba(255,140,140,0.45)');
+      g.addColorStop(1, 'rgba(255,140,140,0.0)');
+      return g;
+    };
+    ctx.fillStyle = blushGrad(122);
+    ctx.fillRect(82, 252, 80, 80);
+    ctx.fillStyle = blushGrad(390);
+    ctx.fillRect(350, 252, 80, 80);
+  }
+
+  // ── Ear shadows (subtle) ──────────────────────────────────────────────────
+  ctx.fillStyle = 'rgba(200,150,100,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(40, 268, 22, 36, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(472, 268, 22, 36, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 function createStylized3DMonk(character: CharacterAppearance) {
   const monkGroup = new THREE.Group();
   monkGroup.position.set(0, 0.42, 80);
 
   const isFemale = character.gender === 'female';
 
+  // ── Toon gradient (3 shading levels) ────────────────────────────────────
+  const toonGrad = makeToonGradient([
+    [0.0, '#888888'],
+    [0.3, '#bbbbbb'],
+    [0.6, '#eeeeee'],
+    [1.0, '#ffffff'],
+  ]);
+
+  const toon = (hex: number, opts?: object) =>
+    new THREE.MeshToonMaterial({ color: hex, gradientMap: toonGrad, ...opts });
+
   // ── Materials ─────────────────────────────────────────────────────────────
-  const matSkin       = new THREE.MeshStandardMaterial({ color: 0xf0c8a0, roughness: 0.7 });
-  const matShirt      = new THREE.MeshStandardMaterial({ color: isFemale ? 0xfadde8 : 0xe8f0fe, roughness: 0.75 });
-  const matPants      = new THREE.MeshStandardMaterial({ color: isFemale ? 0x3d454f : 0x1e2836, roughness: 0.85 });
-  const matBelt       = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.8 });
-  const matBuckle     = new THREE.MeshStandardMaterial({ color: 0xc8a832, roughness: 0.3, metalness: 0.7 });
-  const matShoe       = new THREE.MeshStandardMaterial({ color: isFemale ? 0xeeeeee : 0x1a1a1a, roughness: 0.9 });
-  const matShoeSole   = new THREE.MeshStandardMaterial({ color: isFemale ? 0xcccccc : 0x0a0a0a, roughness: 1.0 });
-  const matHair       = new THREE.MeshStandardMaterial({ color: 0x180800, roughness: 0.85 });
-  const matEyeDark    = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.2, metalness: 0.1 });
-  const matEyeWhite   = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
-  const matLip        = new THREE.MeshStandardMaterial({ color: 0xd46060, roughness: 0.7 });
-  const matShoeAccent = new THREE.MeshStandardMaterial({ color: isFemale ? 0xffffff : 0x333333, roughness: 0.9 });
-  const matShirtInner = new THREE.MeshStandardMaterial({ color: isFemale ? 0xfce4ec : 0xf8fbff, roughness: 0.8 });
+  const matSkin      = toon(0xf5c8a0);
+  const matShirt     = toon(isFemale ? 0xfadde8 : 0xe6f0ff);
+  const matPants     = toon(isFemale ? 0x3d454f : 0x1a2333);
+  const matBelt      = toon(0x5c3317);
+  const matBuckle    = new THREE.MeshStandardMaterial({ color: 0xcca820, roughness: 0.2, metalness: 0.8 });
+  const matShoe      = toon(isFemale ? 0xeeeeee : 0x111111);
+  const matShoeSole  = toon(isFemale ? 0xbbbbbb : 0x050505);
+  const matHair      = toon(0x180800);
+  const matShirtInner= toon(isFemale ? 0xfce4ec : 0xf4f8ff);
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // ROOT — legs attach directly to monkGroup
-  // torso (monkTorso) also attaches to monkGroup
-  // Total height: legs ~1.55 + torso origin 0.78 + head ~0.62 ≈ 1.76 units
-  // ══════════════════════════════════════════════════════════════════════════
+  // Face texture
+  const faceTexture  = makeAnimeFaceTexture(isFemale);
+  const matFace      = new THREE.MeshToonMaterial({ map: faceTexture, gradientMap: toonGrad });
+  const matHeadBack  = toon(0xf5c8a0); // back of head, no texture
 
-  // ── LEFT LEG ──────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // LEGS — attach to monkGroup root
+  // ─────────────────────────────────────────────────────────────────────────
   const monkLeftLeg = new THREE.Group();
-  monkLeftLeg.position.set(-0.14, 0.76, 0);
+  monkLeftLeg.position.set(-0.135, 0.74, 0);
 
-  // Thigh
-  const leftThigh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.13, 0.115, 0.72, 10),
-    matPants
-  );
-  leftThigh.position.set(0, -0.36, 0);
+  const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.106, 0.70, 12), matPants);
+  leftThigh.position.set(0, -0.35, 0);
   monkLeftLeg.add(leftThigh);
 
-  // Shin
-  const leftShin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.11, 0.095, 0.65, 10),
-    matPants
-  );
-  leftShin.position.set(0, -0.885, 0);
+  const leftShin = new THREE.Mesh(new THREE.CylinderGeometry(0.100, 0.086, 0.62, 12), matPants);
+  leftShin.position.set(0, -0.85, 0);
   monkLeftLeg.add(leftShin);
 
-  // Sneaker body
-  const leftShoe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.18, 0.10, 0.40),
-    matShoe
-  );
-  leftShoe.position.set(0, -1.24, 0.07);
+  const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.165, 0.092, 0.38), matShoe);
+  leftShoe.position.set(0, -1.20, 0.065);
   monkLeftLeg.add(leftShoe);
 
-  // Sole
-  const leftSole = new THREE.Mesh(
-    new THREE.BoxGeometry(0.185, 0.035, 0.41),
-    matShoeSole
-  );
-  leftSole.position.set(0, -1.295, 0.07);
+  const leftSole = new THREE.Mesh(new THREE.BoxGeometry(0.170, 0.030, 0.39), matShoeSole);
+  leftSole.position.set(0, -1.250, 0.065);
   monkLeftLeg.add(leftSole);
-
-  // Accent stripe
-  const leftStripe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.185, 0.025, 0.30),
-    matShoeAccent
-  );
-  leftStripe.position.set(0, -1.21, 0.065);
-  monkLeftLeg.add(leftStripe);
 
   monkGroup.add(monkLeftLeg);
 
-  // ── RIGHT LEG ─────────────────────────────────────────────────────────────
   const monkRightLeg = new THREE.Group();
-  monkRightLeg.position.set(0.14, 0.76, 0);
+  monkRightLeg.position.set(0.135, 0.74, 0);
 
-  const rightThigh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.13, 0.115, 0.72, 10),
-    matPants
-  );
-  rightThigh.position.set(0, -0.36, 0);
+  const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.106, 0.70, 12), matPants);
+  rightThigh.position.set(0, -0.35, 0);
   monkRightLeg.add(rightThigh);
 
-  const rightShin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.11, 0.095, 0.65, 10),
-    matPants
-  );
-  rightShin.position.set(0, -0.885, 0);
+  const rightShin = new THREE.Mesh(new THREE.CylinderGeometry(0.100, 0.086, 0.62, 12), matPants);
+  rightShin.position.set(0, -0.85, 0);
   monkRightLeg.add(rightShin);
 
-  const rightShoe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.18, 0.10, 0.40),
-    matShoe
-  );
-  rightShoe.position.set(0, -1.24, 0.07);
+  const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.165, 0.092, 0.38), matShoe);
+  rightShoe.position.set(0, -1.20, 0.065);
   monkRightLeg.add(rightShoe);
 
-  const rightSole = new THREE.Mesh(
-    new THREE.BoxGeometry(0.185, 0.035, 0.41),
-    matShoeSole
-  );
-  rightSole.position.set(0, -1.295, 0.07);
+  const rightSole = new THREE.Mesh(new THREE.BoxGeometry(0.170, 0.030, 0.39), matShoeSole);
+  rightSole.position.set(0, -1.250, 0.065);
   monkRightLeg.add(rightSole);
-
-  const rightStripe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.185, 0.025, 0.30),
-    matShoeAccent
-  );
-  rightStripe.position.set(0, -1.21, 0.065);
-  monkRightLeg.add(rightStripe);
 
   monkGroup.add(monkRightLeg);
 
-  // ── TORSO GROUP ───────────────────────────────────────────────────────────
-  // Position at hip height — legs end ~0.76 - 0 = 0.76, shirt starts here
+  // ─────────────────────────────────────────────────────────────────────────
+  // TORSO
+  // ─────────────────────────────────────────────────────────────────────────
   const monkTorso = new THREE.Group();
-  monkTorso.position.set(0, 1.34, 0);
+  monkTorso.position.set(0, 1.30, 0);
 
-  // Shirt body — slimmer anime proportions
-  const torsoBody = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.30, 0.26, 0.95, 12),
-    matShirt
-  );
-  torsoBody.position.set(0, 0, 0);
+  // Main shirt — slightly tapered
+  const torsoBody = new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.235, 0.88, 14), matShirt);
   monkTorso.add(torsoBody);
 
-  // Shirt placket / button strip (front vertical line)
-  const placket = new THREE.Mesh(
-    new THREE.BoxGeometry(0.055, 0.82, 0.04),
-    matShirtInner
-  );
-  placket.position.set(0, 0.04, 0.285);
+  // Shirt placket strip (front buttons visual)
+  const placket = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.76, 0.036), matShirtInner);
+  placket.position.set(0, 0.03, 0.258);
   monkTorso.add(placket);
 
-  // Collar left flap
-  const collarL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.22, 0.05), matShirt);
-  collarL.position.set(-0.06, 0.47, 0.265);
-  collarL.rotation.z = 0.28;
-  monkTorso.add(collarL);
-
-  // Collar right flap
-  const collarR = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.22, 0.05), matShirt);
-  collarR.position.set(0.06, 0.47, 0.265);
-  collarR.rotation.z = -0.28;
-  monkTorso.add(collarR);
+  // Collar left
+  const colL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.20, 0.04), matShirt);
+  colL.position.set(-0.055, 0.44, 0.240); colL.rotation.z = 0.30;
+  monkTorso.add(colL);
+  // Collar right
+  const colR = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.20, 0.04), matShirt);
+  colR.position.set(0.055, 0.44, 0.240); colR.rotation.z = -0.30;
+  monkTorso.add(colR);
 
   // Belt
-  const beltMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.268, 0.268, 0.075, 16),
-    matBelt
-  );
-  beltMesh.position.set(0, -0.39, 0);
-  monkTorso.add(beltMesh);
+  const beltM = new THREE.Mesh(new THREE.CylinderGeometry(0.243, 0.243, 0.065, 16), matBelt);
+  beltM.position.set(0, -0.37, 0);
+  monkTorso.add(beltM);
 
-  // Belt buckle
-  const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.075, 0.04), matBuckle);
-  buckle.position.set(0, -0.39, 0.27);
+  // Buckle
+  const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.065, 0.036), matBuckle);
+  buckle.position.set(0, -0.37, 0.246);
   monkTorso.add(buckle);
 
-  // ── LEFT ARM — hang naturally at side, slight forward angle ───────────────
+  // ── LEFT ARM ─────────────────────────────────────────────────────────────
   const monkLeftArm = new THREE.Group();
-  // Shoulder pivot: at top of torso, close to body
-  monkLeftArm.position.set(-0.33, 0.38, 0);
-  // Tilt arm slightly away from body
-  monkLeftArm.rotation.z = 0.18;
+  monkLeftArm.position.set(-0.305, 0.355, 0);
+  monkLeftArm.rotation.z = 0.16; // slight outward splay
 
-  // Upper arm (shirt sleeve)
-  const leftUpperArm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.105, 0.095, 0.54, 10),
-    matShirt
-  );
-  leftUpperArm.position.set(0, -0.27, 0);
-  monkLeftArm.add(leftUpperArm);
+  const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.094, 0.086, 0.50, 10), matShirt);
+  lUpperArm.position.set(0, -0.25, 0);
+  monkLeftArm.add(lUpperArm);
 
-  // Rolled cuff band
-  const leftCuff = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.098, 0.098, 0.055, 10),
-    matShirtInner
-  );
-  leftCuff.position.set(0, -0.565, 0);
-  monkLeftArm.add(leftCuff);
+  const lCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.088, 0.048, 10), matShirtInner);
+  lCuff.position.set(0, -0.524, 0);
+  monkLeftArm.add(lCuff);
 
-  // Forearm (skin — rolled sleeve)
-  const leftForearm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.090, 0.078, 0.46, 10),
-    matSkin
-  );
-  leftForearm.position.set(0, -0.84, 0);
-  monkLeftArm.add(leftForearm);
+  const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.080, 0.068, 0.44, 10), matSkin);
+  lForearm.position.set(0, -0.786, 0);
+  monkLeftArm.add(lForearm);
 
-  // Hand
-  const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 8), matSkin);
-  leftHand.scale.set(0.95, 0.80, 0.70);
-  leftHand.position.set(0, -1.09, 0);
-  monkLeftArm.add(leftHand);
+  const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.076, 10, 10), matSkin);
+  lHand.scale.set(0.9, 0.76, 0.68);
+  lHand.position.set(0, -1.022, 0);
+  monkLeftArm.add(lHand);
 
   monkTorso.add(monkLeftArm);
 
-  // ── RIGHT ARM ─────────────────────────────────────────────────────────────
+  // ── RIGHT ARM ────────────────────────────────────────────────────────────
   const monkRightArm = new THREE.Group();
-  monkRightArm.position.set(0.33, 0.38, 0);
-  monkRightArm.rotation.z = -0.18;
+  monkRightArm.position.set(0.305, 0.355, 0);
+  monkRightArm.rotation.z = -0.16;
 
-  const rightUpperArm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.105, 0.095, 0.54, 10),
-    matShirt
-  );
-  rightUpperArm.position.set(0, -0.27, 0);
-  monkRightArm.add(rightUpperArm);
+  const rUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.094, 0.086, 0.50, 10), matShirt);
+  rUpperArm.position.set(0, -0.25, 0);
+  monkRightArm.add(rUpperArm);
 
-  const rightCuff = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.098, 0.098, 0.055, 10),
-    matShirtInner
-  );
-  rightCuff.position.set(0, -0.565, 0);
-  monkRightArm.add(rightCuff);
+  const rCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.088, 0.048, 10), matShirtInner);
+  rCuff.position.set(0, -0.524, 0);
+  monkRightArm.add(rCuff);
 
-  const rightForearm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.090, 0.078, 0.46, 10),
-    matSkin
-  );
-  rightForearm.position.set(0, -0.84, 0);
-  monkRightArm.add(rightForearm);
+  const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.080, 0.068, 0.44, 10), matSkin);
+  rForearm.position.set(0, -0.786, 0);
+  monkRightArm.add(rForearm);
 
-  const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 8), matSkin);
-  rightHand.scale.set(0.95, 0.80, 0.70);
-  rightHand.position.set(0, -1.09, 0);
-  monkRightArm.add(rightHand);
+  const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.076, 10, 10), matSkin);
+  rHand.scale.set(0.9, 0.76, 0.68);
+  rHand.position.set(0, -1.022, 0);
+  monkRightArm.add(rHand);
 
   monkTorso.add(monkRightArm);
 
-  // ── HEAD GROUP ────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // HEAD
+  // ─────────────────────────────────────────────────────────────────────────
   const monkHead = new THREE.Group();
-  monkHead.position.set(0, 0.60, 0);
+  monkHead.position.set(0, 0.565, 0);
 
   // Neck
-  const neckMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.095, 0.115, 0.18, 10),
-    matSkin
-  );
-  neckMesh.position.set(0, -0.09, 0);
-  monkHead.add(neckMesh);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.105, 0.16, 10), matSkin);
+  neck.position.set(0, -0.08, 0);
+  monkHead.add(neck);
 
-  // Head — anime proportion: slightly wider than tall, pointy chin
-  const headBase = new THREE.Mesh(new THREE.SphereGeometry(0.30, 16, 16), matSkin);
-  headBase.scale.set(1.0, 1.10, 0.92);
-  headBase.position.set(0, 0.18, 0);
-  monkHead.add(headBase);
+  // Head — use hemisphere trick: front = face texture, back = skin colour
+  // Front face sphere (slightly forward-offset, face UV)
+  const faceGeo  = new THREE.SphereGeometry(0.275, 20, 20, 0, Math.PI * 2, 0, Math.PI);
+  const faceMesh = new THREE.Mesh(faceGeo, [matFace, matHeadBack]);
+  faceMesh.position.set(0, 0.185, 0);
+  faceMesh.scale.set(1.0, 1.12, 0.90); // oval anime head
+  monkHead.add(faceMesh);
 
   // Chin taper
-  const chinMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.08, 0.20, 12),
-    matSkin
-  );
-  chinMesh.position.set(0, 0.00, 0);
+  const chinGeo  = new THREE.CylinderGeometry(0.175, 0.065, 0.18, 12);
+  const chinMesh = new THREE.Mesh(chinGeo, matHeadBack);
+  chinMesh.position.set(0, 0.055, 0);
   monkHead.add(chinMesh);
 
-  // ── Eyes (anime large) ───────────────────────────────────────────────────
-  const eyeW = new THREE.SphereGeometry(0.058, 10, 10);
-  const eyeI = new THREE.SphereGeometry(0.040, 10, 10);
-  const eyeHL= new THREE.SphereGeometry(0.016, 6, 6); // highlight
+  // Ear L
+  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.060, 8, 8), matSkin);
+  earL.scale.set(0.55, 0.75, 0.50);
+  earL.position.set(-0.275, 0.185, 0);
+  monkHead.add(earL);
+  // Ear R
+  const earR = new THREE.Mesh(new THREE.SphereGeometry(0.060, 8, 8), matSkin);
+  earR.scale.set(0.55, 0.75, 0.50);
+  earR.position.set(0.275, 0.185, 0);
+  monkHead.add(earR);
 
-  const matEyeHL = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.0, metalness: 0.2 });
-
-  const eyeLW = new THREE.Mesh(eyeW, matEyeWhite);
-  eyeLW.scale.set(1.0, 1.3, 0.6);
-  eyeLW.position.set(-0.108, 0.22, 0.263);
-  monkHead.add(eyeLW);
-
-  const eyeRW = new THREE.Mesh(eyeW, matEyeWhite);
-  eyeRW.scale.set(1.0, 1.3, 0.6);
-  eyeRW.position.set(0.108, 0.22, 0.263);
-  monkHead.add(eyeRW);
-
-  const irisL = new THREE.Mesh(eyeI, matEyeDark);
-  irisL.scale.set(1.0, 1.3, 0.6);
-  irisL.position.set(-0.108, 0.22, 0.278);
-  monkHead.add(irisL);
-
-  const irisR = new THREE.Mesh(eyeI, matEyeDark);
-  irisR.scale.set(1.0, 1.3, 0.6);
-  irisR.position.set(0.108, 0.22, 0.278);
-  monkHead.add(irisR);
-
-  // Eye highlights
-  const hlL = new THREE.Mesh(eyeHL, matEyeHL);
-  hlL.position.set(-0.096, 0.232, 0.288);
-  monkHead.add(hlL);
-  const hlR = new THREE.Mesh(eyeHL, matEyeHL);
-  hlR.position.set(0.096, 0.232, 0.288);
-  monkHead.add(hlR);
-
-  // Nose — subtle point
-  const noseMesh = new THREE.Mesh(new THREE.SphereGeometry(0.026, 6, 6), matSkin);
-  noseMesh.scale.set(1.2, 0.7, 1.0);
-  noseMesh.position.set(0, 0.10, 0.290);
-  monkHead.add(noseMesh);
-
-  // Lips
-  const lipUpper = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.026, 0.025), matLip);
-  lipUpper.position.set(0, 0.035, 0.286);
-  monkHead.add(lipUpper);
-  const lipLower = new THREE.Mesh(new THREE.BoxGeometry(0.070, 0.022, 0.025), matLip);
-  lipLower.position.set(0, 0.010, 0.286);
-  monkHead.add(lipLower);
-
-  // ── HAIR ──────────────────────────────────────────────────────────────────
+  // ── HAIR ─────────────────────────────────────────────────────────────────
   if (isFemale) {
-    // Crown cap
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.315, 12, 12), matHair);
-    hairCap.scale.set(1.02, 0.68, 1.0);
-    hairCap.position.set(0, 0.34, -0.015);
+    // Crown
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.292, 14, 14), matHair);
+    hairCap.scale.set(1.04, 0.64, 1.02);
+    hairCap.position.set(0, 0.305, -0.010);
     monkHead.add(hairCap);
 
-    // Centre parting bump
-    const hairPart = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 8), matHair);
-    hairPart.scale.set(0.5, 0.35, 1.2);
-    hairPart.position.set(0, 0.42, 0.10);
-    monkHead.add(hairPart);
+    // Side strands (frame face)
+    const sidGeo = new THREE.CylinderGeometry(0.062, 0.042, 0.58, 8);
+    const hSL = new THREE.Mesh(sidGeo, matHair);
+    hSL.position.set(-0.255, 0.05, 0.05); hSL.rotation.z = 0.14;
+    monkHead.add(hSL);
+    const hSR = new THREE.Mesh(sidGeo, matHair);
+    hSR.position.set(0.255, 0.05, 0.05); hSR.rotation.z = -0.14;
+    monkHead.add(hSR);
 
-    // Side strands
-    const hairSideGeom = new THREE.CylinderGeometry(0.072, 0.048, 0.64, 8);
-    const hairSL = new THREE.Mesh(hairSideGeom, matHair);
-    hairSL.position.set(-0.285, 0.04, 0.0);
-    hairSL.rotation.z = 0.15;
-    monkHead.add(hairSL);
-    const hairSR = new THREE.Mesh(hairSideGeom, matHair);
-    hairSR.position.set(0.285, 0.04, 0.0);
-    hairSR.rotation.z = -0.15;
-    monkHead.add(hairSR);
+    // Back long flow
+    const hBack = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.110, 0.88, 10), matHair);
+    hBack.position.set(0, -0.28, -0.145); hBack.rotation.x = 0.14;
+    monkHead.add(hBack);
 
-    // Back flow — long hanging
-    const hairBack1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.190, 0.120, 0.96, 10),
-      matHair
-    );
-    hairBack1.position.set(0, -0.32, -0.16);
-    hairBack1.rotation.x = 0.15;
-    monkHead.add(hairBack1);
-
-    const hairBack2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.130, 0.065, 0.55, 10),
-      matHair
-    );
-    hairBack2.position.set(0, -0.80, -0.22);
-    hairBack2.rotation.x = 0.22;
-    monkHead.add(hairBack2);
+    const hTail = new THREE.Mesh(new THREE.CylinderGeometry(0.110, 0.055, 0.50, 10), matHair);
+    hTail.position.set(0, -0.72, -0.20); hTail.rotation.x = 0.20;
+    monkHead.add(hTail);
 
   } else {
-    // Short neat — dark brown
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.315, 12, 12), matHair);
-    hairCap.scale.set(1.04, 0.58, 1.04);
-    hairCap.position.set(0, 0.33, -0.03);
+    // Short neat
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.288, 14, 14), matHair);
+    hairCap.scale.set(1.06, 0.55, 1.06);
+    hairCap.position.set(0, 0.295, -0.025);
     monkHead.add(hairCap);
 
-    // Front tuft (slight forward sweep)
-    const hairFront = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), matHair);
-    hairFront.scale.set(1.15, 0.48, 0.85);
-    hairFront.position.set(0, 0.39, 0.175);
+    // Front sweep
+    const hairFront = new THREE.Mesh(new THREE.SphereGeometry(0.165, 10, 10), matHair);
+    hairFront.scale.set(1.20, 0.44, 0.82);
+    hairFront.position.set(0, 0.358, 0.158);
     monkHead.add(hairFront);
 
-    // Side fills
-    const hairSideL = new THREE.Mesh(new THREE.SphereGeometry(0.165, 8, 8), matHair);
-    hairSideL.scale.set(0.60, 0.52, 0.95);
-    hairSideL.position.set(-0.27, 0.22, 0.01);
-    monkHead.add(hairSideL);
+    // Sides
+    const hSL = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
+    hSL.scale.set(0.56, 0.50, 0.92);
+    hSL.position.set(-0.248, 0.205, 0.010);
+    monkHead.add(hSL);
+    const hSR = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
+    hSR.scale.set(0.56, 0.50, 0.92);
+    hSR.position.set(0.248, 0.205, 0.010);
+    monkHead.add(hSR);
 
-    const hairSideR = new THREE.Mesh(new THREE.SphereGeometry(0.165, 8, 8), matHair);
-    hairSideR.scale.set(0.60, 0.52, 0.95);
-    hairSideR.position.set(0.27, 0.22, 0.01);
-    monkHead.add(hairSideR);
-
-    // Small back nape
-    const hairNape = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), matHair);
-    hairNape.scale.set(0.85, 0.48, 0.80);
-    hairNape.position.set(0, 0.20, -0.24);
-    monkHead.add(hairNape);
+    // Nape
+    const hNape = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
+    hNape.scale.set(0.88, 0.44, 0.76);
+    hNape.position.set(0, 0.185, -0.220);
+    monkHead.add(hNape);
   }
 
   monkTorso.add(monkHead);
