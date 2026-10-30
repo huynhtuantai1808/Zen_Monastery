@@ -94,8 +94,10 @@ function simpleRetargetClip(targetMesh: THREE.SkinnedMesh, clip: THREE.Animation
 
 // Global cache for parsed animations to avoid redundant network/parsing work
 const animationCache: {
-  walkClip?: THREE.AnimationClip;
-  idleClip?: THREE.AnimationClip;
+  walkClipMale?: THREE.AnimationClip;
+  walkClipFemale?: THREE.AnimationClip;
+  idleClipMale?: THREE.AnimationClip;
+  idleClipFemale?: THREE.AnimationClip;
   sitClipMan?: THREE.AnimationClip;
   sitClipWoman?: THREE.AnimationClip;
 } = {};
@@ -109,12 +111,16 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
   const fbxLoader = new FBXLoader();
 
+  const cachedWalk = isFemale ? animationCache.walkClipFemale : animationCache.walkClipMale;
+  const cachedIdle = isFemale ? animationCache.idleClipFemale : animationCache.idleClipMale;
+  const cachedSit = isFemale ? animationCache.sitClipWoman : animationCache.sitClipMan;
+
   // Load avatar and animation assets concurrently
   const [gltf, walkFbx, idleFbx, sitFbx] = await Promise.all([
     gltfLoader.loadAsync(modelUrl),
-    animationCache.walkClip ? Promise.resolve(null) : fbxLoader.loadAsync('/models/Walking.fbx'),
-    animationCache.idleClip ? Promise.resolve(null) : fbxLoader.loadAsync('/models/BreathingIdle.fbx'),
-    (isFemale ? animationCache.sitClipWoman : animationCache.sitClipMan) ? Promise.resolve(null) : fbxLoader.loadAsync(sitUrl),
+    cachedWalk ? Promise.resolve(null) : fbxLoader.loadAsync('/models/Walking.fbx'),
+    cachedIdle ? Promise.resolve(null) : fbxLoader.loadAsync('/models/BreathingIdle.fbx'),
+    cachedSit ? Promise.resolve(null) : fbxLoader.loadAsync(sitUrl),
   ]);
 
   const model = gltf.scene;
@@ -135,51 +141,74 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
   }
 
   // Retarget animations if not already cached
-  if (!animationCache.walkClip && walkFbx?.animations?.[0]) {
-    animationCache.walkClip = simpleRetargetClip(skinnedMesh, walkFbx.animations[0], {
-      hip: 'Hips',
-      names: { Reference: 'Armature' },
-      positionMultiplier: 0.01,
-      positionOffset: isFemale ? -0.168 : -0.1,
-      removeHipsForwardAnimation: true,
-      ignoreBones: ['LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
-    });
-    animationCache.walkClip.name = 'walk';
+  if (isFemale) {
+    if (!animationCache.walkClipFemale && walkFbx?.animations?.[0]) {
+      animationCache.walkClipFemale = simpleRetargetClip(skinnedMesh, walkFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        removeHipsForwardAnimation: true,
+        ignoreBones: ['LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.walkClipFemale.name = 'walk';
+    }
+    if (!animationCache.idleClipFemale && idleFbx?.animations?.[0]) {
+      animationCache.idleClipFemale = simpleRetargetClip(skinnedMesh, idleFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.idleClipFemale.name = 'idle';
+    }
+    if (!animationCache.sitClipWoman && sitFbx?.animations?.[0]) {
+      animationCache.sitClipWoman = simpleRetargetClip(skinnedMesh, sitFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.sitClipWoman.name = 'sit';
+    }
+  } else {
+    if (!animationCache.walkClipMale && walkFbx?.animations?.[0]) {
+      animationCache.walkClipMale = simpleRetargetClip(skinnedMesh, walkFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        removeHipsForwardAnimation: true,
+        ignoreBones: ['LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.walkClipMale.name = 'walk';
+    }
+    if (!animationCache.idleClipMale && idleFbx?.animations?.[0]) {
+      animationCache.idleClipMale = simpleRetargetClip(skinnedMesh, idleFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.idleClipMale.name = 'idle';
+    }
+    if (!animationCache.sitClipMan && sitFbx?.animations?.[0]) {
+      animationCache.sitClipMan = simpleRetargetClip(skinnedMesh, sitFbx.animations[0], {
+        hip: 'Hips',
+        names: { Reference: 'Armature' },
+        positionMultiplier: 0.01,
+        positionOffset: 0,
+        ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
+      });
+      animationCache.sitClipMan.name = 'sit';
+    }
   }
 
-  if (!animationCache.idleClip && idleFbx?.animations?.[0]) {
-    animationCache.idleClip = simpleRetargetClip(skinnedMesh, idleFbx.animations[0], {
-      hip: 'Hips',
-      names: { Reference: 'Armature' },
-      positionMultiplier: 0.01,
-      positionOffset: 0,
-      ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
-    });
-    animationCache.idleClip.name = 'idle';
-  }
-
-  if (isFemale && !animationCache.sitClipWoman && sitFbx?.animations?.[0]) {
-    animationCache.sitClipWoman = simpleRetargetClip(skinnedMesh, sitFbx.animations[0], {
-      hip: 'Hips',
-      names: { Reference: 'Armature' },
-      positionMultiplier: 0.01,
-      positionOffset: 0,
-      ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
-    });
-    animationCache.sitClipWoman.name = 'sit';
-  } else if (!isFemale && !animationCache.sitClipMan && sitFbx?.animations?.[0]) {
-    animationCache.sitClipMan = simpleRetargetClip(skinnedMesh, sitFbx.animations[0], {
-      hip: 'Hips',
-      names: { Reference: 'Armature' },
-      positionMultiplier: 0.01,
-      positionOffset: 0,
-      ignoreBones: ['Spine1', 'Spine2', 'Neck', 'LeftEye', 'LeftEye_end', 'RightEye', 'RightEye_end'],
-    });
-    animationCache.sitClipMan.name = 'sit';
-  }
-
-  const walkClip = animationCache.walkClip!;
-  const idleClip = animationCache.idleClip!;
+  const walkClip = isFemale ? animationCache.walkClipFemale! : animationCache.walkClipMale!;
+  const idleClip = isFemale ? animationCache.idleClipFemale! : animationCache.idleClipMale!;
   const sitClip = (isFemale ? animationCache.sitClipWoman : animationCache.sitClipMan) || idleClip;
 
   const mixer = new THREE.AnimationMixer(model);
@@ -191,9 +220,14 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
   idleAction.loop = THREE.LoopRepeat;
   sitAction.loop = THREE.LoopRepeat;
 
-  // Scale and orient model to match world coordinates
-  // The avatar stands at y=0 naturally, exactly matching monkGroup coordinates
-  model.position.set(0, 0, 0);
+  // Stride-matched playback speed for 3.6 units/sec walking speed to eliminate foot-skating
+  walkAction.timeScale = 1.15;
+  idleAction.timeScale = 1.0;
+  sitAction.timeScale = 1.0;
+
+  // Elevate model position so shoe soles align flush with y = 0.00 inside monkGroup
+  model.position.set(0, isFemale ? 0.082 : 0.121, 0);
+  model.rotation.set(0, 0, 0);
   model.rotation.set(0, 0, 0);
 
   return {
@@ -206,3 +240,4 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
     },
   };
 }
+

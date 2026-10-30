@@ -46,20 +46,20 @@ export interface TempleZoneInfo {
   desc: string;
   pos: { x: number; y?: number; z: number };
   actionKey:
-    | 'GATE'
-    | 'COURTYARD'
-    | 'TOWER'
-    | 'BELL'
-    | 'POND'
-    | 'CORRIDOR'
-    | 'SANCTUARY'
-    | 'MEDITATION'
-    | 'LIBRARY'
-    | 'BACK_GARDEN'
-    | 'BALCONY'
-    | 'STAIRS'
-    | 'AERIAL'
-    | 'NIGHT';
+  | 'GATE'
+  | 'COURTYARD'
+  | 'TOWER'
+  | 'BELL'
+  | 'POND'
+  | 'CORRIDOR'
+  | 'SANCTUARY'
+  | 'MEDITATION'
+  | 'LIBRARY'
+  | 'BACK_GARDEN'
+  | 'BALCONY'
+  | 'STAIRS'
+  | 'AERIAL'
+  | 'NIGHT';
 }
 
 export interface CircleObstacle {
@@ -718,8 +718,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const [currentZone, setCurrentZone] = useState<TempleZoneInfo>(TEMPLE_ZONES[0]);
   const [zoneBanner, setZoneBanner] = useState<TempleZoneInfo | null>(null);
   const [nearInteractions, setNearInteractions] = useState<{ title: string; action: () => void; icon: string }[]>([]);
-  const [, setIsWalking] = useState<boolean>(false);
-  const [currentBuilding, setCurrentBuilding] = useState<string | null>(null);
+    const [currentBuilding, setCurrentBuilding] = useState<string | null>(null);
   const [isNightMode, setIsNightMode] = useState<boolean>(timePhase === 'EVENING');
 
   // Camera Mode: 'THIRD_PERSON' (Panoramic) vs 'ISOMETRIC' (Top-down) vs 'ON_RAINY_DAYS' (Aesthetic overhead deck & stream)
@@ -921,8 +920,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const navigateToZone = (zone: TempleZoneInfo) => {
     const floorY = getTerrainFloorElevation(zone.pos.x, zone.pos.z, zone.pos.y ?? 0.42);
     targetPosRef.current = { x: zone.pos.x, y: floorY, z: zone.pos.z };
-    setIsWalking(true);
-    setIsTourPlaying(false);
+        setIsTourPlaying(false);
     isTourPlayingRef.current = false;
 
     if (zone.actionKey === 'NIGHT') {
@@ -964,8 +962,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     tourWaitRef.current = 0;
     setIsTourPlaying(false);
     isTourPlayingRef.current = false;
-    setIsWalking(true);
-    if (cameraModeRef.current === 'THIRD_PERSON') {
+        if (cameraModeRef.current === 'THIRD_PERSON') {
       cameraPitchRef.current = -0.12;
       cameraDistRef.current = 6.5;
       cameraYawRef.current = 0;
@@ -1159,7 +1156,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     const matStoneGrey = new THREE.MeshStandardMaterial({ map: texStone, roughness: 0.8 });
     const matBronze = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.75 });
     const matGold = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.88 });
-        const matLanternRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.65, roughness: 0.5 });
+    const matLanternRed = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.65, roughness: 0.5 });
 
     // 6. STYLIZED ISOMETRIC DIORAMA TERRAIN BASE
     const baseGeo = new THREE.BoxGeometry(140, 2.5, 180);
@@ -1989,13 +1986,15 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     renderer.domElement.addEventListener('wheel', handleWheel, { passive: false });
 
     // ==========================================
-    // 60 FPS ISOMETRIC / TOP-DOWN ANIMATION LOOP
+    // 60+ FPS SMOOTH ANIMATION & MOVEMENT LOOP
     // ==========================================
     let stepCount = 0;
-    const walkSpeed = 0.28;
+    const clock = new THREE.Clock();
 
     const animate = () => {
       stepCount++;
+      const delta = Math.min(clock.getDelta(), 0.05);
+      const moveDist = 3.6 * delta; // Grounded natural walking speed
 
       // Floating spirit particles hover
       if (spiritParticlesRef.current) {
@@ -2030,11 +2029,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
           isCurrentlyWalking = true;
           isWalkingRef.current = true;
-          if (!isWalkingStateRef.current) {
-            isWalkingStateRef.current = true;
-            setIsWalking(true);
-          }
-          walkPhaseRef.current += 0.16;
+          isWalkingStateRef.current = true;
+          walkPhaseRef.current += 10.0 * delta;
 
           // Camera-Relative Movement Direction
           const yaw = cameraYawRef.current;
@@ -2048,8 +2044,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           const len = Math.hypot(moveX, moveZ);
 
           if (len > 0.001) {
-            const nextX = currentP.x + (moveX / len) * walkSpeed;
-            const nextZ = currentP.z + (moveZ / len) * walkSpeed;
+            const nextX = currentP.x + (moveX / len) * moveDist;
+            const nextZ = currentP.z + (moveZ / len) * moveDist;
 
             const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
             currentP.x = resolved.x;
@@ -2060,10 +2056,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             let diff = targetAngle - monkGroupRef.current.rotation.y;
             while (diff < -Math.PI) diff += Math.PI * 2;
             while (diff > Math.PI) diff -= Math.PI * 2;
-            monkGroupRef.current.rotation.y += diff * 0.18;
+            monkGroupRef.current.rotation.y += diff * Math.min(1.0, 12.0 * delta);
           }
 
-          if (stepCount % 14 === 0) {
+          if (stepCount % 16 === 0) {
             spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
           }
         } else if (targetPosRef.current) {
@@ -2072,16 +2068,13 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           const dz = targetP.z - currentP.z;
           const dist = Math.hypot(dx, dz);
 
-          if (dist > 0.4) {
+          if (dist > 0.15) {
             isCurrentlyWalking = true;
             isWalkingRef.current = true;
-            if (!isWalkingStateRef.current) {
-              isWalkingStateRef.current = true;
-              setIsWalking(true);
-            }
-            walkPhaseRef.current += 0.16;
+            isWalkingStateRef.current = true;
+            walkPhaseRef.current += 10.0 * delta;
 
-            const stepDist = Math.min(walkSpeed, dist);
+            const stepDist = Math.min(moveDist, dist);
             const nextX = currentP.x + (dx / dist) * stepDist;
             const nextZ = currentP.z + (dz / dist) * stepDist;
 
@@ -2091,9 +2084,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             currentP.z = resolved.z;
 
             // Prevent running against obstacles indefinitely
-            if (actualMoved < 0.02) {
+            if (actualMoved < 0.001) {
               stuckCountRef.current = (stuckCountRef.current || 0) + 1;
-              if (stuckCountRef.current > 35) {
+              if (stuckCountRef.current > 40) {
                 targetPosRef.current = null;
                 stuckCountRef.current = 0;
                 if (destinationMarkerRef.current) {
@@ -2104,24 +2097,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               stuckCountRef.current = 0;
             }
 
-
-
             const targetAngle = Math.atan2(dx, dz);
             playerRotationRef.current = targetAngle;
             let diff = targetAngle - monkGroupRef.current.rotation.y;
             while (diff < -Math.PI) diff += Math.PI * 2;
             while (diff > Math.PI) diff -= Math.PI * 2;
-            monkGroupRef.current.rotation.y += diff * 0.18;
+            monkGroupRef.current.rotation.y += diff * Math.min(1.0, 12.0 * delta);
 
-            if (stepCount % 14 === 0) {
+            if (stepCount % 16 === 0) {
               spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
             }
           } else {
             isWalkingRef.current = false;
-            if (isWalkingStateRef.current) {
-              isWalkingStateRef.current = false;
-              setIsWalking(false);
-            }
+            isWalkingStateRef.current = false;
             targetPosRef.current = null;
             if (destinationMarkerRef.current) {
               destinationMarkerRef.current.visible = false;
@@ -2133,10 +2121,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
         } else {
           isWalkingRef.current = false;
-          if (isWalkingStateRef.current) {
-            isWalkingStateRef.current = false;
-            setIsWalking(false);
-          }
+          isWalkingStateRef.current = false;
 
           // Idle: Monk smoothly turns towards cursor point on ground
           if (hasGroundTargetRef.current) {
@@ -2149,7 +2134,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               let diff = targetAngle - monkGroupRef.current.rotation.y;
               while (diff < -Math.PI) diff += Math.PI * 2;
               while (diff > Math.PI) diff -= Math.PI * 2;
-              monkGroupRef.current.rotation.y += diff * 0.16;
+              monkGroupRef.current.rotation.y += diff * Math.min(1.0, 8.0 * delta);
 
               if (monkHeadRef.current) {
                 monkHeadRef.current.rotation.y = Math.max(-0.45, Math.min(0.45, diff * 0.65));
@@ -2160,12 +2145,13 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
         // Dynamic Ground Elevation & Anti-Sink Calculation
         const targetFloorY = getTerrainFloorElevation(currentP.x, currentP.z, currentP.y);
+        const yDiff = targetFloorY - currentP.y;
 
-        // Smooth elevation transition
-        currentP.y += (targetFloorY - currentP.y) * 0.28;
+        // Smooth elevation transition with delta time
+        currentP.y += yDiff * Math.min(1.0, 14.0 * delta);
 
-        // Hard Anti-Sink Guarantee: Character feet never penetrate below the solid floor surface!
-        if (currentP.y < targetFloorY) {
+        // Anti-Sink Guarantee: Character feet never penetrate below the solid floor surface!
+        if (currentP.y < targetFloorY - 0.005) {
           currentP.y = targetFloorY;
         }
 
@@ -2181,16 +2167,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           if (target !== currentActionRef.current) {
             const prevAction = charActionsRef.current[currentActionRef.current as keyof typeof charActionsRef.current];
             const nextAction = charActionsRef.current[target as keyof typeof charActionsRef.current];
-            if (prevAction && nextAction) {
-              prevAction.fadeOut(0.2);
-              nextAction.reset().fadeIn(0.2).play();
+            if (prevAction && nextAction && prevAction !== nextAction) {
+              nextAction.reset().enabled = true;
+              nextAction.setEffectiveTimeScale(target === 'walk' ? 1.15 : 1.0);
+              nextAction.setEffectiveWeight(1.0);
+              prevAction.crossFadeTo(nextAction, 0.22, true);
+              nextAction.play();
             } else if (nextAction) {
               nextAction.reset().play();
             }
             currentActionRef.current = target;
           }
 
-          charMixerRef.current.update(0.016);
+          charMixerRef.current.update(delta);
         } else {
           // Procedural fallback animation while model loads
           const phase = walkPhaseRef.current;
@@ -2514,8 +2503,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           tourIndexRef.current = nextIndex;
           const targetZone = TEMPLE_ZONES[nextIndex];
           targetPosRef.current = { x: targetZone.pos.x, y: targetZone.pos.y, z: targetZone.pos.z };
-          setIsWalking(true);
-
+          
           if (destinationMarkerRef.current) {
             destinationMarkerRef.current.position.set(targetZone.pos.x, (targetZone.pos.y || 0) + 0.35, targetZone.pos.z);
             destinationMarkerRef.current.visible = true;
@@ -2652,34 +2640,34 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
           {/* Top-left leafy branch */}
           <svg className="absolute -top-3 -left-3 w-48 sm:w-72 h-36 sm:h-56 opacity-85 transition-transform duration-1000 ease-in-out" viewBox="0 0 200 150" fill="none">
-            <path d="M-10,0 Q60,30 110,80 Q130,100 160,110" stroke="#14532d" strokeWidth="3" fill="none" opacity="0.6"/>
-            <ellipse cx="40" cy="25" rx="22" ry="12" fill="#22c55e" opacity="0.75" transform="rotate(25 40 25)"/>
-            <ellipse cx="65" cy="35" rx="24" ry="13" fill="#4ade80" opacity="0.85" transform="rotate(40 65 35)"/>
-            <ellipse cx="90" cy="55" rx="20" ry="11" fill="#16a34a" opacity="0.8" transform="rotate(50 90 55)"/>
-            <ellipse cx="115" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.85" transform="rotate(30 115 75)"/>
-            <ellipse cx="138" cy="95" rx="16" ry="9" fill="#22c55e" opacity="0.75" transform="rotate(65 138 95)"/>
-            <ellipse cx="30" cy="45" rx="18" ry="10" fill="#15803d" opacity="0.7" transform="rotate(10 30 45)"/>
-            <ellipse cx="70" cy="65" rx="22" ry="11" fill="#4ade80" opacity="0.8" transform="rotate(-15 70 65)"/>
+            <path d="M-10,0 Q60,30 110,80 Q130,100 160,110" stroke="#14532d" strokeWidth="3" fill="none" opacity="0.6" />
+            <ellipse cx="40" cy="25" rx="22" ry="12" fill="#22c55e" opacity="0.75" transform="rotate(25 40 25)" />
+            <ellipse cx="65" cy="35" rx="24" ry="13" fill="#4ade80" opacity="0.85" transform="rotate(40 65 35)" />
+            <ellipse cx="90" cy="55" rx="20" ry="11" fill="#16a34a" opacity="0.8" transform="rotate(50 90 55)" />
+            <ellipse cx="115" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.85" transform="rotate(30 115 75)" />
+            <ellipse cx="138" cy="95" rx="16" ry="9" fill="#22c55e" opacity="0.75" transform="rotate(65 138 95)" />
+            <ellipse cx="30" cy="45" rx="18" ry="10" fill="#15803d" opacity="0.7" transform="rotate(10 30 45)" />
+            <ellipse cx="70" cy="65" rx="22" ry="11" fill="#4ade80" opacity="0.8" transform="rotate(-15 70 65)" />
           </svg>
 
           {/* Top-right leafy canopy */}
           <svg className="absolute -top-3 -right-3 w-56 sm:w-80 h-40 sm:h-64 opacity-90 transition-transform duration-1000 ease-in-out" viewBox="0 0 220 160" fill="none">
-            <path d="M230,-10 Q160,40 100,70 Q60,90 20,105" stroke="#14532d" strokeWidth="3.5" fill="none" opacity="0.6"/>
-            <ellipse cx="180" cy="30" rx="26" ry="14" fill="#22c55e" opacity="0.85" transform="rotate(-30 180 30)"/>
-            <ellipse cx="145" cy="48" rx="24" ry="13" fill="#4ade80" opacity="0.9" transform="rotate(-45 145 48)"/>
-            <ellipse cx="110" cy="68" rx="22" ry="12" fill="#86efac" opacity="0.85" transform="rotate(-20 110 68)"/>
-            <ellipse cx="75" cy="88" rx="19" ry="10" fill="#16a34a" opacity="0.8" transform="rotate(-55 75 88)"/>
-            <ellipse cx="45" cy="100" rx="16" ry="9" fill="#4ade80" opacity="0.85" transform="rotate(-10 45 100)"/>
-            <ellipse cx="160" cy="70" rx="20" ry="11" fill="#15803d" opacity="0.75" transform="rotate(25 160 70)"/>
-            <ellipse cx="120" cy="95" rx="18" ry="10" fill="#22c55e" opacity="0.8" transform="rotate(-35 120 95)"/>
+            <path d="M230,-10 Q160,40 100,70 Q60,90 20,105" stroke="#14532d" strokeWidth="3.5" fill="none" opacity="0.6" />
+            <ellipse cx="180" cy="30" rx="26" ry="14" fill="#22c55e" opacity="0.85" transform="rotate(-30 180 30)" />
+            <ellipse cx="145" cy="48" rx="24" ry="13" fill="#4ade80" opacity="0.9" transform="rotate(-45 145 48)" />
+            <ellipse cx="110" cy="68" rx="22" ry="12" fill="#86efac" opacity="0.85" transform="rotate(-20 110 68)" />
+            <ellipse cx="75" cy="88" rx="19" ry="10" fill="#16a34a" opacity="0.8" transform="rotate(-55 75 88)" />
+            <ellipse cx="45" cy="100" rx="16" ry="9" fill="#4ade80" opacity="0.85" transform="rotate(-10 45 100)" />
+            <ellipse cx="160" cy="70" rx="20" ry="11" fill="#15803d" opacity="0.75" transform="rotate(25 160 70)" />
+            <ellipse cx="120" cy="95" rx="18" ry="10" fill="#22c55e" opacity="0.8" transform="rotate(-35 120 95)" />
           </svg>
 
           {/* Bottom-right leafy cluster */}
           <svg className="absolute -bottom-3 -right-3 w-48 sm:w-64 h-36 sm:h-52 opacity-85" viewBox="0 0 180 140" fill="none">
-            <ellipse cx="150" cy="110" rx="28" ry="15" fill="#16a34a" opacity="0.8" transform="rotate(15 150 110)"/>
-            <ellipse cx="120" cy="95" rx="24" ry="13" fill="#22c55e" opacity="0.85" transform="rotate(-25 120 95)"/>
-            <ellipse cx="95" cy="115" rx="20" ry="11" fill="#4ade80" opacity="0.9" transform="rotate(35 95 115)"/>
-            <ellipse cx="140" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.8" transform="rotate(-10 140 75)"/>
+            <ellipse cx="150" cy="110" rx="28" ry="15" fill="#16a34a" opacity="0.8" transform="rotate(15 150 110)" />
+            <ellipse cx="120" cy="95" rx="24" ry="13" fill="#22c55e" opacity="0.85" transform="rotate(-25 120 95)" />
+            <ellipse cx="95" cy="115" rx="20" ry="11" fill="#4ade80" opacity="0.9" transform="rotate(35 95 115)" />
+            <ellipse cx="140" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.8" transform="rotate(-10 140 75)" />
           </svg>
         </div>
       )}
@@ -2695,9 +2683,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               playerPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
               targetPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
             }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
-              monkPose === 'LIE_DOWN' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-            }`}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'LIE_DOWN' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+              }`}
             title="Nằm thảnh thơi dang rộng tay trên chiếu tatami như nhân vật trong tranh"
           >
             <span>🛌 Nằm dang tay</span>
@@ -2709,9 +2696,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               playerPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
               targetPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
             }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
-              monkPose === 'SIT_EDGE' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-            }`}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'SIT_EDGE' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+              }`}
             title="Ngồi ven hiên gỗ thả chân ngâm dòng suối trong vắt ngắm đàn cá bơi lội"
           >
             <span>🌊 Ngồi thả chân</span>
@@ -2721,9 +2707,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               setMonkPose('STAND');
               monkPoseRef.current = 'STAND';
             }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${
-              monkPose === 'STAND' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-            }`}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'STAND' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
+              }`}
             title="Đứng dậy bước đi dạo quanh khuôn viên chùa"
           >
             <span>🚶 Đứng</span>
@@ -2792,11 +2777,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       <div className="absolute top-18 sm:top-20 left-3 sm:left-6 z-30 pointer-events-auto flex items-center gap-2">
         <button
           onClick={toggleTour}
-          className={`px-3.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-2 transition-all cursor-pointer border ${
-            isTourPlaying
+          className={`px-3.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-2 transition-all cursor-pointer border ${isTourPlaying
               ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-300 ring-2 ring-pink-400/50 shadow-[0_0_18px_rgba(244,114,182,0.5)]'
               : 'anime-glass-panel hover:bg-white/10 text-pink-200 border-pink-400/40 backdrop-blur-md'
-          }`}
+            }`}
           title="Tự động dẫn nhân vật vãn cảnh qua 14 danh thắng chùa"
         >
           {isTourPlaying ? <Pause className="w-4 h-4 text-white fill-current" /> : <Play className="w-4 h-4 text-pink-400 fill-current" />}
@@ -2846,11 +2830,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               setZoneBanner(pondZone);
             }
           }}
-          className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${
-            cameraMode === 'ON_RAINY_DAYS'
+          className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${cameraMode === 'ON_RAINY_DAYS'
               ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 ring-2 ring-emerald-400/50 shadow-[0_0_16px_rgba(52,211,153,0.5)]'
               : 'anime-glass-panel hover:bg-white/10 text-emerald-300 border-emerald-500/40'
-          }`}
+            }`}
           title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days'"
         >
           <span>🌸 On Rainy Days</span>
@@ -2938,11 +2921,10 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
                   key={zone.id}
                   onClick={() => navigateToZone(zone)}
                   title={`${zone.name} (${zone.subtitle})`}
-                  className={`px-3 py-1.5 rounded-xl font-heading text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
-                    isHere
+                  className={`px-3 py-1.5 rounded-xl font-heading text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${isHere
                       ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black shadow-[0_0_15px_rgba(244,114,182,0.6)] border border-white/50 scale-105'
                       : 'bg-purple-950/40 hover:bg-purple-900/50 border border-pink-400/20 text-purple-200 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <span>{zone.icon}</span>
                   <span className="text-[11px] font-bold hidden sm:inline">{zone.name.split('.')[1] || zone.name}</span>
@@ -2958,9 +2940,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           <button
             onClick={() => setIsNightMode(!isNightMode)}
             title="Bật/Tắt chế độ Ánh Sáng Đèn Lồng Ban Đêm"
-            className={`p-2.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer border shrink-0 ${
-              isNightMode ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
-            }`}
+            className={`p-2.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer border shrink-0 ${isNightMode ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
+              }`}
           >
             {isNightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -3889,7 +3870,7 @@ function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group {
 /** Build a tiny 4-stop gradient texture for MeshToonMaterial */
 function makeToonGradient(stops: [number, string][]): THREE.DataTexture {
   const size = 256;
-  const data  = new Uint8Array(size * 4);
+  const data = new Uint8Array(size * 4);
   for (let i = 0; i < size; i++) {
     const t = i / (size - 1);
     let r = 0, g = 0, b = 0;
@@ -3902,7 +3883,7 @@ function makeToonGradient(stops: [number, string][]): THREE.DataTexture {
         break;
       }
     }
-    data[i * 4]     = r;
+    data[i * 4] = r;
     data[i * 4 + 1] = g;
     data[i * 4 + 2] = b;
     data[i * 4 + 3] = 255;
@@ -3916,7 +3897,7 @@ function makeToonGradient(stops: [number, string][]): THREE.DataTexture {
 function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
   const W = 512, H = 512;
   const canvas = document.createElement('canvas');
-  canvas.width  = W;
+  canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
 
@@ -3926,8 +3907,8 @@ function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
 
   // ── Eyebrows ──────────────────────────────────────────────────────────────
   ctx.strokeStyle = '#2a1a0a';
-  ctx.lineWidth   = isFemale ? 7 : 9;
-  ctx.lineCap     = 'round';
+  ctx.lineWidth = isFemale ? 7 : 9;
+  ctx.lineCap = 'round';
 
   // Left brow
   ctx.beginPath();
@@ -3946,9 +3927,9 @@ function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
 
   function drawEye(cx: number, cy: number) {
     // White sclera
-    ctx.fillStyle   = '#ffffff';
+    ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#1a0a00';
-    ctx.lineWidth   = 3;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.ellipse(cx, cy, eyeW / 2, eyeH / 2, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -3982,14 +3963,14 @@ function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
 
     // Upper lash line
     ctx.strokeStyle = '#0a0820';
-    ctx.lineWidth   = isFemale ? 5 : 4;
+    ctx.lineWidth = isFemale ? 5 : 4;
     ctx.beginPath();
     ctx.ellipse(cx, cy - eyeH * 0.10, eyeW / 2 + 2, eyeH / 2, 0, Math.PI, Math.PI * 2);
     ctx.stroke();
 
     // Lower lash line (thinner)
     ctx.strokeStyle = '#2a1a10';
-    ctx.lineWidth   = 2;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.ellipse(cx, cy + eyeH * 0.08, eyeW / 2, eyeH / 2 - 4, 0, 0, Math.PI);
     ctx.stroke();
@@ -4000,8 +3981,8 @@ function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
 
   // ── Nose — minimal ────────────────────────────────────────────────────────
   ctx.strokeStyle = 'rgba(180,120,80,0.6)';
-  ctx.lineWidth   = 3;
-  ctx.lineCap     = 'round';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(246, 290);
   ctx.lineTo(240, 308);
@@ -4010,8 +3991,8 @@ function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
 
   // ── Mouth ─────────────────────────────────────────────────────────────────
   ctx.strokeStyle = '#b06060';
-  ctx.lineWidth   = isFemale ? 3.5 : 4;
-  ctx.lineCap     = 'round';
+  ctx.lineWidth = isFemale ? 3.5 : 4;
+  ctx.lineCap = 'round';
   // Upper lip bow
   ctx.beginPath();
   ctx.moveTo(208, 346);
@@ -4069,20 +4050,20 @@ function createStylized3DMonk(character: CharacterAppearance) {
     new THREE.MeshToonMaterial({ color: hex, gradientMap: toonGrad, ...opts });
 
   // ── Materials ─────────────────────────────────────────────────────────────
-  const matSkin      = toon(0xf5c8a0);
-  const matShirt     = toon(isFemale ? 0xfadde8 : 0xe6f0ff);
-  const matPants     = toon(isFemale ? 0x3d454f : 0x1a2333);
-  const matBelt      = toon(0x5c3317);
-  const matBuckle    = new THREE.MeshStandardMaterial({ color: 0xcca820, roughness: 0.2, metalness: 0.8 });
-  const matShoe      = toon(isFemale ? 0xeeeeee : 0x111111);
-  const matShoeSole  = toon(isFemale ? 0xbbbbbb : 0x050505);
-  const matHair      = toon(0x180800);
-  const matShirtInner= toon(isFemale ? 0xfce4ec : 0xf4f8ff);
+  const matSkin = toon(0xf5c8a0);
+  const matShirt = toon(isFemale ? 0xfadde8 : 0xe6f0ff);
+  const matPants = toon(isFemale ? 0x3d454f : 0x1a2333);
+  const matBelt = toon(0x5c3317);
+  const matBuckle = new THREE.MeshStandardMaterial({ color: 0xcca820, roughness: 0.2, metalness: 0.8 });
+  const matShoe = toon(isFemale ? 0xeeeeee : 0x111111);
+  const matShoeSole = toon(isFemale ? 0xbbbbbb : 0x050505);
+  const matHair = toon(0x180800);
+  const matShirtInner = toon(isFemale ? 0xfce4ec : 0xf4f8ff);
 
   // Face texture
-  const faceTexture  = makeAnimeFaceTexture(isFemale);
-  const matFace      = new THREE.MeshToonMaterial({ map: faceTexture, gradientMap: toonGrad });
-  const matHeadBack  = toon(0xf5c8a0); // back of head, no texture
+  const faceTexture = makeAnimeFaceTexture(isFemale);
+  const matFace = new THREE.MeshToonMaterial({ map: faceTexture, gradientMap: toonGrad });
+  const matHeadBack = toon(0xf5c8a0); // back of head, no texture
 
   // ─────────────────────────────────────────────────────────────────────────
   // LEGS — attach to monkGroup root
@@ -4224,14 +4205,14 @@ function createStylized3DMonk(character: CharacterAppearance) {
 
   // Head — use hemisphere trick: front = face texture, back = skin colour
   // Front face sphere (slightly forward-offset, face UV)
-  const faceGeo  = new THREE.SphereGeometry(0.275, 20, 20, 0, Math.PI * 2, 0, Math.PI);
+  const faceGeo = new THREE.SphereGeometry(0.275, 20, 20, 0, Math.PI * 2, 0, Math.PI);
   const faceMesh = new THREE.Mesh(faceGeo, [matFace, matHeadBack]);
   faceMesh.position.set(0, 0.185, 0);
   faceMesh.scale.set(1.0, 1.12, 0.90); // oval anime head
   monkHead.add(faceMesh);
 
   // Chin taper
-  const chinGeo  = new THREE.CylinderGeometry(0.175, 0.065, 0.18, 12);
+  const chinGeo = new THREE.CylinderGeometry(0.175, 0.065, 0.18, 12);
   const chinMesh = new THREE.Mesh(chinGeo, matHeadBack);
   chinMesh.position.set(0, 0.055, 0);
   monkHead.add(chinMesh);
