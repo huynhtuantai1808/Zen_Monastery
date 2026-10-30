@@ -151,3 +151,4 @@ export const GraphicsSettingsModal: React.FC<GraphicsSettingsModalProps> = ({ is
     </div>
   );
 };
+

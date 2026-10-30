@@ -109,17 +109,15 @@ export const DharmaEveningModal: React.FC<DharmaEveningModalProps> = ({
                 setEveningStep('BREATH');
                 setThoughtBubbles(INITIAL_THOUGHT_BUBBLES);
               }}
-              className={`px-3 py-1 rounded-lg text-xs font-serif font-medium transition cursor-pointer ${
-                eveningStep === 'BREATH' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-800 text-slate-300'
-              }`}
+              className={`px-3 py-1 rounded-lg text-xs font-serif font-medium transition cursor-pointer ${eveningStep === 'BREATH' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-800 text-slate-300'
+                }`}
             >
               Hơi Thở
             </button>
             <button
               onClick={() => setEveningStep('DHARMA')}
-              className={`px-3 py-1 rounded-lg text-xs font-serif font-medium transition cursor-pointer ${
-                eveningStep === 'DHARMA' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'
-              }`}
+              className={`px-3 py-1 rounded-lg text-xs font-serif font-medium transition cursor-pointer ${eveningStep === 'DHARMA' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'
+                }`}
             >
               Nghe Pháp
             </button>
@@ -162,11 +160,10 @@ export const DharmaEveningModal: React.FC<DharmaEveningModalProps> = ({
               onMouseLeave={() => setIsHoldingBreath(false)}
               onTouchStart={() => setIsHoldingBreath(true)}
               onTouchEnd={() => setIsHoldingBreath(false)}
-              className={`w-36 h-36 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center border-2 transition-all duration-500 cursor-pointer shadow-2xl ${
-                isHoldingBreath
+              className={`w-36 h-36 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center border-2 transition-all duration-500 cursor-pointer shadow-2xl ${isHoldingBreath
                   ? 'scale-110 bg-amber-500/30 border-amber-300 shadow-amber-500/40'
                   : 'scale-100 bg-indigo-950/80 border-indigo-400/60 hover:border-amber-300'
-              }`}
+                }`}
             >
               <span className="text-4xl mb-1">🪷</span>
               <span className="text-xs font-bold text-amber-200 font-serif">
@@ -243,11 +240,10 @@ export const DharmaEveningModal: React.FC<DharmaEveningModalProps> = ({
               </div>
             ) : (
               <div
-                className={`p-3.5 rounded-xl border text-xs space-y-2 ${
-                  dharmaResult.isCorrect
+                className={`p-3.5 rounded-xl border text-xs space-y-2 ${dharmaResult.isCorrect
                     ? 'bg-amber-500/20 border-amber-400 text-amber-100'
                     : 'bg-slate-800 border-slate-600 text-slate-200'
-                }`}
+                  }`}
               >
                 <div className="font-bold text-sm flex items-center gap-1.5 font-serif">
                   <Award className="w-4 h-4 text-amber-300" />
