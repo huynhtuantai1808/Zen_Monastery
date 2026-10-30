@@ -32,3 +32,6 @@ dist-ssr
 *.ogg
 public/audio/
 
+# Scratch & Temporary Dev Scripts
+scratch/
+

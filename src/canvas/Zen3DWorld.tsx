@@ -792,12 +792,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
   // Character 3D Rig Refs
   const monkGroupRef = useRef<THREE.Group | null>(null);
-  const monkTorsoRef = useRef<THREE.Group | null>(null);
-  const monkHeadRef = useRef<THREE.Group | null>(null);
-  const monkLeftLegRef = useRef<THREE.Group | null>(null);
-  const monkRightLegRef = useRef<THREE.Group | null>(null);
-  const monkLeftArmRef = useRef<THREE.Group | null>(null);
-  const monkRightArmRef = useRef<THREE.Group | null>(null);
 
   // Realistic Skinned Character & Animation Refs
   const charMixerRef = useRef<THREE.AnimationMixer | null>(null);
@@ -873,10 +867,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       rig.actions.idle.play();
       currentActionRef.current = 'idle';
 
-      // Hide procedural placeholder blocks
-      if (monkTorsoRef.current) monkTorsoRef.current.visible = false;
-      if (monkLeftLegRef.current) monkLeftLegRef.current.visible = false;
-      if (monkRightLegRef.current) monkRightLegRef.current.visible = false;
 
       // Remove previous realistic model if any
       if (realisticModelRef.current) {
@@ -1822,16 +1812,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     cursorMarkerGroupRef.current = lotusCursor;
     scene.add(lotusCursor);
 
-    // [STYLIZED 3D MONK RIG]
-    const monk = createStylized3DMonk(character);
-    monkGroupRef.current = monk.monkGroup;
-    monkTorsoRef.current = monk.monkTorso;
-    monkHeadRef.current = monk.monkHead;
-    monkLeftLegRef.current = monk.monkLeftLeg;
-    monkRightLegRef.current = monk.monkRightLeg;
-    monkLeftArmRef.current = monk.monkLeftArm;
-    monkRightArmRef.current = monk.monkRightArm;
-    scene.add(monk.monkGroup);
+    // [3D CHARACTER RIG]
+    const monkGroup = new THREE.Group();
+    monkGroup.position.set(0, 0.42, 80);
+    monkGroupRef.current = monkGroup;
+    scene.add(monkGroup);
 
     // Initial load of realistic 3D character
     loadRealisticCharacter(character).then((rig) => {
@@ -1840,18 +1825,14 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       rig.actions.idle.play();
       currentActionRef.current = 'idle';
 
-      if (monkTorsoRef.current) monkTorsoRef.current.visible = false;
-      if (monkLeftLegRef.current) monkLeftLegRef.current.visible = false;
-      if (monkRightLegRef.current) monkRightLegRef.current.visible = false;
-
       if (realisticModelRef.current) {
         monkGroupRef.current?.remove(realisticModelRef.current);
       }
       realisticModelRef.current = rig.modelGroup;
-      monk.monkGroup.add(rig.modelGroup);
+      monkGroup.add(rig.modelGroup);
       realisticModelLoadedRef.current = true;
     }).catch((err) => {
-      console.warn('Procedural fallback used:', err);
+      console.warn('Character load error:', err);
     });
 
     // Puffy Cartoon Incense Smoke
@@ -2136,9 +2117,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               while (diff > Math.PI) diff -= Math.PI * 2;
               monkGroupRef.current.rotation.y += diff * Math.min(1.0, 8.0 * delta);
 
-              if (monkHeadRef.current) {
-                monkHeadRef.current.rotation.y = Math.max(-0.45, Math.min(0.45, diff * 0.65));
-              }
             }
           }
         }
@@ -2180,76 +2158,16 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
 
           charMixerRef.current.update(delta);
-        } else {
-          // Procedural fallback animation while model loads
-          const phase = walkPhaseRef.current;
-          if (isCurrentlyWalking) {
-            if (monkLeftLegRef.current && monkRightLegRef.current) {
-              monkLeftLegRef.current.rotation.x = Math.sin(phase) * 0.44;
-              monkRightLegRef.current.rotation.x = -Math.sin(phase) * 0.44;
-            }
-            if (monkLeftArmRef.current && monkRightArmRef.current) {
-              monkLeftArmRef.current.rotation.x = -Math.sin(phase) * 0.35;
-              monkRightArmRef.current.rotation.x = Math.sin(phase) * 0.35;
-              monkLeftArmRef.current.rotation.z = 0.04 + Math.abs(Math.sin(phase)) * 0.03;
-              monkRightArmRef.current.rotation.z = -0.04 - Math.abs(Math.sin(phase)) * 0.03;
-            }
-            if (monkTorsoRef.current) {
-              monkTorsoRef.current.position.y = 1.4 + Math.abs(Math.sin(phase)) * 0.042;
-              monkTorsoRef.current.rotation.y = Math.sin(phase) * 0.035;
-              monkTorsoRef.current.rotation.z = Math.sin(phase) * 0.02;
-            }
-          } else {
-            if (monkLeftLegRef.current && monkRightLegRef.current) {
-              monkLeftLegRef.current.rotation.x += (0 - monkLeftLegRef.current.rotation.x) * 0.2;
-              monkRightLegRef.current.rotation.x += (0 - monkRightLegRef.current.rotation.x) * 0.2;
-            }
-            if (monkLeftArmRef.current && monkRightArmRef.current) {
-              monkLeftArmRef.current.rotation.x += (0 - monkLeftArmRef.current.rotation.x) * 0.2;
-              monkRightArmRef.current.rotation.x += (0 - monkRightArmRef.current.rotation.x) * 0.2;
-              monkLeftArmRef.current.rotation.z += (0 - monkLeftArmRef.current.rotation.z) * 0.2;
-              monkRightArmRef.current.rotation.z += (0 - monkRightArmRef.current.rotation.z) * 0.2;
-            }
-            if (monkTorsoRef.current) {
-              monkTorsoRef.current.position.y += (1.4 - monkTorsoRef.current.position.y) * 0.2;
-              monkTorsoRef.current.rotation.y += (0 - monkTorsoRef.current.rotation.y) * 0.2;
-              monkTorsoRef.current.rotation.z += (0 - monkTorsoRef.current.rotation.z) * 0.2;
-            }
-          }
         }
 
         // Handle Relaxed Character Poses on Deck
         if (monkPoseRef.current === 'LIE_DOWN') {
-          // Monk lies flat on back on the tatami deck with arms spread out wide in peaceful bliss
+          // Monk lies flat on back on the tatami deck
           monkGroupRef.current.rotation.set(-Math.PI / 2, 0, 0);
-          if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.set(0, 0, Math.PI / 2.2);
-            monkRightArmRef.current.rotation.set(0, 0, -Math.PI / 2.2);
-          }
-          if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.set(0, 0, -0.15);
-            monkRightLegRef.current.rotation.set(0, 0, 0.15);
-          }
-          if (monkTorsoRef.current) {
-            monkTorsoRef.current.position.y = 1.4;
-            monkTorsoRef.current.rotation.set(0, 0, 0);
-          }
           currentP.y = 0.96;
         } else if (monkPoseRef.current === 'SIT_EDGE') {
-          // Monk sitting at the edge of the wooden deck dipping feet into the cool water
+          // Monk sitting at the edge of the wooden deck
           monkGroupRef.current.rotation.set(0, -Math.PI / 2, 0);
-          if (monkLeftLegRef.current && monkRightLegRef.current) {
-            monkLeftLegRef.current.rotation.set(Math.PI / 2.1, 0, -0.05);
-            monkRightLegRef.current.rotation.set(Math.PI / 2.1, 0, 0.05);
-          }
-          if (monkLeftArmRef.current && monkRightArmRef.current) {
-            monkLeftArmRef.current.rotation.set(0.3, 0, 0.1);
-            monkRightArmRef.current.rotation.set(0.3, 0, -0.1);
-          }
-          if (monkTorsoRef.current) {
-            monkTorsoRef.current.position.y = 0.95;
-            monkTorsoRef.current.rotation.set(0, 0, 0);
-          }
           currentP.y = 0.89;
         }
 
@@ -3868,436 +3786,6 @@ function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group {
 // ══════════════════════════════════════════════════════════════════════════════
 
 /** Build a tiny 4-stop gradient texture for MeshToonMaterial */
-function makeToonGradient(stops: [number, string][]): THREE.DataTexture {
-  const size = 256;
-  const data = new Uint8Array(size * 4);
-  for (let i = 0; i < size; i++) {
-    const t = i / (size - 1);
-    let r = 0, g = 0, b = 0;
-    for (let s = stops.length - 1; s >= 0; s--) {
-      if (t >= stops[s][0]) {
-        const c = new THREE.Color(stops[s][1]);
-        r = Math.round(c.r * 255);
-        g = Math.round(c.g * 255);
-        b = Math.round(c.b * 255);
-        break;
-      }
-    }
-    data[i * 4] = r;
-    data[i * 4 + 1] = g;
-    data[i * 4 + 2] = b;
-    data[i * 4 + 3] = 255;
-  }
-  const tex = new THREE.DataTexture(data, size, 1);
-  tex.needsUpdate = true;
-  return tex;
-}
-
-/** Draw an anime face onto a CanvasTexture */
-function makeAnimeFaceTexture(isFemale: boolean): THREE.CanvasTexture {
-  const W = 512, H = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-
-  // Skin base
-  ctx.fillStyle = '#f2c49a';
-  ctx.fillRect(0, 0, W, H);
-
-  // ── Eyebrows ──────────────────────────────────────────────────────────────
-  ctx.strokeStyle = '#2a1a0a';
-  ctx.lineWidth = isFemale ? 7 : 9;
-  ctx.lineCap = 'round';
-
-  // Left brow
-  ctx.beginPath();
-  ctx.moveTo(130, isFemale ? 188 : 192);
-  ctx.quadraticCurveTo(168, isFemale ? 174 : 176, 210, isFemale ? 182 : 190);
-  ctx.stroke();
-  // Right brow
-  ctx.beginPath();
-  ctx.moveTo(302, isFemale ? 182 : 190);
-  ctx.quadraticCurveTo(344, isFemale ? 174 : 176, 382, isFemale ? 188 : 192);
-  ctx.stroke();
-
-  // ── Eyes ──────────────────────────────────────────────────────────────────
-  const eyeLX = 170, eyeRX = 342, eyeY = 240;
-  const eyeW = isFemale ? 72 : 66, eyeH = isFemale ? 56 : 50;
-
-  function drawEye(cx: number, cy: number) {
-    // White sclera
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#1a0a00';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, eyeW / 2, eyeH / 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Iris gradient
-    const grad = ctx.createRadialGradient(cx - 5, cy - 5, 2, cx, cy, eyeW * 0.38);
-    grad.addColorStop(0, isFemale ? '#8b6fb5' : '#3a7fd5');
-    grad.addColorStop(0.5, isFemale ? '#5b3f8a' : '#1a4a90');
-    grad.addColorStop(1, '#0a0820');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, eyeW * 0.40, eyeH * 0.46, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Pupil
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, eyeW * 0.20, eyeH * 0.26, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Main highlight (big)
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.beginPath();
-    ctx.ellipse(cx - eyeW * 0.14, cy - eyeH * 0.18, eyeW * 0.12, eyeH * 0.14, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-    // Small highlight
-    ctx.beginPath();
-    ctx.ellipse(cx + eyeW * 0.16, cy + eyeH * 0.12, eyeW * 0.06, eyeH * 0.07, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Upper lash line
-    ctx.strokeStyle = '#0a0820';
-    ctx.lineWidth = isFemale ? 5 : 4;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - eyeH * 0.10, eyeW / 2 + 2, eyeH / 2, 0, Math.PI, Math.PI * 2);
-    ctx.stroke();
-
-    // Lower lash line (thinner)
-    ctx.strokeStyle = '#2a1a10';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + eyeH * 0.08, eyeW / 2, eyeH / 2 - 4, 0, 0, Math.PI);
-    ctx.stroke();
-  }
-
-  drawEye(eyeLX, eyeY);
-  drawEye(eyeRX, eyeY);
-
-  // ── Nose — minimal ────────────────────────────────────────────────────────
-  ctx.strokeStyle = 'rgba(180,120,80,0.6)';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(246, 290);
-  ctx.lineTo(240, 308);
-  ctx.lineTo(272, 308);
-  ctx.stroke();
-
-  // ── Mouth ─────────────────────────────────────────────────────────────────
-  ctx.strokeStyle = '#b06060';
-  ctx.lineWidth = isFemale ? 3.5 : 4;
-  ctx.lineCap = 'round';
-  // Upper lip bow
-  ctx.beginPath();
-  ctx.moveTo(208, 346);
-  ctx.quadraticCurveTo(256, 334, 304, 346);
-  ctx.stroke();
-  // Lower lip smile
-  ctx.beginPath();
-  ctx.moveTo(208, 346);
-  ctx.quadraticCurveTo(256, 372, 304, 346);
-  ctx.stroke();
-
-  // ── Female blush ──────────────────────────────────────────────────────────
-  if (isFemale) {
-    const blushGrad = (bx: number) => {
-      const g = ctx.createRadialGradient(bx, 292, 0, bx, 292, 40);
-      g.addColorStop(0, 'rgba(255,140,140,0.45)');
-      g.addColorStop(1, 'rgba(255,140,140,0.0)');
-      return g;
-    };
-    ctx.fillStyle = blushGrad(122);
-    ctx.fillRect(82, 252, 80, 80);
-    ctx.fillStyle = blushGrad(390);
-    ctx.fillRect(350, 252, 80, 80);
-  }
-
-  // ── Ear shadows (subtle) ──────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(200,150,100,0.25)';
-  ctx.beginPath();
-  ctx.ellipse(40, 268, 22, 36, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(472, 268, 22, 36, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.needsUpdate = true;
-  return tex;
-}
-
-function createStylized3DMonk(character: CharacterAppearance) {
-  const monkGroup = new THREE.Group();
-  monkGroup.position.set(0, 0.42, 80);
-
-  const isFemale = character.gender === 'female';
-
-  // ── Toon gradient (3 shading levels) ────────────────────────────────────
-  const toonGrad = makeToonGradient([
-    [0.0, '#888888'],
-    [0.3, '#bbbbbb'],
-    [0.6, '#eeeeee'],
-    [1.0, '#ffffff'],
-  ]);
-
-  const toon = (hex: number, opts?: object) =>
-    new THREE.MeshToonMaterial({ color: hex, gradientMap: toonGrad, ...opts });
-
-  // ── Materials ─────────────────────────────────────────────────────────────
-  const matSkin = toon(0xf5c8a0);
-  const matShirt = toon(isFemale ? 0xfadde8 : 0xe6f0ff);
-  const matPants = toon(isFemale ? 0x3d454f : 0x1a2333);
-  const matBelt = toon(0x5c3317);
-  const matBuckle = new THREE.MeshStandardMaterial({ color: 0xcca820, roughness: 0.2, metalness: 0.8 });
-  const matShoe = toon(isFemale ? 0xeeeeee : 0x111111);
-  const matShoeSole = toon(isFemale ? 0xbbbbbb : 0x050505);
-  const matHair = toon(0x180800);
-  const matShirtInner = toon(isFemale ? 0xfce4ec : 0xf4f8ff);
-
-  // Face texture
-  const faceTexture = makeAnimeFaceTexture(isFemale);
-  const matFace = new THREE.MeshToonMaterial({ map: faceTexture, gradientMap: toonGrad });
-  const matHeadBack = toon(0xf5c8a0); // back of head, no texture
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // LEGS — attach to monkGroup root
-  // ─────────────────────────────────────────────────────────────────────────
-  const monkLeftLeg = new THREE.Group();
-  monkLeftLeg.position.set(-0.135, 0.74, 0);
-
-  const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.106, 0.70, 12), matPants);
-  leftThigh.position.set(0, -0.35, 0);
-  monkLeftLeg.add(leftThigh);
-
-  const leftShin = new THREE.Mesh(new THREE.CylinderGeometry(0.100, 0.086, 0.62, 12), matPants);
-  leftShin.position.set(0, -0.85, 0);
-  monkLeftLeg.add(leftShin);
-
-  const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.165, 0.092, 0.38), matShoe);
-  leftShoe.position.set(0, -1.20, 0.065);
-  monkLeftLeg.add(leftShoe);
-
-  const leftSole = new THREE.Mesh(new THREE.BoxGeometry(0.170, 0.030, 0.39), matShoeSole);
-  leftSole.position.set(0, -1.250, 0.065);
-  monkLeftLeg.add(leftSole);
-
-  monkGroup.add(monkLeftLeg);
-
-  const monkRightLeg = new THREE.Group();
-  monkRightLeg.position.set(0.135, 0.74, 0);
-
-  const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.106, 0.70, 12), matPants);
-  rightThigh.position.set(0, -0.35, 0);
-  monkRightLeg.add(rightThigh);
-
-  const rightShin = new THREE.Mesh(new THREE.CylinderGeometry(0.100, 0.086, 0.62, 12), matPants);
-  rightShin.position.set(0, -0.85, 0);
-  monkRightLeg.add(rightShin);
-
-  const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.165, 0.092, 0.38), matShoe);
-  rightShoe.position.set(0, -1.20, 0.065);
-  monkRightLeg.add(rightShoe);
-
-  const rightSole = new THREE.Mesh(new THREE.BoxGeometry(0.170, 0.030, 0.39), matShoeSole);
-  rightSole.position.set(0, -1.250, 0.065);
-  monkRightLeg.add(rightSole);
-
-  monkGroup.add(monkRightLeg);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // TORSO
-  // ─────────────────────────────────────────────────────────────────────────
-  const monkTorso = new THREE.Group();
-  monkTorso.position.set(0, 1.30, 0);
-
-  // Main shirt — slightly tapered
-  const torsoBody = new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.235, 0.88, 14), matShirt);
-  monkTorso.add(torsoBody);
-
-  // Shirt placket strip (front buttons visual)
-  const placket = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.76, 0.036), matShirtInner);
-  placket.position.set(0, 0.03, 0.258);
-  monkTorso.add(placket);
-
-  // Collar left
-  const colL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.20, 0.04), matShirt);
-  colL.position.set(-0.055, 0.44, 0.240); colL.rotation.z = 0.30;
-  monkTorso.add(colL);
-  // Collar right
-  const colR = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.20, 0.04), matShirt);
-  colR.position.set(0.055, 0.44, 0.240); colR.rotation.z = -0.30;
-  monkTorso.add(colR);
-
-  // Belt
-  const beltM = new THREE.Mesh(new THREE.CylinderGeometry(0.243, 0.243, 0.065, 16), matBelt);
-  beltM.position.set(0, -0.37, 0);
-  monkTorso.add(beltM);
-
-  // Buckle
-  const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.065, 0.036), matBuckle);
-  buckle.position.set(0, -0.37, 0.246);
-  monkTorso.add(buckle);
-
-  // ── LEFT ARM ─────────────────────────────────────────────────────────────
-  const monkLeftArm = new THREE.Group();
-  monkLeftArm.position.set(-0.305, 0.355, 0);
-  monkLeftArm.rotation.z = 0.16; // slight outward splay
-
-  const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.094, 0.086, 0.50, 10), matShirt);
-  lUpperArm.position.set(0, -0.25, 0);
-  monkLeftArm.add(lUpperArm);
-
-  const lCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.088, 0.048, 10), matShirtInner);
-  lCuff.position.set(0, -0.524, 0);
-  monkLeftArm.add(lCuff);
-
-  const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.080, 0.068, 0.44, 10), matSkin);
-  lForearm.position.set(0, -0.786, 0);
-  monkLeftArm.add(lForearm);
-
-  const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.076, 10, 10), matSkin);
-  lHand.scale.set(0.9, 0.76, 0.68);
-  lHand.position.set(0, -1.022, 0);
-  monkLeftArm.add(lHand);
-
-  monkTorso.add(monkLeftArm);
-
-  // ── RIGHT ARM ────────────────────────────────────────────────────────────
-  const monkRightArm = new THREE.Group();
-  monkRightArm.position.set(0.305, 0.355, 0);
-  monkRightArm.rotation.z = -0.16;
-
-  const rUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.094, 0.086, 0.50, 10), matShirt);
-  rUpperArm.position.set(0, -0.25, 0);
-  monkRightArm.add(rUpperArm);
-
-  const rCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.088, 0.048, 10), matShirtInner);
-  rCuff.position.set(0, -0.524, 0);
-  monkRightArm.add(rCuff);
-
-  const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.080, 0.068, 0.44, 10), matSkin);
-  rForearm.position.set(0, -0.786, 0);
-  monkRightArm.add(rForearm);
-
-  const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.076, 10, 10), matSkin);
-  rHand.scale.set(0.9, 0.76, 0.68);
-  rHand.position.set(0, -1.022, 0);
-  monkRightArm.add(rHand);
-
-  monkTorso.add(monkRightArm);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HEAD
-  // ─────────────────────────────────────────────────────────────────────────
-  const monkHead = new THREE.Group();
-  monkHead.position.set(0, 0.565, 0);
-
-  // Neck
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.105, 0.16, 10), matSkin);
-  neck.position.set(0, -0.08, 0);
-  monkHead.add(neck);
-
-  // Head — use hemisphere trick: front = face texture, back = skin colour
-  // Front face sphere (slightly forward-offset, face UV)
-  const faceGeo = new THREE.SphereGeometry(0.275, 20, 20, 0, Math.PI * 2, 0, Math.PI);
-  const faceMesh = new THREE.Mesh(faceGeo, [matFace, matHeadBack]);
-  faceMesh.position.set(0, 0.185, 0);
-  faceMesh.scale.set(1.0, 1.12, 0.90); // oval anime head
-  monkHead.add(faceMesh);
-
-  // Chin taper
-  const chinGeo = new THREE.CylinderGeometry(0.175, 0.065, 0.18, 12);
-  const chinMesh = new THREE.Mesh(chinGeo, matHeadBack);
-  chinMesh.position.set(0, 0.055, 0);
-  monkHead.add(chinMesh);
-
-  // Ear L
-  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.060, 8, 8), matSkin);
-  earL.scale.set(0.55, 0.75, 0.50);
-  earL.position.set(-0.275, 0.185, 0);
-  monkHead.add(earL);
-  // Ear R
-  const earR = new THREE.Mesh(new THREE.SphereGeometry(0.060, 8, 8), matSkin);
-  earR.scale.set(0.55, 0.75, 0.50);
-  earR.position.set(0.275, 0.185, 0);
-  monkHead.add(earR);
-
-  // ── HAIR ─────────────────────────────────────────────────────────────────
-  if (isFemale) {
-    // Crown
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.292, 14, 14), matHair);
-    hairCap.scale.set(1.04, 0.64, 1.02);
-    hairCap.position.set(0, 0.305, -0.010);
-    monkHead.add(hairCap);
-
-    // Side strands (frame face)
-    const sidGeo = new THREE.CylinderGeometry(0.062, 0.042, 0.58, 8);
-    const hSL = new THREE.Mesh(sidGeo, matHair);
-    hSL.position.set(-0.255, 0.05, 0.05); hSL.rotation.z = 0.14;
-    monkHead.add(hSL);
-    const hSR = new THREE.Mesh(sidGeo, matHair);
-    hSR.position.set(0.255, 0.05, 0.05); hSR.rotation.z = -0.14;
-    monkHead.add(hSR);
-
-    // Back long flow
-    const hBack = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.110, 0.88, 10), matHair);
-    hBack.position.set(0, -0.28, -0.145); hBack.rotation.x = 0.14;
-    monkHead.add(hBack);
-
-    const hTail = new THREE.Mesh(new THREE.CylinderGeometry(0.110, 0.055, 0.50, 10), matHair);
-    hTail.position.set(0, -0.72, -0.20); hTail.rotation.x = 0.20;
-    monkHead.add(hTail);
-
-  } else {
-    // Short neat
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.288, 14, 14), matHair);
-    hairCap.scale.set(1.06, 0.55, 1.06);
-    hairCap.position.set(0, 0.295, -0.025);
-    monkHead.add(hairCap);
-
-    // Front sweep
-    const hairFront = new THREE.Mesh(new THREE.SphereGeometry(0.165, 10, 10), matHair);
-    hairFront.scale.set(1.20, 0.44, 0.82);
-    hairFront.position.set(0, 0.358, 0.158);
-    monkHead.add(hairFront);
-
-    // Sides
-    const hSL = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
-    hSL.scale.set(0.56, 0.50, 0.92);
-    hSL.position.set(-0.248, 0.205, 0.010);
-    monkHead.add(hSL);
-    const hSR = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
-    hSR.scale.set(0.56, 0.50, 0.92);
-    hSR.position.set(0.248, 0.205, 0.010);
-    monkHead.add(hSR);
-
-    // Nape
-    const hNape = new THREE.Mesh(new THREE.SphereGeometry(0.148, 8, 8), matHair);
-    hNape.scale.set(0.88, 0.44, 0.76);
-    hNape.position.set(0, 0.185, -0.220);
-    monkHead.add(hNape);
-  }
-
-  monkTorso.add(monkHead);
-  monkGroup.add(monkTorso);
-
-  return {
-    monkGroup,
-    monkTorso,
-    monkHead,
-    monkLeftArm,
-    monkRightArm,
-    monkLeftLeg,
-    monkRightLeg,
-  };
-}
-
 // Spawn Glowing Lotus Petal Underfoot
 function spawnLotusFootstep(
   scene: THREE.Scene,
