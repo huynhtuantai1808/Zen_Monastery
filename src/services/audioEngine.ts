@@ -20,6 +20,11 @@ class ZenAudioEngine {
   private bgmListeners: Array<(isPlaying: boolean, volume: number) => void> = [];
   private hasRegisteredGesture: boolean = false;
 
+  // Audio ducking for sacred bells
+  private duckTimer: number | null = null;
+  private isDucking: boolean = false;
+  private fadeInterval: number | null = null;
+
   public initContext() {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -37,8 +42,16 @@ class ZenAudioEngine {
     if (this.ambientGain && this.ctx) {
       this.ambientGain.gain.setValueAtTime(this.isMuted ? 0 : 0.4, this.ctx.currentTime);
     }
+    if (this.fadeInterval !== null && typeof window !== 'undefined') {
+      window.clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
     if (this.bgmAudio) {
-      this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
+      if (this.isMuted) {
+        this.bgmAudio.volume = 0;
+      } else {
+        this.bgmAudio.volume = this.isDucking ? Math.max(0.03, this.bgmVolume * 0.22) : this.bgmVolume;
+      }
     }
     this.notifyBgmListeners();
     return this.isMuted;
@@ -64,18 +77,72 @@ class ZenAudioEngine {
         this.isBgmPlaying = true;
         this.notifyBgmListeners();
       });
+
       this.bgmAudio.addEventListener('pause', () => {
+        // Nếu dừng do chạm mốc kết thúc, tự động restart lại ngay
+        if (this.bgmAudio && (this.bgmAudio.ended || (this.bgmAudio.duration > 0 && this.bgmAudio.currentTime >= this.bgmAudio.duration - 0.35))) {
+          this.restartBGM();
+          return;
+        }
         this.isBgmPlaying = false;
         this.notifyBgmListeners();
       });
+
+      // Tự động reload và phát lại khi phát hết bài (Auto Reload / Seamless Loop)
       this.bgmAudio.addEventListener('ended', () => {
-        if (this.bgmAudio) {
-          this.bgmAudio.currentTime = 0;
-          this.bgmAudio.play().catch(() => {});
+        this.restartBGM();
+      });
+
+      // Kiểm tra định kỳ chạm đuôi bài hát đề phòng trình duyệt ngắt luồng
+      this.bgmAudio.addEventListener('timeupdate', () => {
+        if (!this.bgmAudio) return;
+        if (this.bgmAudio.duration > 0 && this.bgmAudio.currentTime >= this.bgmAudio.duration - 0.25) {
+          this.restartBGM();
+        }
+      });
+
+      // Tự động khôi phục khi phát sinh lỗi luồng phát
+      this.bgmAudio.addEventListener('error', (e) => {
+        console.warn('BGM Audio stream error, auto-recovering:', e);
+        if (this.isBgmPlaying && !this.isMuted) {
+          setTimeout(() => {
+            if (this.bgmAudio) {
+              this.bgmAudio.src = this.bgmUrl;
+              this.bgmAudio.load();
+              this.bgmAudio.play().catch(() => {});
+            }
+          }, 800);
         }
       });
     } catch (err) {
       console.warn('Could not initialize BGM audio element', err);
+    }
+  }
+
+  /**
+   * Tự động phát lại bài hát từ đầu khi phát hết (Auto Reload)
+   */
+  public restartBGM() {
+    if (!this.bgmAudio) return;
+    try {
+      this.bgmAudio.currentTime = 0;
+      const playPromise = this.bgmAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('BGM replay error, reloading source buffer:', err);
+          if (this.bgmAudio) {
+            this.bgmAudio.src = this.bgmUrl;
+            this.bgmAudio.load();
+            this.bgmAudio.play().catch(() => {});
+          }
+        });
+      }
+    } catch {
+      if (this.bgmAudio) {
+        this.bgmAudio.src = this.bgmUrl;
+        this.bgmAudio.load();
+        this.bgmAudio.play().catch(() => {});
+      }
     }
   }
 
@@ -101,7 +168,8 @@ class ZenAudioEngine {
     this.initContext();
     this.initBGM();
     if (!this.bgmAudio) return;
-    this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
+    const targetVol = this.isDucking ? Math.max(0.03, this.bgmVolume * 0.22) : this.bgmVolume;
+    this.bgmAudio.volume = this.isMuted ? 0 : targetVol;
     const playPromise = this.bgmAudio.play();
     if (playPromise !== undefined) {
       playPromise
@@ -146,9 +214,97 @@ class ZenAudioEngine {
   public setBGMVolume(volume: number) {
     this.bgmVolume = Math.max(0, Math.min(1, volume));
     if (this.bgmAudio && !this.isMuted) {
-      this.bgmAudio.volume = this.bgmVolume;
+      if (this.isDucking) {
+        this.bgmAudio.volume = Math.max(0.03, this.bgmVolume * 0.22);
+      } else {
+        this.bgmAudio.volume = this.bgmVolume;
+      }
     }
     this.notifyBgmListeners();
+  }
+
+  /**
+   * Chuyển đổi âm lượng nhạc nền mượt mà (Smooth Volume Ramp)
+   */
+  private fadeAudioVolume(targetVol: number, durationMs: number, onComplete?: () => void) {
+    if (!this.bgmAudio) return;
+    if (this.fadeInterval !== null && typeof window !== 'undefined') {
+      window.clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
+    if (this.isMuted) {
+      this.bgmAudio.volume = 0;
+      if (onComplete) onComplete();
+      return;
+    }
+
+    const startVol = this.bgmAudio.volume;
+    const diff = targetVol - startVol;
+    if (Math.abs(diff) < 0.005 || durationMs <= 0) {
+      this.bgmAudio.volume = Math.max(0, Math.min(1, targetVol));
+      if (onComplete) onComplete();
+      return;
+    }
+
+    const stepMs = 30;
+    const totalSteps = Math.max(1, Math.floor(durationMs / stepMs));
+    let step = 0;
+
+    this.fadeInterval = window.setInterval(() => {
+      step++;
+      const progress = Math.min(1, step / totalSteps);
+      // Smooth sinusoidal / cubic easing
+      const ease = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      const currentVol = startVol + diff * ease;
+      if (this.bgmAudio && !this.isMuted) {
+        this.bgmAudio.volume = Math.max(0, Math.min(1, currentVol));
+      }
+
+      if (progress >= 1) {
+        if (this.fadeInterval !== null) {
+          window.clearInterval(this.fadeInterval);
+          this.fadeInterval = null;
+        }
+        if (onComplete) onComplete();
+      }
+    }, stepMs);
+  }
+
+  /**
+   * Khi tiếng chuông vang: nhạc nền sẽ tự động nhỏ lại (Audio Ducking)
+   * và giữ nhỏ cho đến khi tiếng chuông ngân dứt thì từ từ trở lại âm lượng bình thường.
+   */
+  public duckBGMForBell(durationSeconds = 13.0) {
+    if (!this.bgmAudio || this.isMuted || !this.isBgmPlaying) return;
+
+    // Hủy bỏ hẹn giờ khôi phục âm lượng trước đó nếu có tiếng chuông mới
+    if (this.duckTimer !== null && typeof window !== 'undefined') {
+      window.clearTimeout(this.duckTimer);
+      this.duckTimer = null;
+    }
+
+    this.isDucking = true;
+
+    // Giảm âm lượng nhạc nền xuống còn ~22% mức âm lượng bình thường
+    const duckedVol = Math.max(0.03, this.bgmVolume * 0.22);
+
+    // Lướt êm dịu xuống trong 600ms
+    this.fadeAudioVolume(duckedVol, 600);
+
+    // Chờ tiếng chuông ngân vang xong thì từ từ phục hồi âm lượng bình thường
+    if (typeof window !== 'undefined') {
+      const holdTimeMs = Math.max(800, (durationSeconds - 2.5) * 1000);
+      this.duckTimer = window.setTimeout(() => {
+        this.isDucking = false;
+        // Trượt êm đềm trở về âm lượng bgmVolume gốc trong 2.5 giây
+        this.fadeAudioVolume(this.bgmVolume, 2500, () => {
+          this.duckTimer = null;
+        });
+      }, holdTimeMs);
+    }
   }
 
   public getBGMVolume(): number {
@@ -178,6 +334,7 @@ class ZenAudioEngine {
   public playDistantEchoBell(pitch = 1, volume = 0.65) {
     if (this.isMuted) return;
     this.initContext();
+    this.duckBGMForBell(13.5); // Giảm nhạc nền trong suốt 13.5s tiếng chuông ngân
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
@@ -279,6 +436,7 @@ class ZenAudioEngine {
   public playTempleBell(pitch = 1) {
     if (this.isMuted) return;
     this.initContext();
+    this.duckBGMForBell(7.0); // Giảm nhạc nền trong suốt 7s tiếng chuông ngân
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
@@ -368,6 +526,7 @@ class ZenAudioEngine {
   public playSingingBowl() {
     if (this.isMuted) return;
     this.initContext();
+    this.duckBGMForBell(6.5); // Giảm nhạc nền trong suốt 6.5s chuông xoay
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
