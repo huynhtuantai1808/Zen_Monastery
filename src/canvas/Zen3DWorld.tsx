@@ -34,6 +34,7 @@ interface Zen3DWorldProps {
   onOpenWaterCarrying: () => void;
   onOpenAltarCleaning: () => void;
   onOpenCharity: () => void;
+  onOpenCalligraphy?: () => void;
   onAddMerit: (amount: number, x: number, y: number, label?: string) => void;
   spendStamina: (amount: number) => boolean;
 }

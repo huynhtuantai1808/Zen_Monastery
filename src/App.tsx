@@ -26,6 +26,7 @@ import { WoodChoppingModal } from './components/WoodChoppingModal';
 import { WaterCarryingModal } from './components/WaterCarryingModal';
 import { AltarCleaningModal } from './components/AltarCleaningModal';
 import { CharityModal } from './components/CharityModal';
+import { CalligraphyModal } from './components/CalligraphyModal';
 import { ZenQuestModal } from './components/ZenQuestModal';
 import { ZEN_QUESTS, type ZenQuestItem } from './data/zenQuests';
 import { soundEngine } from './services/audioEngine';
@@ -399,6 +400,7 @@ export default function App() {
             onOpenWaterCarrying={() => setActiveQuestModal('CARRY_WATER')}
             onOpenAltarCleaning={() => setActiveQuestModal('CLEAN_ALTAR')}
             onOpenCharity={() => setActiveQuestModal('CHARITY')}
+            onOpenCalligraphy={() => setActiveQuestModal('CALLIGRAPHY')}
             onAddMerit={(amount, x, y, label) => addMerit(amount, x, y, label)}
             spendStamina={spendStaminaHandler}
           />
@@ -706,6 +708,16 @@ export default function App() {
         <CharityModal
           onComplete={(mBonus, sRestore) => handleCompleteQuestActivity('CHARITY', mBonus, sRestore)}
           onClose={() => setActiveQuestModal(null)}
+          spendStamina={spendStaminaHandler}
+        />
+      )}
+
+      {/* Modal Chép Kinh & Viết Thư Pháp */}
+      {activeQuestModal === 'CALLIGRAPHY' && (
+        <CalligraphyModal
+          isOpen={true}
+          onClose={() => setActiveQuestModal(null)}
+          onAddMerit={(mBonus) => handleCompleteQuestActivity('CALLIGRAPHY', mBonus, 20)}
           spendStamina={spendStaminaHandler}
         />
       )}

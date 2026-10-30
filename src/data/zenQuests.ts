@@ -9,7 +9,7 @@ export interface ZenQuestItem {
   rewardStamina: number;
   unlockedLevel: number;
   hotspotName: string;
-  activityKey: 'CHOP_WOOD' | 'CARRY_WATER' | 'CLEAN_ALTAR' | 'CHARITY' | 'SWEEP' | 'TEA' | 'DHARMA' | 'FEED_KOI';
+  activityKey: 'CHOP_WOOD' | 'CARRY_WATER' | 'CLEAN_ALTAR' | 'CHARITY' | 'SWEEP' | 'TEA' | 'DHARMA' | 'FEED_KOI' | 'CALLIGRAPHY';
 }
 
 export interface ZenMilestoneItem {
@@ -126,6 +126,19 @@ export const ZEN_QUESTS: ZenQuestItem[] = [
     unlockedLevel: 2,
     hotspotName: 'Cầu Sen & Hồ Cá Koi',
     activityKey: 'FEED_KOI',
+  },
+  {
+    id: 'calligraphy_sutra',
+    title: 'Chép kinh & Viết thư pháp',
+    desc: 'Ngồi bên án thư Tàng Kinh Các mài mực thơm, nắn nót từng nét cọ kinh văn rèn luyện sự định tâm.',
+    quote: 'Tâm an nét bút sắc, nét chữ nết người. Mỗi nét mực là một sự trở về.',
+    icon: '🖌️',
+    targetCount: 1,
+    rewardMerit: 55,
+    rewardStamina: 20,
+    unlockedLevel: 2,
+    hotspotName: 'Tàng Kinh Các Cổ Kính',
+    activityKey: 'CALLIGRAPHY',
   },
 ];
 
