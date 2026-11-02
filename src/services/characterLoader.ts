@@ -910,6 +910,10 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         0, 0, 0,
       ]
     ),
+    // Hông giữ vững ở độ cao đứng chuẩn (Y = 0.58)
+    new THREE.VectorKeyframeTrack('Hip.position', [0, 0.8], [0, 0.58, 0, 0, 0.58, 0]),
+    new THREE.QuaternionKeyframeTrack('LeftForearm.quaternion', [0, 0.8], [0, 0, 0, 1, 0, 0, 0, 1]),
+    new THREE.QuaternionKeyframeTrack('RightForearm.quaternion', [0, 0.8], [0, 0, 0, 1, 0, 0, 0, 1]),
     // Đầu nhún nhẹ
     new THREE.QuaternionKeyframeTrack(
       'Head.quaternion',
@@ -939,6 +943,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
       ]
     ),
     // Chân đứng ngay ngắn
+    new THREE.VectorKeyframeTrack('Hip.position', [0, 2.4], [0, 0.58, 0, 0, 0.58, 0]),
     new THREE.QuaternionKeyframeTrack('LeftLeg.quaternion', [0, 2.4], [0, 0, 0, 1, 0, 0, 0, 1]),
     new THREE.QuaternionKeyframeTrack('RightLeg.quaternion', [0, 2.4], [0, 0, 0, 1, 0, 0, 0, 1]),
     new THREE.QuaternionKeyframeTrack('LeftShin.quaternion', [0, 2.4], [0, 0, 0, 1, 0, 0, 0, 1]),
@@ -973,6 +978,14 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
           0, 0, -0.06, 0.998,
           0, 0, -0.03, 0.999,
           0, 0, -0.06, 0.998,
+        ]
+      ),
+      new THREE.QuaternionKeyframeTrack(
+        'RightForearm.quaternion',
+        [0, 2.4],
+        [
+          0, 0, 0, 1,
+          0, 0, 0, 1,
         ]
       )
     );
@@ -1033,20 +1046,22 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
 
   const idleClip = new THREE.AnimationClip('idle', idleDur, idleTracks);
 
-  // C. SIT CLIP (Ngồi buông chân bên mép hiên nước hoặc tọa thiền tĩnh tâm)
+  // C. SIT CLIP (Tọa thiền kiết già an lạc trên bồ đoàn / sàn chùa)
   const sitDur = 1.0;
   const sitTracks: THREE.KeyframeTrack[] = [
-    // Hạ thấp người xuống mặt sàn
-    new THREE.VectorKeyframeTrack('Torso.position', [0, 1.0], [0, -0.22, 0, 0, -0.22, 0]),
-    // Đùi đưa ngang ra phía trước
-    new THREE.QuaternionKeyframeTrack('LeftLeg.quaternion', [0, 1.0], [-0.707, 0, 0, 0.707, -0.707, 0, 0, 0.707]),
-    new THREE.QuaternionKeyframeTrack('RightLeg.quaternion', [0, 1.0], [-0.707, 0, 0, 0.707, -0.707, 0, 0, 0.707]),
-    // Cẳng chân buông thõng xuống mép sàn hiên nước
-    new THREE.QuaternionKeyframeTrack('LeftShin.quaternion', [0, 1.0], [0.707, 0, 0, 0.707, 0.707, 0, 0, 0.707]),
-    new THREE.QuaternionKeyframeTrack('RightShin.quaternion', [0, 1.0], [0.707, 0, 0, 0.707, 0.707, 0, 0, 0.707]),
-    // Hai tay đặt an tĩnh trên đùi
-    new THREE.QuaternionKeyframeTrack('LeftArm.quaternion', [0, 1.0], [0.35, 0, 0.05, 0.935, 0.35, 0, 0.05, 0.935]),
-    new THREE.QuaternionKeyframeTrack('RightArm.quaternion', [0, 1.0], [0.35, 0, -0.05, 0.935, 0.35, 0, -0.05, 0.935]),
+    // Hạ thấp hông xuống vừa vặn mặt bồ đoàn / sàn chùa (Y = 0.22m)
+    new THREE.VectorKeyframeTrack('Hip.position', [0, 1.0], [0, 0.22, 0, 0, 0.22, 0]),
+    new THREE.VectorKeyframeTrack('Torso.position', [0, 1.0], [0, 0, 0, 0, 0, 0]),
+    // Hai chân xếp bằng kiết già nằm phẳng trên mặt sàn (không bị chìm đâm xuống sàn)
+    new THREE.QuaternionKeyframeTrack('LeftLeg.quaternion', [0, 1.0], [-0.6722, -0.115, -0.23, 0.6943, -0.6722, -0.115, -0.23, 0.6943]),
+    new THREE.QuaternionKeyframeTrack('RightLeg.quaternion', [0, 1.0], [-0.6722, 0.115, 0.23, 0.6943, -0.6722, 0.115, 0.23, 0.6943]),
+    new THREE.QuaternionKeyframeTrack('LeftShin.quaternion', [0, 1.0], [0.9471, -0.1634, -0.0315, 0.2745, 0.9471, -0.1634, -0.0315, 0.2745]),
+    new THREE.QuaternionKeyframeTrack('RightShin.quaternion', [0, 1.0], [0.9471, 0.1634, 0.0315, 0.2745, 0.9471, 0.1634, 0.0315, 0.2745]),
+    // Hai tay buông thư an tĩnh trên đùi / ấn thiền định
+    new THREE.QuaternionKeyframeTrack('LeftArm.quaternion', [0, 1.0], [0.2444, 0.1651, -0.1329, 0.9462, 0.2444, 0.1651, -0.1329, 0.9462]),
+    new THREE.QuaternionKeyframeTrack('RightArm.quaternion', [0, 1.0], [0.2444, -0.1651, 0.1329, 0.9462, 0.2444, -0.1651, 0.1329, 0.9462]),
+    new THREE.QuaternionKeyframeTrack('LeftForearm.quaternion', [0, 1.0], [0.167, 0.0631, 0.234, 0.9557, 0.167, 0.0631, 0.234, 0.9557]),
+    new THREE.QuaternionKeyframeTrack('RightForearm.quaternion', [0, 1.0], [0.167, -0.0631, -0.234, 0.9557, 0.167, -0.0631, -0.234, 0.9557]),
   ];
   const sitClip = new THREE.AnimationClip('sit', sitDur, sitTracks);
 
