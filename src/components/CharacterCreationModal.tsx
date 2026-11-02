@@ -17,27 +17,27 @@ const NAME_SUGGESTIONS_FEMALE = ['Diệu Tâm', 'Ngọc Tâm', 'Tịnh Như', 'D
 const getRobeOptions = (gender: GenderType) => [
   {
     id: 'lam' as RobeColorType,
-    name: gender === 'female' ? 'Hồng Pastel Dịu Ngọt' : 'Lam Thanh Tịnh',
-    hex: gender === 'female' ? '#f472b6' : '#60a5fa',
-    desc: gender === 'female' ? 'Sơ mi hồng pastel ngọt ngào như mẫu thiết kế nữ' : 'Sơ mi lam anime trẻ trung như mẫu thiết kế nam',
+    name: 'Đồ Lam Phật Tử (Chuẩn Thiết Kế)',
+    hex: '#8ea3b7',
+    desc: gender === 'female' ? 'Áo tràng lam thướt tha xẻ tà hông, thêu Hoa Sen vàng trước ngực' : 'Áo lam Phật tử cổ tàu, khuy vải chéo vai thanh tịnh',
   },
   {
     id: 'nau' as RobeColorType,
-    name: 'Nâu Trầm Ấm',
-    hex: '#d97706',
-    desc: 'Màu be/nâu đất mộc mạc, nhẫn nại và khiêm cung',
+    name: 'Nâu Sồng Thiền Môn',
+    hex: '#a86a45',
+    desc: 'Màu đất mộc mạc, nhẫn nại và khiêm cung của người tu tập',
   },
   {
     id: 'xam' as RobeColorType,
-    name: 'Xám Tối Giản',
+    name: 'Xám Khói Thiền Tịnh',
     hex: '#94a3b8',
-    desc: 'Sắc xám khói tĩnh lặng hiện đại thanh đạm',
+    desc: 'Pháp phục xám thanh đạm như sương sớm chốn thiền môn',
   },
   {
     id: 'bach' as RobeColorType,
     name: 'Bạch Y Thuần Khiết',
     hex: '#f8fafc',
-    desc: 'Sơ mi trắng thanh khiết, tâm không tì vết',
+    desc: 'Pháp phục trắng tinh khôi, tâm không tì vết',
   },
 ];
 
@@ -63,8 +63,8 @@ const getHairOptions = (gender: GenderType) => [
 ];
 
 const ACCESSORIES: { id: AccessoryType; name: string; icon: string; desc: string }[] = [
-  { id: 'beads', name: 'Chuỗi Hạt Bồ Đề', icon: '📿', desc: '108 hạt niệm Phật định tâm' },
-  { id: 'bag', name: 'Túi Vải Chàm', icon: '🎒', desc: 'Túi xách đựng kinh sách thanh đạm' },
+  { id: 'beads', name: 'Chuỗi Hạt Bồ Đề', icon: '📿', desc: '18 hạt bồ đề niệm Phật có tua rua' },
+  { id: 'bag', name: 'Túi Vải Phật Tử', icon: '👜', desc: 'Túi chữ An (Nam) / Túi thêu sen (Nữ)' },
   { id: 'hat', name: 'Nón Lá Mộc Mạc', icon: '👒', desc: 'Che mưa che nắng trên đường hành hương' },
   { id: 'none', name: 'Không Mang Phụ Kiện', icon: '✨', desc: 'Thân tâm nhẹ nhàng thảnh thơi' },
 ];

@@ -63,11 +63,11 @@ interface WorldHotspot {
 const WORLD_WIDTH = 2600;
 const WORLD_HEIGHT = 800;
 
-const ROBE_COLORS: Record<RobeColorType, { male: string; female: string; maleShade: string; femaleShade: string }> = {
-  lam: { male: '#dbeafe', female: '#fce7f3', maleShade: '#bfdbfe', femaleShade: '#fbcfe8' },
-  nau: { male: '#fed7aa', female: '#fed7aa', maleShade: '#fdba74', femaleShade: '#fdba74' },
-  xam: { male: '#e2e8f0', female: '#e2e8f0', maleShade: '#cbd5e1', femaleShade: '#cbd5e1' },
-  bach: { male: '#ffffff', female: '#ffffff', maleShade: '#f1f5f9', femaleShade: '#f1f5f9' },
+const ROBE_COLORS: Record<RobeColorType, { male: string; female: string; maleShade: string; femaleShade: string; pants: string; pantsShade: string }> = {
+  lam: { male: '#8ea3b7', female: '#8ea3b7', maleShade: '#72879c', femaleShade: '#72879c', pants: '#7a8f9f', pantsShade: '#5a6e7e' },
+  nau: { male: '#a86a45', female: '#a86a45', maleShade: '#8c5232', femaleShade: '#8c5232', pants: '#8c5232', pantsShade: '#6a3c20' },
+  xam: { male: '#94a3b8', female: '#94a3b8', maleShade: '#64748b', femaleShade: '#64748b', pants: '#64748b', pantsShade: '#475569' },
+  bach: { male: '#f8fafc', female: '#f8fafc', maleShade: '#cbd5e1', femaleShade: '#cbd5e1', pants: '#cbd5e1', pantsShade: '#94a3b8' },
 };
 
 export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
@@ -1392,7 +1392,7 @@ function drawSanctuaryZone(ctx: CanvasRenderingContext2D, _step: number) {
   ctx.restore();
 }
 
-// Draw Player Character with Cute Chibi Proportions & Walking Animation (Matching Concept Art)
+// Draw Player Character with Cute Chibi Proportions & Walking Animation (Matching Concept Art - Đồ Lam Phật Tử)
 function drawWalkingCharacter(
   ctx: CanvasRenderingContext2D,
   px: number,
@@ -1411,11 +1411,12 @@ function drawWalkingCharacter(
   const legOffset = isWalking ? Math.sin(step * 0.28) * 6 : 0;
   const bounceY = isWalking ? -Math.abs(Math.sin(step * 0.28)) * 3 : 0;
 
-  // Outfit palettes from Concept Art
+  // Outfit palettes from Concept Art (Đồ Lam Phật Tử)
   const palette = ROBE_COLORS[character.robeColor] || ROBE_COLORS.lam;
   const shirtColor = isFemale ? palette.female : palette.male;
   const shirtShade = isFemale ? palette.femaleShade : palette.maleShade;
-  const pantsColor = isFemale ? '#475569' : '#334155'; // Charcoal grey vs Slate denim
+  const pantsColor = palette.pants;
+  const pantsShade = palette.pantsShade;
   const hairColor = '#3f2e24';
   const hairHighlight = '#5c4033';
   const skinTone = '#ffedd5';
@@ -1430,88 +1431,174 @@ function drawWalkingCharacter(
   ctx.save();
   ctx.translate(0, bounceY);
 
-  // 2. Chibi Legs & Shoes (Walking animation)
+  // 2. Chibi Buddhist Pants (Quần lam suông rộng thoải mái)
   ctx.fillStyle = pantsColor;
-  ctx.fillRect(-7 + legOffset * 0.8, -14, 5, 12);
-  ctx.fillRect(2 - legOffset * 0.8, -14, 5, 12);
+  ctx.fillRect(-7 + legOffset * 0.8, -16, 5, 14);
+  ctx.fillRect(2 - legOffset * 0.8, -16, 5, 14);
+  ctx.fillStyle = pantsShade;
+  ctx.fillRect(-7 + legOffset * 0.8, -4, 5, 2);
+  ctx.fillRect(2 - legOffset * 0.8, -4, 5, 2);
 
-  // Shoes: Black sneakers with white rubber caps (Male) or White slip-ons (Female)
+  // 3. Buddhist Shoes (Giày vải đen Phật tử đế bệt)
   if (isFemale) {
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(-8 + legOffset * 0.8, -3, 7, 4);
-    ctx.fillRect(1 - legOffset * 0.8, -3, 7, 4);
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(-8 + legOffset * 0.8, -3, 7, 4);
-    ctx.strokeRect(1 - legOffset * 0.8, -3, 7, 4);
+    // NỮ: Hài vải đen đế bệt thanh nhã
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.ellipse(-5 + legOffset * 0.8, -2, 4, 2.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(4 - legOffset * 0.8, -2, 4, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-7 + legOffset * 0.8, -3, 3.5, 2);
+    ctx.fillRect(2 - legOffset * 0.8, -3, 3.5, 2);
   } else {
-    ctx.fillStyle = '#18181b';
-    ctx.fillRect(-8 + legOffset * 0.8, -3, 7, 4);
-    ctx.fillRect(1 - legOffset * 0.8, -3, 7, 4);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-3 + legOffset * 0.8, -3, 3, 4);
-    ctx.fillRect(6 - legOffset * 0.8, -3, 3, 4);
+    // NAM: Giày kung-fu vải đen viền đế trắng
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-8 + legOffset * 0.8, -4, 7, 4);
+    ctx.fillRect(1 - legOffset * 0.8, -4, 7, 4);
+    ctx.fillStyle = '#ffffff'; // Viền đế trắng
+    ctx.fillRect(-8 + legOffset * 0.8, -1, 7, 1.2);
+    ctx.fillRect(1 - legOffset * 0.8, -1, 7, 1.2);
   }
 
-  // 3. Brown Leather Belt & Metal Buckle
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(-8, -17, 16, 3.5);
-  ctx.fillStyle = '#94a3b8';
-  ctx.fillRect(-2, -17.5, 4, 4);
-  ctx.fillStyle = '#334155';
-  ctx.fillRect(-1, -16.5, 2, 2);
+  // 4. Buddhist Robe / Tunic (Áo Lam Phật Tử - Buông ngoài quần, KHÔNG CÓ THẮT LƯNG DA)
+  if (isFemale) {
+    // NỮ: Áo tràng lam dáng dài xẻ tà hai bên hông buông qua gối + Hoa sen thêu vàng
+    ctx.fillStyle = shirtColor;
+    ctx.beginPath();
+    ctx.moveTo(-8, -32);
+    ctx.lineTo(8, -32);
+    ctx.lineTo(10, -9);
+    ctx.lineTo(-10, -9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = shirtShade;
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-  // 4. Torso: Casual Button-Up Shirt / Blouse with open V-collar
-  ctx.fillStyle = shirtColor;
-  ctx.beginPath();
-  ctx.moveTo(-9, -32);
-  ctx.lineTo(9, -32);
-  ctx.lineTo(8, -17);
-  ctx.lineTo(-8, -17);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = shirtShade;
-  ctx.lineWidth = 1;
-  ctx.stroke();
+    // Đường xẻ tà hai bên hông thướt tha
+    ctx.strokeStyle = shirtShade;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-8, -19);
+    ctx.lineTo(-10, -9);
+    ctx.moveTo(8, -19);
+    ctx.lineTo(10, -9);
+    ctx.stroke();
 
-  // Open V-neck collar & skin show
-  ctx.fillStyle = skinTone;
-  ctx.beginPath();
-  ctx.moveTo(-3, -32);
-  ctx.lineTo(3, -32);
-  ctx.lineTo(0, -26);
-  ctx.closePath();
-  ctx.fill();
+    // HOA SEN VÀNG THÊU TRÊN NGỰC ÁO NỮ
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(3, -25, 2.2, 1.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(3, -26, 1.2, 0, Math.PI * 2);
+    ctx.fill();
 
-  // White collar flaps
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.moveTo(-7, -32);
-  ctx.lineTo(-2, -26);
-  ctx.lineTo(-5, -24);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(7, -32);
-  ctx.lineTo(2, -26);
-  ctx.lineTo(5, -24);
-  ctx.closePath();
-  ctx.fill();
+    // Cổ tròn tàu khép kín + khuy vải
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(-3, -33, 6, 3);
+    ctx.strokeStyle = shirtShade;
+    ctx.strokeRect(-3, -33, 6, 3);
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(2, -31.5, 0.8, 0, Math.PI * 2);
+    ctx.arc(3.5, -29.5, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // NAM: Áo lam Phật tử cổ tàu, buông qua hông xẻ tà, khuy vải chéo vai
+    ctx.fillStyle = shirtColor;
+    ctx.beginPath();
+    ctx.moveTo(-9, -32);
+    ctx.lineTo(9, -32);
+    ctx.lineTo(9, -16);
+    ctx.lineTo(-9, -16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = shirtShade;
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-  // Arms with 3/4 rolled sleeves
+    // Đường xẻ tà ngắn hai bên hông
+    ctx.strokeStyle = shirtShade;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-9, -19);
+    ctx.lineTo(-9, -16);
+    ctx.moveTo(9, -19);
+    ctx.lineTo(9, -16);
+    ctx.stroke();
+
+    // Cổ đứng mandarin ôm khít
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(-3.5, -34, 7, 3.5);
+    ctx.strokeStyle = shirtShade;
+    ctx.strokeRect(-3.5, -34, 7, 3.5);
+
+    // 2 khuy cài vải chéo lệch vai phải
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(2.5, -32, 0.9, 0, Math.PI * 2);
+    ctx.arc(4, -30, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Arms with sleeves & Prayer beads
   const armSwing = isWalking ? Math.sin(step * 0.28) * 5 : 0;
-  ctx.fillStyle = shirtColor;
-  ctx.fillRect(-12, -31 + armSwing * 0.4, 4, 8);
-  ctx.fillStyle = skinTone;
-  ctx.fillRect(-12, -23 + armSwing * 0.4, 3.5, 5);
-  ctx.fillStyle = shirtColor;
-  ctx.fillRect(8, -31 - armSwing * 0.4, 4, 8);
-  ctx.fillStyle = skinTone;
-  ctx.fillRect(8.5, -23 - armSwing * 0.4, 3.5, 5);
+
+  if (isFemale) {
+    // NỮ: Tay phải buông nhẹ theo bước đi, tay trái nâng chuỗi 18 hạt bồ đề
+    // Tay phải
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(-12, -31 + armSwing * 0.4, 4, 8);
+    ctx.fillStyle = skinTone;
+    ctx.fillRect(-12, -23 + armSwing * 0.4, 3.5, 4.5);
+
+    // Tay trái nâng chuỗi hạt bồ đề niệm Phật
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(8, -31, 4, 7);
+    ctx.fillStyle = skinTone;
+    ctx.fillRect(8.5, -24, 3.5, 4);
+
+    // Chuỗi 18 hạt bồ đề rủ xuống có tua rua
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(10.5, -18, 3, 4.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    // Hạt mẹ & tua rua vàng cam
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(10.5, -13.5, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(10.5, -13.5);
+    ctx.lineTo(10.5, -9);
+    ctx.stroke();
+  } else {
+    // NAM: Tay áo lam xắn gập nhẹ, chuỗi hạt gỗ trên cổ tay
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(-12, -31 + armSwing * 0.4, 4, 8);
+    ctx.fillStyle = skinTone;
+    ctx.fillRect(-12, -23 + armSwing * 0.4, 3.5, 5);
+    // Vòng chuỗi hạt cổ tay
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(-12.5, -23.5 + armSwing * 0.4, 4.5, 1.5);
+
+    ctx.fillStyle = shirtColor;
+    ctx.fillRect(8, -31 - armSwing * 0.4, 4, 8);
+    ctx.fillStyle = skinTone;
+    ctx.fillRect(8.5, -23 - armSwing * 0.4, 3.5, 5);
+    // Vòng chuỗi hạt cổ tay
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(8, -23.5 - armSwing * 0.4, 4.5, 1.5);
+  }
 
   // 5. Neck
   ctx.fillStyle = skinShade;
-  ctx.fillRect(-2.5, -36, 5, 5);
+  ctx.fillRect(-2.5, -36, 5, 4);
 
   // 6. Cute Chibi Head (Large adorable proportions)
   ctx.fillStyle = skinTone;
@@ -1700,14 +1787,16 @@ function drawWalkingCharacter(
     }
   }
 
-  // 8. Phụ kiện (Accessories)
+  // 8. Pháp Bảo Tùy Thân (Accessories from Concept Art)
   if (character.accessory === 'beads') {
+    // Tràng hạt bồ đề đeo cổ
     ctx.strokeStyle = '#78350f';
     ctx.lineWidth = 2.2;
     ctx.beginPath();
-    ctx.ellipse(0, -29, 6.5, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -26, 6.5, 4, 0, 0, Math.PI * 2);
     ctx.stroke();
   } else if (character.accessory === 'hat') {
+    // Nón lá thiền
     ctx.fillStyle = '#fde047';
     ctx.beginPath();
     ctx.moveTo(-16, -58);
@@ -1719,18 +1808,34 @@ function drawWalkingCharacter(
     ctx.lineWidth = 1;
     ctx.stroke();
   } else if (character.accessory === 'bag') {
-    ctx.fillStyle = '#1e3a8a';
-    ctx.fillRect(5, -24, 7, 9);
-    ctx.strokeStyle = '#172554';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(5, -24, 7, 9);
-    // Dây quai đeo
-    ctx.strokeStyle = '#1e3a8a';
+    // Túi vải Phật tử: Nam chữ "An", Nữ hoa sen
+    const bagColor = isFemale ? '#854d0e' : '#64748b';
+    ctx.fillStyle = bagColor;
+    ctx.fillRect(5, -23, 8, 10);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(5, -23, 8, 10);
+    // Dây quai đeo chéo vai
+    ctx.strokeStyle = bagColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(-8, -32);
-    ctx.lineTo(6, -20);
+    ctx.lineTo(6, -19);
     ctx.stroke();
+
+    if (isFemale) {
+      // Hoa sen nhỏ trên túi
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.arc(9, -18, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Chữ "An" thư pháp tượng trưng
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 6px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('An', 9, -16);
+    }
   }
 
   ctx.restore();

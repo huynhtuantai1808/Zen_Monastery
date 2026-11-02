@@ -107,14 +107,12 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
               Pháp phục:{' '}
               <span className="text-amber-300">
                 {character.robeColor === 'lam'
-                  ? character.gender === 'female'
-                    ? 'Hồng Pastel'
-                    : 'Lam Thanh Tịnh'
+                  ? 'Đồ Lam Phật Tử'
                   : character.robeColor === 'nau'
-                    ? 'Nâu Trầm Ấm'
+                    ? 'Nâu Sồng Thiền Môn'
                     : character.robeColor === 'xam'
-                      ? 'Xám Tối Giản'
-                      : 'Bạch Y'}
+                      ? 'Xám Khói Thiền Tịnh'
+                      : 'Bạch Y Thuần Khiết'}
               </span>
             </div>
           </div>

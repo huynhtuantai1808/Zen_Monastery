@@ -25,48 +25,74 @@ interface ZenCharacterSpriteProps {
 }
 
 // Bảng màu áo sơ mi / trang phục theo phong cách Chibi Casual
+// Bảng màu Pháp phục Phật tử (Đồ Lam, Nâu Sồng, Xám Khói, Bạch Y) chuẩn Concept Art Chibi Buddhist Outfit
 const SHIRT_PALETTES: Record<
   RobeColorType,
   {
     maleShirt: string;
     maleShirtShade: string;
+    maleShirtHighlight: string;
     femaleShirt: string;
     femaleShirtShade: string;
+    femaleShirtHighlight: string;
+    pantsColor: string;
+    pantsShade: string;
     collar: string;
+    buttonColor: string;
     name: string;
   }
 > = {
   lam: {
-    maleShirt: '#dbeafe', // Xanh dương nhạt như mẫu thiết kế Male Chibi
-    maleShirtShade: '#bfdbfe',
-    femaleShirt: '#fce7f3', // Hồng pastel như mẫu thiết kế Female Chibi
-    femaleShirtShade: '#fbcfe8',
-    collar: '#eff6ff',
-    name: 'Sơ Mi Thanh Lịch',
+    maleShirt: '#8ea3b7', // Sắc lam tro truyền thống chuẩn thiết kế Chibi Đồ Lam Phật Tử
+    maleShirtShade: '#72879c',
+    maleShirtHighlight: '#a8bbcb',
+    femaleShirt: '#8ea3b7', // Áo tràng lam dáng dài thêu hoa sen
+    femaleShirtShade: '#72879c',
+    femaleShirtHighlight: '#a8bbcb',
+    pantsColor: '#7a8f9f',
+    pantsShade: '#627685',
+    collar: '#7e93a7',
+    buttonColor: '#334155',
+    name: 'Đồ Lam Phật Tử',
   },
   nau: {
-    maleShirt: '#fed7aa', // Nâu ấm / be
-    maleShirtShade: '#fdba74',
-    femaleShirt: '#fed7aa',
-    femaleShirtShade: '#fdba74',
-    collar: '#ffedd5',
-    name: 'Nâu Trầm Mộc',
+    maleShirt: '#a86a45', // Nâu sồng trầm ấm mộc mạc
+    maleShirtShade: '#8b4e2b',
+    maleShirtHighlight: '#c48661',
+    femaleShirt: '#a86a45',
+    femaleShirtShade: '#8b4e2b',
+    femaleShirtHighlight: '#c48661',
+    pantsColor: '#935632',
+    pantsShade: '#703a19',
+    collar: '#965834',
+    buttonColor: '#451a03',
+    name: 'Nâu Sồng Thiền Môn',
   },
   xam: {
-    maleShirt: '#e2e8f0', // Xám khói
-    maleShirtShade: '#cbd5e1',
-    femaleShirt: '#e2e8f0',
-    femaleShirtShade: '#cbd5e1',
-    collar: '#f8fafc',
-    name: 'Xám Tối Giản',
+    maleShirt: '#94a3b8', // Xám khói thanh tịnh
+    maleShirtShade: '#64748b',
+    femaleShirt: '#94a3b8',
+    femaleShirtShade: '#64748b',
+    collar: '#788494',
+    buttonColor: '#1e293b',
+    pantsColor: '#788494',
+    pantsShade: '#576271',
+    maleShirtHighlight: '#cbd5e1',
+    femaleShirtHighlight: '#cbd5e1',
+    name: 'Xám Khói Thiền Tịnh',
   },
   bach: {
-    maleShirt: '#ffffff', // Trắng tinh khôi
-    maleShirtShade: '#f1f5f9',
-    femaleShirt: '#ffffff',
-    femaleShirtShade: '#f1f5f9',
-    collar: '#ffffff',
-    name: 'Bạch Y Casual',
+    maleShirt: '#f8fafc', // Bạch y thuần khiết
+    maleShirtShade: '#e2e8f0',
+    femaleShirt: '#f8fafc',
+    femaleShirtShade: '#e2e8f0',
+    collar: '#e2e8f0',
+    buttonColor: '#475569',
+    pantsColor: '#e2e8f0',
+    pantsShade: '#cbd5e1',
+    maleShirtHighlight: '#ffffff',
+    femaleShirtHighlight: '#ffffff',
+    name: 'Bạch Y Thuần Khiết',
   },
 };
 
@@ -86,10 +112,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
   const shirtColor = isFemale ? palette.femaleShirt : palette.maleShirt;
   const shirtShade = isFemale ? palette.femaleShirtShade : palette.maleShirtShade;
-  const pantsColor = isFemale ? '#475569' : '#334155'; // Quần jean than / xám đậm
-  const pantsShade = isFemale ? '#334155' : '#1e293b';
-  const beltColor = '#451a03'; // Dây lưng da nâu
-  const buckleColor = '#94a3b8'; // Khóa thắt lưng kim loại
+  const shirtHighlight = isFemale ? palette.femaleShirtHighlight : palette.maleShirtHighlight;
+  const pantsColor = palette.pantsColor;
+  const pantsShade = palette.pantsShade;
+  const buttonColor = palette.buttonColor;
 
   const hairColor = '#3f2e24'; // Tóc nâu tự nhiên chuẩn concept Chibi
   const hairHighlight = '#5c4033';
@@ -282,6 +308,24 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   };
 
   // ==========================================
+  // 1.4. VẼ HOA SEN VÀNG THÊU TRÊN NGỰC ÁO LAM NỮ
+  // ==========================================
+  const renderLotusEmbroidery = (cx: number, cy: number, scaleFactor = 1) => (
+    <g transform={`translate(${cx}, ${cy}) scale(${scaleFactor})`} id="lotus-embroidery">
+      {/* Cánh sen trung tâm vươn cao */}
+      <path d="M0,-8 C-2.5,-3 -2,2 0,4 C2,2 2.5,-3 0,-8 Z" fill="#fef08a" stroke="#d97706" strokeWidth="0.7" />
+      {/* Hai cánh sen nở bên */}
+      <path d="M-1.5,1 C-6,-2 -7,-6 -5,-7 C-3,-4 -2,-1 -1.5,1 Z" fill="#fef9c3" stroke="#d97706" strokeWidth="0.7" />
+      <path d="M1.5,1 C6,-2 7,-6 5,-7 C3,-4 2,-1 1.5,1 Z" fill="#fef9c3" stroke="#d97706" strokeWidth="0.7" />
+      {/* Hai cánh sen nở dưới */}
+      <path d="M-2,2 C-7,1 -9,-2 -8,-4 C-5,-2 -3,0 -2,2 Z" fill="#fed7aa" stroke="#ea580c" strokeWidth="0.6" />
+      <path d="M2,2 C7,1 9,-2 8,-4 C5,-2 3,0 2,2 Z" fill="#fed7aa" stroke="#ea580c" strokeWidth="0.6" />
+      {/* Nhụy sen vàng ấm */}
+      <circle cx="0" cy="1" r="1.2" fill="#f59e0b" />
+    </g>
+  );
+
+  // ==========================================
   // 1.5. VẼ PHÁP BẢO PHỤ KIỆN TÙY THÂN
   // ==========================================
   const renderAccessory = () => {
@@ -290,20 +334,29 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
         <g id="chibi-accessory-beads">
           {/* Chuỗi 18 hạt bồ đề đeo quanh cổ rủ xuống ngực áo */}
           <ellipse cx="80" cy="88" rx="14" ry="10" fill="none" stroke="#78350f" strokeWidth="3" strokeDasharray="2,3" />
-          <circle cx="80" cy="99" r="2.5" fill="#b45309" stroke="#451a03" strokeWidth="0.8" />
-          <line x1="80" y1="101" x2="80" y2="108" stroke="#eab308" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="80" cy="99" r="2.8" fill="#b45309" stroke="#451a03" strokeWidth="0.8" />
+          <line x1="80" y1="101" x2="80" y2="110" stroke="#eab308" strokeWidth="1.6" strokeLinecap="round" />
         </g>
       );
     }
     if (character.accessory === 'bag') {
+      // TÚI VẢI THIỀN CHỮ "AN" / HOA SEN (Chuẩn mẫu thiết kế Đồ Lam Phật Tử)
+      if (isFemale) {
+        // Nữ: Túi vải nâu thêu đóa Hoa Sen vàng rủ bên hông
+        return (
+          <g id="chibi-accessory-bag-female">
+            <path d="M68,82 Q80,105 106,125" fill="none" stroke="#78350f" strokeWidth="2.8" strokeLinecap="round" />
+            <path d="M98,122 C94,122 92,130 94,142 C96,150 114,150 116,142 C118,130 116,122 112,122 Z" fill="#78350f" stroke="#451a03" strokeWidth="1.2" />
+            {renderLotusEmbroidery(105, 136, 0.75)}
+          </g>
+        );
+      }
+      // Nam: Túi vải lam chữ "An" thanh đạm đeo chéo vai
       return (
-        <g id="chibi-accessory-bag">
-          {/* Dây quai đeo chéo qua vai */}
-          <path d="M66,82 L105,124" stroke="#1e3a8a" strokeWidth="3.5" strokeLinecap="round" />
-          {/* Túi vải chàm bên hông */}
-          <rect x="96" y="118" width="15" height="18" rx="4" fill="#1e40af" stroke="#172554" strokeWidth="1.2" />
-          <path d="M96,122 L111,122" stroke="#3b82f6" strokeWidth="1" />
-          <circle cx="103.5" cy="125" r="1.2" fill="#fbbf24" />
+        <g id="chibi-accessory-bag-male">
+          <path d="M66,82 Q80,105 106,125" fill="none" stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+          <path d="M98,122 C94,122 92,130 94,142 C96,150 114,150 116,142 C118,130 116,122 112,122 Z" fill="#64748b" stroke="#334155" strokeWidth="1.2" />
+          <text x="105" y="138" textAnchor="middle" fontSize="9" fontFamily="serif" fontStyle="italic" fontWeight="bold" fill="#ffffff" opacity="0.95">An</text>
         </g>
       );
     }
@@ -311,10 +364,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
       return (
         <g id="chibi-accessory-hat">
           {/* Nón lá mộc mạc đeo sau lưng */}
-          <ellipse cx="80" cy="102" rx="20" ry="14" fill="#fef08a" stroke="#ca8a04" strokeWidth="1.2" />
-          <ellipse cx="80" cy="102" rx="15" ry="10" fill="#fef9c3" stroke="#eab308" strokeWidth="0.8" />
-          <circle cx="80" cy="102" r="3" fill="#ca8a04" />
-          <path d="M70,86 Q80,94 90,86" fill="none" stroke={isFemale ? '#f472b6' : '#60a5fa'} strokeWidth="1.5" />
+          <ellipse cx="80" cy="104" rx="22" ry="15" fill="#fef08a" stroke="#ca8a04" strokeWidth="1.2" />
+          <ellipse cx="80" cy="104" rx="16" ry="11" fill="#fef9c3" stroke="#eab308" strokeWidth="0.8" />
+          <circle cx="80" cy="104" r="3" fill="#ca8a04" />
+          <path d="M70,86 Q80,96 90,86" fill="none" stroke="#64748b" strokeWidth="1.5" />
         </g>
       );
     }
@@ -420,39 +473,34 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   // ==========================================
   const renderShoes = () => {
     if (isFemale) {
-      // Nữ: Giày slip-on lười màu trắng xám đế bằng thanh lịch
+      // Nữ: Giày lười vải đen/than Phật tử thanh mảnh đế bằng (Chuẩn mẫu thiết kế Đồ Lam Nữ)
       return (
-        <g id="female-slipon-shoes">
+        <g id="female-buddhist-shoes">
           {/* Giày trái */}
-          <ellipse cx="66" cy="184" rx="8.5" ry="4.5" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.2" />
-          <ellipse cx="66" cy="183" rx="6" ry="2.5" fill="#ffffff" />
-          <line x1="58" y1="184" x2="74" y2="184" stroke="#cbd5e1" strokeWidth="1" />
+          <ellipse cx="64" cy="184" rx="8" ry="4.5" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
+          <ellipse cx="64" cy="183" rx="5.5" ry="2.2" fill="#334155" />
+          <line x1="56" y1="185" x2="72" y2="185" stroke="#94a3b8" strokeWidth="0.8" />
 
           {/* Giày phải */}
-          <ellipse cx="94" cy="184" rx="8.5" ry="4.5" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.2" />
-          <ellipse cx="94" cy="183" rx="6" ry="2.5" fill="#ffffff" />
-          <line x1="86" y1="184" x2="102" y2="184" stroke="#cbd5e1" strokeWidth="1" />
+          <ellipse cx="96" cy="184" rx="8" ry="4.5" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
+          <ellipse cx="96" cy="183" rx="5.5" ry="2.2" fill="#334155" />
+          <line x1="88" y1="185" x2="104" y2="185" stroke="#94a3b8" strokeWidth="0.8" />
         </g>
       );
     }
 
-    // Nam: Giày sneaker đen cổ thấp mũi trắng tròn viền cao su (như hình mẫu)
+    // Nam: Giày vải đen Phật tử đế bệt viền trắng (Kung-fu monk shoes)
     return (
-      <g id="male-sneakers">
+      <g id="male-buddhist-shoes">
         {/* Giày trái */}
-        <ellipse cx="64" cy="184" rx="10" ry="5.5" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
-        {/* Mũi giày cao su trắng tròn */}
-        <path d="M54,184 Q58,180 62,184 Q58,187 54,184 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" />
-        {/* Dây giày trắng */}
-        <line x1="62" y1="182" x2="68" y2="184" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" />
-        {/* Viền đế cao su trắng */}
-        <ellipse cx="64" cy="187" rx="10.5" ry="2" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.8" />
+        <ellipse cx="64" cy="184" rx="9.5" ry="5.2" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
+        <ellipse cx="64" cy="183" rx="7" ry="2.8" fill="#334155" />
+        <line x1="55" y1="185" x2="73" y2="185" stroke="#e2e8f0" strokeWidth="1.4" strokeLinecap="round" />
 
         {/* Giày phải */}
-        <ellipse cx="96" cy="184" rx="10" ry="5.5" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
-        <path d="M86,184 Q90,180 94,184 Q90,187 86,184 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" />
-        <line x1="94" y1="182" x2="100" y2="184" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" />
-        <ellipse cx="96" cy="187" rx="10.5" ry="2" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.8" />
+        <ellipse cx="96" cy="184" rx="9.5" ry="5.2" fill="#1e293b" stroke="#0f172a" strokeWidth="1.2" />
+        <ellipse cx="96" cy="183" rx="7" ry="2.8" fill="#334155" />
+        <line x1="87" y1="185" x2="105" y2="185" stroke="#e2e8f0" strokeWidth="1.4" strokeLinecap="round" />
       </g>
     );
   };
@@ -493,104 +541,140 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             {/* Bóng đổ dưới chân */}
             <ellipse cx="80" cy="189" rx="42" ry="7" fill="rgba(0,0,0,0.35)" />
 
-            {/* Giày */}
+            {/* Giày Phật tử */}
             {renderShoes()}
 
-            {/* Quần Jeans / Trousers */}
-            <g id="chibi-pants">
-              {/* Ống quần trái & phải */}
-              <path
-                d="M58,134 L72,134 L71,178 L59,178 Z"
-                fill={pantsColor}
-                stroke={pantsShade}
-                strokeWidth="1.5"
-              />
-              <path
-                d="M88,134 L102,134 L101,178 L89,178 Z"
-                fill={pantsColor}
-                stroke={pantsShade}
-                strokeWidth="1.5"
-              />
-              {/* Đáy quần & Hông */}
-              <path
-                d="M56,124 L104,124 L102,142 L80,146 L58,142 Z"
-                fill={pantsColor}
-                stroke={pantsShade}
-                strokeWidth="1.5"
-              />
-              {/* Đường chỉ may túi quần & nếp gấp */}
-              <path d="M58,128 Q64,136 70,132" fill="none" stroke={pantsShade} strokeWidth="1" />
-              <path d="M102,128 Q96,136 90,132" fill="none" stroke={pantsShade} strokeWidth="1" />
-              <line x1="80" y1="126" x2="80" y2="140" stroke={pantsShade} strokeWidth="1.2" />
+            {/* Quần Phật tử (Pants) */}
+            <g id="buddhist-pants">
+              {isFemale ? (
+                /* NỮ: Quần lụa lam suông rộng rãi lộ ra từ tà áo xẻ */
+                <>
+                  <path d="M54,142 L68,142 L66,180 L54,180 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.2" />
+                  <path d="M92,142 L106,142 L106,180 L94,180 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.2" />
+                </>
+              ) : (
+                /* NAM: Quần lam Phật tử ống suông thoải mái */
+                <>
+                  <path d="M58,128 L72,128 L70,178 L58,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
+                  <path d="M88,128 L102,128 L102,178 L90,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
+                  <path d="M56,120 L104,120 L102,136 L80,140 L58,136 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.2" />
+                  <line x1="80" y1="122" x2="80" y2="136" stroke={pantsShade} strokeWidth="1" />
+                </>
+              )}
             </g>
 
-            {/* Dây nịt thắt lưng da nâu + mặt khóa kim loại */}
-            <rect x="58" y="122" width="44" height="6" fill={beltColor} rx="1" stroke="#261005" strokeWidth="0.8" />
-            <rect x="76" y="121" width="8" height="8" fill={buckleColor} rx="1.5" stroke="#475569" strokeWidth="0.8" />
-            <rect x="78" y="123" width="4" height="4" fill={beltColor} />
+            {/* Thân Áo Lam Phật Tử (Buddhist Tunic) */}
+            {isFemale ? (
+              /* NỮ: ÁO TRÀNG LAM DÁNG DÀI THƯỚT THA XẺ TÀ HÔNG + HOA SEN THÊU */
+              <g id="female-buddhist-robe">
+                {/* Tà áo dài trước buông qua gối, xẻ tà hai bên eo */}
+                <path
+                  d="M58,84 L102,84 L100,120 L105,166 L55,166 L60,120 Z"
+                  fill={shirtColor}
+                  stroke={shirtShade}
+                  strokeWidth="1.6"
+                />
+                {/* Đường xẻ tà hai bên hông mềm mại */}
+                <path d="M60,120 L55,166" stroke={shirtShade} strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M100,120 L105,166" stroke={shirtShade} strokeWidth="1.5" strokeLinecap="round" />
 
-            {/* Thân Áo Sơ Mi (Cài cúc, tay áo xắn gập 3/4) */}
-            <g id="chibi-shirt">
-              {/* Thân áo sơ mi cắm thùng gọn gàng */}
-              <path
-                d="M56,86 L104,86 L102,122 L58,122 Z"
-                fill={shirtColor}
-                stroke={shirtShade}
-                strokeWidth="1.8"
-              />
-              {/* Nẹp cúc áo chạy dọc giữa ngực */}
-              <line x1="80" y1="88" x2="80" y2="122" stroke={shirtShade} strokeWidth="1.8" />
-              <circle cx="80" cy="100" r="1.2" fill="#94a3b8" />
-              <circle cx="80" cy="110" r="1.2" fill="#94a3b8" />
+                {/* Nếp gấp vải tà áo thướt tha */}
+                <path d="M72,122 L70,166" stroke={shirtShade} strokeWidth="0.8" opacity="0.6" />
+                <path d="M88,122 L90,166" stroke={shirtShade} strokeWidth="0.8" opacity="0.6" />
 
-              {/* Cổ áo bẻ chữ V hở nhẹ tự nhiên thanh lịch */}
-              <path d="M68,82 L80,98 L92,82" fill="none" stroke={palette.collar} strokeWidth="3.5" />
-              <path d="M68,82 L76,96 L80,96" fill={palette.collar} stroke={shirtShade} strokeWidth="1" />
-              <path d="M92,82 L84,96 L80,96" fill={palette.collar} stroke={shirtShade} strokeWidth="1" />
+                {/* HOA SEN VÀNG THÊU TRÊN NGỰC ÁO LAM NỮ (Lotus Embroidery) */}
+                {renderLotusEmbroidery(93, 98, 1.15)}
 
-              {/* Vùng cổ & xương quai xanh lộ nhẹ */}
-              <polygon points="76,82 84,82 80,92" fill={skinTone} />
-            </g>
+                {/* Cổ áo tròn ôm khít (Mandarin collar) */}
+                <rect x="73" y="78" width="14" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1.2" />
+                <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+
+                {/* 2 Khuy cài vải đôi chéo sang vai phải */}
+                <line x1="78" y1="86" x2="88" y2="90" stroke={shirtShade} strokeWidth="1.4" strokeLinecap="round" />
+                <circle cx="88" cy="90" r="1.5" fill={buttonColor} />
+                <line x1="78" y1="91" x2="86" y2="95" stroke={shirtShade} strokeWidth="1.4" strokeLinecap="round" />
+                <circle cx="86" cy="95" r="1.5" fill={buttonColor} />
+              </g>
+            ) : (
+              /* NAM: ÁO LAM PHẬT TỬ CỔ TÀU, KHUY VẢI CHÉO, BUÔNG NGOÀI QUẦN XẺ TÀ */
+              <g id="male-buddhist-robe">
+                {/* Thân áo buông qua hông, xẻ tà ngắn hai bên */}
+                <path
+                  d="M56,84 L104,84 L104,130 L56,130 Z"
+                  fill={shirtColor}
+                  stroke={shirtShade}
+                  strokeWidth="1.8"
+                />
+                {/* Xẻ tà hai bên hông */}
+                <line x1="56" y1="122" x2="56" y2="130" stroke={shirtShade} strokeWidth="2" />
+                <line x1="104" y1="122" x2="104" y2="130" stroke={shirtShade} strokeWidth="2" />
+                <line x1="56" y1="130" x2="104" y2="130" stroke={shirtShade} strokeWidth="1.4" />
+
+                {/* Cổ đứng tròn ôm cổ (Mandarin collar) */}
+                <rect x="73" y="77" width="14" height="8" rx="4" fill={shirtColor} stroke={shirtShade} strokeWidth="1.2" />
+                <circle cx="80" cy="85" r="1.8" fill={buttonColor} />
+
+                {/* 2 Khuy cài vải chéo lệch sang vai phải đặc trưng áo Phật tử */}
+                <line x1="80" y1="87" x2="94" y2="92" stroke={shirtShade} strokeWidth="1.6" strokeLinecap="round" />
+                <circle cx="94" cy="92" r="1.8" fill={buttonColor} />
+                <circle cx="97" cy="92" r="1.3" fill={shirtHighlight} />
+
+                <line x1="80" y1="94" x2="92" y2="99" stroke={shirtShade} strokeWidth="1.6" strokeLinecap="round" />
+                <circle cx="92" cy="99" r="1.8" fill={buttonColor} />
+                <circle cx="95" cy="99" r="1.3" fill={shirtHighlight} />
+
+                {/* Nẹp vạt áo chéo nhẹ */}
+                <path d="M80,85 L80,130" stroke={shirtShade} strokeWidth="1.2" opacity="0.6" />
+              </g>
+            )}
 
             {/* Tay áo & Cánh tay */}
             {isFemale ? (
-              /* NỮ: Tay trái giơ lên vẫy chào (Waving cute hand), tay phải buông nhẹ */
-              <g id="female-arms">
-                {/* Tay phải buông xuôi, tay áo xắn 3/4 */}
-                <path d="M58,88 L48,108" stroke={shirtColor} strokeWidth="7" strokeLinecap="round" />
-                <rect x="44" y="104" width="7" height="4" fill={shirtShade} rx="1" transform="rotate(25 44 104)" />
-                <path d="M47,108 L43,126" stroke={skinTone} strokeWidth="5" strokeLinecap="round" />
-                <circle cx="43" cy="126" r="3.5" fill={skinTone} />
+              /* NỮ: Tay trái nâng chuỗi 18 hạt bồ đề niệm Phật, tay phải buông nhẹ */
+              <g id="female-buddhist-arms">
+                {/* Tay phải buông nhẹ, xắn gập nhẹ cổ tay áo */}
+                <path d="M58,86 L46,110" stroke={shirtColor} strokeWidth="7" strokeLinecap="round" />
+                <rect x="42" y="106" width="7" height="4" fill={shirtHighlight} rx="1" transform="rotate(25 42 106)" />
+                <path d="M45,110 L41,126" stroke={skinTone} strokeWidth="4.5" strokeLinecap="round" />
+                <circle cx="41" cy="126" r="3.2" fill={skinTone} />
 
-                {/* Tay trái giơ lên cao vẫy chào (Waving) */}
-                <path d="M102,88 L114,96" stroke={shirtColor} strokeWidth="7" strokeLinecap="round" />
-                <rect x="110" y="94" width="7" height="4" fill={shirtShade} rx="1" transform="rotate(-30 110 94)" />
-                <path d="M115,96 L124,80" stroke={skinTone} strokeWidth="5" strokeLinecap="round" />
-                {/* Bàn tay vẫy với 5 ngón nhỏ xinh xắn */}
-                <g transform="translate(124, 76)">
-                  <circle cx="0" cy="0" r="4.5" fill={skinTone} />
-                  <line x1="-3" y1="-3" x2="-5" y2="-7" stroke={skinTone} strokeWidth="2" strokeLinecap="round" />
-                  <line x1="-1" y1="-4" x2="-2" y2="-9" stroke={skinTone} strokeWidth="2" strokeLinecap="round" />
-                  <line x1="2" y1="-4" x2="2" y2="-9" stroke={skinTone} strokeWidth="2" strokeLinecap="round" />
-                  <line x1="4" y1="-2" x2="6" y2="-7" stroke={skinTone} strokeWidth="2" strokeLinecap="round" />
-                </g>
+                {/* Tay trái đưa lên ngang ngực NÂNG CHUỖI HẠT BỒ ĐỀ NIỆM PHẬT */}
+                <path d="M102,86 L116,98" stroke={shirtColor} strokeWidth="7" strokeLinecap="round" />
+                <rect x="112" y="96" width="7" height="4" fill={shirtHighlight} rx="1" transform="rotate(-30 112 96)" />
+                <path d="M116,98 L118,90" stroke={skinTone} strokeWidth="4.5" strokeLinecap="round" />
+                <circle cx="118" cy="88" r="3.8" fill={skinTone} />
+
+                {/* CHUỖI 18 HẠT BỒ ĐỀ TREO TỪ TAY CÓ TUA RUA (Prayer Rosary Beads) */}
+                <ellipse cx="120" cy="100" rx="7" ry="11" fill="none" stroke="#78350f" strokeWidth="2.5" strokeDasharray="1.5,2.5" />
+                <circle cx="120" cy="111" r="2.2" fill="#b45309" stroke="#451a03" strokeWidth="0.6" />
+                <line x1="120" y1="113" x2="120" y2="124" stroke="#d97706" strokeWidth="1.6" strokeLinecap="round" />
+                <circle cx="120" cy="124" r="1" fill="#ea580c" />
               </g>
             ) : (
-              /* NAM: Tay trái chống hông (Akibo pose), tay phải buông thả lỏng */
-              <g id="male-arms">
-                {/* Tay phải buông nhẹ, xắn tay áo 3/4 */}
-                <path d="M58,88 L50,108" stroke={shirtColor} strokeWidth="8" strokeLinecap="round" />
-                <rect x="46" y="104" width="8" height="4" fill={shirtShade} rx="1" transform="rotate(25 46 104)" />
-                <path d="M49,108 L45,128" stroke={skinTone} strokeWidth="5.5" strokeLinecap="round" />
-                <circle cx="45" cy="128" r="4" fill={skinTone} />
+              /* NAM: Tay phải chắp nửa ấn trang nghiêm có vòng chuỗi hạt, tay trái chống hông có vòng chuỗi hạt */
+              <g id="male-buddhist-arms">
+                {/* Tay phải co lên ngực chắp chào chánh niệm */}
+                <path d="M58,86 L50,102" stroke={shirtColor} strokeWidth="8" strokeLinecap="round" />
+                <path d="M50,102 L74,96" stroke={shirtColor} strokeWidth="7.5" strokeLinecap="round" />
+                <rect x="68" y="94" width="5" height="7" fill={shirtHighlight} rx="1" transform="rotate(-15 68 94)" />
 
-                {/* Tay trái chống hông mạnh mẽ như hình mẫu */}
-                <path d="M102,88 L116,104" stroke={shirtColor} strokeWidth="8" strokeLinecap="round" />
-                <rect x="112" y="101" width="8" height="4" fill={shirtShade} rx="1" transform="rotate(-40 112 101)" />
-                {/* Cẳng tay gập lại hướng về eo */}
-                <path d="M116,104 L102,118" stroke={skinTone} strokeWidth="5.5" strokeLinecap="round" />
-                {/* Bàn tay đặt lên thắt lưng */}
-                <ellipse cx="102" cy="118" rx="4.5" ry="3.5" fill={skinTone} stroke="#ea580c" strokeWidth="0.8" />
+                {/* Bàn tay phải chắp đứng ngón trang nghiêm */}
+                <polygon points="74,96 82,96 78,82" fill={skinTone} stroke="#ea580c" strokeWidth="0.6" />
+                {/* Vòng chuỗi hạt bồ đề ôm quanh cổ tay phải */}
+                <circle cx="71" cy="93" r="1.7" fill="#78350f" />
+                <circle cx="73" cy="95" r="1.7" fill="#92400e" />
+                <circle cx="73" cy="98" r="1.7" fill="#78350f" />
+                <circle cx="71" cy="100" r="1.7" fill="#92400e" />
+
+                {/* Tay trái chống hông tự tin */}
+                <path d="M102,86 L116,102" stroke={shirtColor} strokeWidth="8" strokeLinecap="round" />
+                <rect x="112" y="99" width="8" height="4" fill={shirtHighlight} rx="1" transform="rotate(-40 112 99)" />
+                <path d="M116,102 L104,116" stroke={skinTone} strokeWidth="5.5" strokeLinecap="round" />
+                <ellipse cx="104" cy="116" rx="4.5" ry="3.5" fill={skinTone} stroke="#ea580c" strokeWidth="0.8" />
+                {/* Vòng chuỗi hạt ôm cổ tay trái */}
+                <circle cx="109" cy="110" r="1.7" fill="#78350f" />
+                <circle cx="107" cy="112" r="1.7" fill="#92400e" />
+                <circle cx="105" cy="114" r="1.7" fill="#78350f" />
               </g>
             )}
 
@@ -623,11 +707,13 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
               <path d="M58,134 L72,134 L71,178 L59,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
               <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
               <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
-              <rect x="58" y="122" width="44" height="6" fill={beltColor} rx="1" />
-
+              
               {/* Thân áo sơ mi */}
-              <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
-              <path d="M68,82 L80,96 L92,82" fill="none" stroke={palette.collar} strokeWidth="3" />
+              <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" /><circle cx="80" cy="85" r="1.5" fill={buttonColor} />
 
               {/* Chổi tre & Tay cầm chổi */}
               <g className={isSweepingAnim ? 'animate-bounce' : ''}>
@@ -659,8 +745,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             {/* Thân áo sơ mi ngồi */}
             <path d="M50,78 Q70,75 90,78 L98,128 Q70,132 42,128 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="2" />
-            <rect x="52" y="108" width="40" height="6" fill={beltColor} rx="1" />
-
+            
             {/* Bàn trà gỗ bên cạnh */}
             <rect x="108" y="112" width="46" height="30" fill="#78350f" rx="4" stroke="#92400e" strokeWidth="2" />
             <rect x="104" y="108" width="54" height="6" fill="#92400e" rx="2" />
@@ -706,7 +791,8 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             {/* Thân áo sơ mi */}
             <path d="M56,76 Q80,72 104,76 L110,118 Q80,122 50,118 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="2" />
-            <path d="M68,75 L80,90 L92,75" fill="none" stroke={palette.collar} strokeWidth="2.5" />
+            <rect x="74" y="73" width="12" height="6" rx="3" fill={shirtColor} stroke={shirtShade} strokeWidth="1" /><circle cx="80" cy="79" r="1.5" fill={buttonColor} />
+            {isFemale && renderLotusEmbroidery(94, 96, 0.85)}
 
             {/* Bàn tay Chibi bắt ấn thiền định */}
             <ellipse cx="80" cy="106" rx="14" ry="7" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
@@ -733,7 +819,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
 
-            <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+            <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
 
             {/* Rìu bổ củi */}
             <g id="chibi-axe">
@@ -763,7 +852,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
               <path d="M58,134 L72,134 L71,178 L59,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
               <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
               <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
-              <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
             </g>
 
             {/* Đòn gánh tre uốn cong */}
@@ -800,7 +892,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <path d="M58,134 L72,134 L71,178 L59,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
-            <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+            <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
 
             {/* Tay cầm khăn lau bàn thờ */}
             <path d="M104,90 Q120,84 126,72" stroke={skinTone} strokeWidth="5.5" strokeLinecap="round" fill="none" />
@@ -826,7 +921,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <path d="M58,134 L72,134 L71,178 L59,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
-            <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+            <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
 
             {/* Bát cháo thơm ấm nóng */}
             <ellipse cx="80" cy="98" rx="14" ry="7" fill="#d97706" stroke="#92400e" strokeWidth="1.2" />
@@ -855,7 +953,10 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <path d="M58,134 L72,134 L71,178 L59,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M88,134 L102,134 L101,178 L89,178 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
             <path d="M56,124 L104,124 L102,142 L80,146 L58,142 Z" fill={pantsColor} stroke={pantsShade} strokeWidth="1.5" />
-            <path d="M56,86 L104,86 L102,122 L58,122 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+            <path d="M56,86 L104,86 L102,126 L58,126 Z" fill={shirtColor} stroke={shirtShade} strokeWidth="1.8" />
+              <rect x="74" y="78" width="12" height="7" rx="3.5" fill={shirtColor} stroke={shirtShade} strokeWidth="1" />
+              <circle cx="80" cy="85" r="1.5" fill={buttonColor} />
+              {isFemale && renderLotusEmbroidery(92, 102, 0.9)}
 
             {/* Bút lông thư pháp cán trúc */}
             <line x1="114" y1="92" x2="114" y2="124" stroke="#78350f" strokeWidth="3.2" strokeLinecap="round" />

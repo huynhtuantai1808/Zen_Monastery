@@ -566,7 +566,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
 
   // Cổ tay áo cuộn gập (Cuff)
   const cuffGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.035, 10);
-  const leftCuff = new THREE.Mesh(cuffGeo, matCollar);
+  const leftCuff = new THREE.Mesh(cuffGeo, matShirt);
   leftCuff.position.set(0, -0.15, 0);
   leftArm.add(leftCuff);
 
@@ -596,7 +596,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightSleeve.position.set(0, -0.07, 0);
   rightArm.add(rightSleeve);
 
-  const rightCuff = new THREE.Mesh(cuffGeo, matCollar);
+  const rightCuff = new THREE.Mesh(cuffGeo, matShirt);
   rightCuff.position.set(0, -0.15, 0);
   rightArm.add(rightCuff);
 
