@@ -171,8 +171,8 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
           {/* Định Lực Buff */}
           <div
             className={`px-2 py-1 rounded-xl border flex items-center gap-1.5 transition ${hasEnlightenmentBuff
-                ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
-                : 'bg-stone-900 border-stone-800 text-stone-400'
+              ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
+              : 'bg-stone-900 border-stone-800 text-stone-400'
               }`}
           >
             <Flame className={`w-3.5 h-3.5 ${hasEnlightenmentBuff ? 'text-amber-300 animate-bounce' : 'text-stone-500'}`} />
@@ -196,8 +196,8 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
             onClick={onOpenGraphicsModal}
             title="Tùy chỉnh Đồ Họa (Thấp / Cao)"
             className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border font-serif text-[11px] sm:text-xs flex items-center gap-1.5 cursor-pointer transition shadow-md ${graphicsQuality === 'HIGH'
-                ? 'bg-amber-500/20 border-amber-400/60 text-amber-200 hover:bg-amber-500/30'
-                : 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200 hover:bg-emerald-500/30'
+              ? 'bg-amber-500/20 border-amber-400/60 text-amber-200 hover:bg-amber-500/30'
+              : 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200 hover:bg-emerald-500/30'
               }`}
           >
             <Sliders className="w-3.5 h-3.5" />
@@ -211,10 +211,10 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
             onClick={onToggleWorldMode}
             title="Chuyển đổi giữa 3D Sơn Tự ↔ 2D Thế Giới Mở ↔ Cảnh Thiền Tĩnh"
             className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border font-serif text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 cursor-pointer transition shadow-md ${worldMode === '3D'
-                ? 'bg-amber-500/30 border-amber-400 text-yellow-200 ring-1 ring-amber-400/50'
-                : worldMode === 'OPEN_WORLD'
-                  ? 'bg-emerald-600/35 border-emerald-400 text-emerald-200 ring-1 ring-emerald-400/40'
-                  : 'bg-stone-900 border-stone-700 text-stone-400 hover:text-stone-200'
+              ? 'bg-amber-500/30 border-amber-400 text-yellow-200 ring-1 ring-amber-400/50'
+              : worldMode === 'OPEN_WORLD'
+                ? 'bg-emerald-600/35 border-emerald-400 text-emerald-200 ring-1 ring-emerald-400/40'
+                : 'bg-stone-900 border-stone-700 text-stone-400 hover:text-stone-200'
               }`}
           >
             <Globe className="w-3.5 h-3.5 text-amber-400" />
@@ -268,8 +268,8 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
               onClick={onRingBell}
               title="Thỉnh chuông chùa chánh niệm (Âm thanh chuông ngân sẽ làm nhỏ nhạc nền tạm thời)"
               className={`p-2 rounded-xl border transition cursor-pointer ${isBellRinging
-                  ? 'bg-amber-400/40 border-amber-300 text-amber-200 animate-pulse'
-                  : 'bg-stone-900 border-stone-800 text-amber-400 hover:text-amber-200 hover:bg-stone-800'
+                ? 'bg-amber-400/40 border-amber-300 text-amber-200 animate-pulse'
+                : 'bg-stone-900 border-stone-800 text-amber-400 hover:text-amber-200 hover:bg-stone-800'
                 }`}
             >
               <Bell className="w-4 h-4" />
@@ -292,8 +292,8 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
               onClick={onToggleBgm}
               title={isBgmPlaying ? 'Tạm dừng Nhạc Thiền On Rainy Days' : 'Phát Nhạc Thiền On Rainy Days (Tự động lặp lại)'}
               className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition cursor-pointer text-xs font-serif ${isBgmPlaying
-                  ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-sm'
-                  : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
+                ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-sm'
+                : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
                 }`}
             >
               {isBgmPlaying ? <Pause className="w-3.5 h-3.5 text-amber-300" /> : <Play className="w-3.5 h-3.5" />}

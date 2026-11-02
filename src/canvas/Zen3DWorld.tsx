@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
-import { loadRealisticCharacter } from '../services/characterLoader';
+import { loadChibiCharacter } from '../services/characterLoader';
 import {
   Play,
   Pause,
@@ -795,17 +795,15 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   // Character 3D Rig Refs
   const monkGroupRef = useRef<THREE.Group | null>(null);
 
-  // Realistic Skinned Character & Animation Refs
+  // 3D Chibi Character Rig & Animation Refs
   const charMixerRef = useRef<THREE.AnimationMixer | null>(null);
   const charActionsRef = useRef<{ walk?: THREE.AnimationAction; idle?: THREE.AnimationAction; sit?: THREE.AnimationAction }>({});
   const currentActionRef = useRef<string>('idle');
-  const realisticModelLoadedRef = useRef<boolean>(false);
-  const realisticModelRef = useRef<THREE.Group | null>(null);
+  const chibiModelLoadedRef = useRef<boolean>(false);
+  const chibiModelRef = useRef<THREE.Group | null>(null);
 
   const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.42, z: 80 });
   const targetPosRef = useRef<{ x: number; y?: number; z: number } | null>({ x: 0, z: 66 });
-  const walkPhaseRef = useRef<number>(0);
-  const isWalkingRef = useRef<boolean>(true);
   const playerRotationRef = useRef<number>(Math.PI);
   const lotusFootstepsRef = useRef<{ mesh: THREE.Mesh; life: number }[]>([]);
 
@@ -857,12 +855,12 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     cameraModeRef.current = cameraMode;
   }, [cameraMode]);
 
-  // Load / Reload Realistic Skinned 3D Character when customization changes
+  // Tải / Tải lại mô hình 3D Chibi khi diện mạo thay đổi
   useEffect(() => {
     if (!monkGroupRef.current) return;
     let cancelled = false;
 
-    loadRealisticCharacter(character).then((rig) => {
+    loadChibiCharacter(character).then((rig) => {
       if (cancelled) return;
       charMixerRef.current = rig.mixer;
       charActionsRef.current = rig.actions;
@@ -871,9 +869,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
 
       // Remove previous realistic model if any & dispose resources
-      if (realisticModelRef.current) {
-        monkGroupRef.current?.remove(realisticModelRef.current);
-        realisticModelRef.current.traverse((child) => {
+      if (chibiModelRef.current) {
+        monkGroupRef.current?.remove(chibiModelRef.current);
+        chibiModelRef.current.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             mesh.geometry?.dispose();
@@ -885,11 +883,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           }
         });
       }
-      realisticModelRef.current = rig.modelGroup;
+      chibiModelRef.current = rig.modelGroup;
       monkGroupRef.current?.add(rig.modelGroup);
-      realisticModelLoadedRef.current = true;
+      chibiModelLoadedRef.current = true;
     }).catch((err) => {
-      console.warn('Procedural fallback used:', err);
+      console.warn('Chibi load error:', err);
     });
 
     return () => {
@@ -1840,19 +1838,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     monkGroupRef.current = monkGroup;
     scene.add(monkGroup);
 
-    // Initial load of realistic 3D character
-    loadRealisticCharacter(character).then((rig) => {
+    // Khởi tạo mô hình 3D Chibi Rig
+    loadChibiCharacter(character).then((rig) => {
       charMixerRef.current = rig.mixer;
       charActionsRef.current = rig.actions;
       rig.actions.idle.play();
       currentActionRef.current = 'idle';
 
-      if (realisticModelRef.current) {
-        monkGroupRef.current?.remove(realisticModelRef.current);
+      if (chibiModelRef.current) {
+        monkGroupRef.current?.remove(chibiModelRef.current);
       }
-      realisticModelRef.current = rig.modelGroup;
+      chibiModelRef.current = rig.modelGroup;
       monkGroup.add(rig.modelGroup);
-      realisticModelLoadedRef.current = true;
+      chibiModelLoadedRef.current = true;
     }).catch((err) => {
       console.warn('Character load error:', err);
     });
@@ -2031,9 +2029,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             setMonkPose('STAND');
           }
           isCurrentlyWalking = true;
-          isWalkingRef.current = true;
           isWalkingStateRef.current = true;
-          walkPhaseRef.current += 10.0 * delta;
 
           // Camera-Relative Movement Direction
           const yaw = cameraYawRef.current;
@@ -2073,10 +2069,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
           if (dist > 0.15) {
             isCurrentlyWalking = true;
-            isWalkingRef.current = true;
-            isWalkingStateRef.current = true;
-            walkPhaseRef.current += 10.0 * delta;
-
+              isWalkingStateRef.current = true;
+  
             const stepDist = Math.min(moveDist, dist);
             const nextX = currentP.x + (dx / dist) * stepDist;
             const nextZ = currentP.z + (dz / dist) * stepDist;
@@ -2111,7 +2105,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
             }
           } else {
-            isWalkingRef.current = false;
             isWalkingStateRef.current = false;
             targetPosRef.current = null;
             if (destinationMarkerRef.current) {
@@ -2123,7 +2116,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             }
           }
         } else {
-          isWalkingRef.current = false;
           isWalkingStateRef.current = false;
 
           // Idle: Monk smoothly turns towards cursor point on ground
@@ -2155,8 +2147,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           currentP.y = targetFloorY;
         }
 
-        // Realistic Human Animation vs Procedural Fallback
-        if (charMixerRef.current && realisticModelLoadedRef.current) {
+        // Hoạt ảnh 3D Chibi Rig (Idle / Walk / Sit)
+        if (charMixerRef.current && chibiModelLoadedRef.current) {
           let target = 'idle';
           if (monkPoseRef.current === 'SIT_EDGE') {
             target = 'sit';

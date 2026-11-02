@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { CharacterAppearance, RobeColorType } from '../types/game';
 
-export interface RealisticCharacterRig {
+export interface ChibiCharacterRig {
   modelGroup: THREE.Group;
   mixer: THREE.AnimationMixer;
   actions: {
@@ -10,6 +10,8 @@ export interface RealisticCharacterRig {
     sit: THREE.AnimationAction;
   };
 }
+
+export type RealisticCharacterRig = ChibiCharacterRig;
 
 // Bảng màu áo sơ mi / trang phục đồng bộ hoàn toàn với CharacterCreationModal
 const SHIRT_PALETTES: Record<
@@ -206,7 +208,7 @@ function createChibiFaceTexture(isFemale: boolean, isShaved: boolean): THREE.Can
 /**
  * Xây dựng Mô hình Nhân vật 3D Anime Chibi hoàn toàn tương thích với Thiết Kế và CharacterCreationModal
  */
-export async function loadRealisticCharacter(character: CharacterAppearance): Promise<RealisticCharacterRig> {
+export async function loadChibiCharacter(character: CharacterAppearance): Promise<ChibiCharacterRig> {
   const isFemale = character.gender === 'female';
   const isShaved = character.hairStyle === 'shaved';
 
@@ -958,3 +960,6 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
     },
   };
 }
+
+// Alias tương thích ngược
+export const loadRealisticCharacter = loadChibiCharacter;
