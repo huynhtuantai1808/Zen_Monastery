@@ -209,8 +209,6 @@ function createChibiFaceTexture(isFemale: boolean, isShaved: boolean): THREE.Can
 export async function loadRealisticCharacter(character: CharacterAppearance): Promise<RealisticCharacterRig> {
   const isFemale = character.gender === 'female';
   const isShaved = character.hairStyle === 'shaved';
-  const isBun = character.hairStyle === 'bun';
-  const isShort = character.hairStyle === 'short' || (!isShaved && !isBun && !isFemale);
 
   const palette = SHIRT_PALETTES[character.robeColor] || SHIRT_PALETTES.lam;
   const shirtColor = isFemale ? palette.femaleShirt : palette.maleShirt;
@@ -341,97 +339,174 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
     hairCap.position.set(0, 0.01, -0.02);
     hairGroup.add(hairCap);
 
-    if (isFemale || isBun) {
-      // NỮ CHIBI / TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Ponytail)
-      // Nơ cột tóc hồng xinh xắn
-      const tieGeo = new THREE.TorusGeometry(0.045, 0.02, 8, 16);
-      const matTie = makeToonMat(0xf43f5e);
-      const tieMesh = new THREE.Mesh(tieGeo, matTie);
-      tieMesh.position.set(0.12, 0.24, -0.16);
-      tieMesh.rotation.set(0.6, 0.4, 0);
-      hairGroup.add(tieMesh);
+    if (isFemale) {
+      if (character.hairStyle === 'short') {
+        // NỮ CHIBI: TÓC BOB NGẮN THANH TÚ
+        // Lọn tóc bob cụp hai bên ôm sát cằm
+        const bobLGeo = new THREE.CylinderGeometry(0.065, 0.045, 0.22, 10);
+        const bobL = new THREE.Mesh(bobLGeo, matHair);
+        bobL.position.set(-0.24, -0.04, 0.08);
+        bobL.rotation.set(0.2, 0.1, 0.18);
+        hairGroup.add(bobL);
 
-      // Đuôi ngựa bồng bềnh uốn cong sang vai
-      const ponyPoints = [
-        new THREE.Vector3(0.12, 0.24, -0.16),
-        new THREE.Vector3(0.26, 0.16, -0.18),
-        new THREE.Vector3(0.30, 0.02, -0.10),
-        new THREE.Vector3(0.28, -0.15, -0.02),
-        new THREE.Vector3(0.24, -0.28, 0.05),
-      ];
-      const curve = new THREE.CatmullRomCurve3(ponyPoints);
-      const ponyGeo = new THREE.TubeGeometry(curve, 20, 0.065, 10, false);
-      const ponyMesh = new THREE.Mesh(ponyGeo, matHair);
-      hairGroup.add(ponyMesh);
+        const bobRGeo = new THREE.CylinderGeometry(0.065, 0.045, 0.22, 10);
+        const bobR = new THREE.Mesh(bobRGeo, matHair);
+        bobR.position.set(0.24, -0.04, 0.08);
+        bobR.rotation.set(0.2, -0.1, -0.18);
+        hairGroup.add(bobR);
 
-      // Tóc mai uốn cong hai bên gò má
-      const sideBangsLGeo = new THREE.ConeGeometry(0.038, 0.22, 8);
-      const sideBangsL = new THREE.Mesh(sideBangsLGeo, matHair);
-      sideBangsL.position.set(-0.25, -0.05, 0.14);
-      sideBangsL.rotation.set(0.3, 0.2, 0.15);
-      hairGroup.add(sideBangsL);
+        // Mái bay phía trước trán
+        const frontBangGeo = new THREE.SphereGeometry(0.09, 10, 8);
+        const frontBang = new THREE.Mesh(frontBangGeo, matHair);
+        frontBang.position.set(-0.04, 0.19, 0.22);
+        frontBang.scale.set(1.5, 0.5, 0.7);
+        hairGroup.add(frontBang);
 
-      const sideBangsRGeo = new THREE.ConeGeometry(0.038, 0.22, 8);
-      const sideBangsR = new THREE.Mesh(sideBangsRGeo, matHair);
-      sideBangsR.position.set(0.25, -0.05, 0.14);
-      sideBangsR.rotation.set(0.3, -0.2, -0.15);
-      hairGroup.add(sideBangsR);
+        // Tóc mai nhỏ ôm gò má
+        const sideBangsL = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.18, 8), matHair);
+        sideBangsL.position.set(-0.23, -0.03, 0.15);
+        sideBangsL.rotation.set(0.25, 0.15, 0.15);
+        hairGroup.add(sideBangsL);
 
-      // Mái bay phía trước trán
-      const frontBangGeo = new THREE.SphereGeometry(0.09, 10, 8);
-      const frontBang = new THREE.Mesh(frontBangGeo, matHair);
-      frontBang.position.set(-0.06, 0.19, 0.22);
-      frontBang.scale.set(1.5, 0.5, 0.7);
-      hairGroup.add(frontBang);
-    } else if (isShort) {
-      // NAM CHIBI / TÓC TỈA GAI XẾP LỚP (Layered Spiky Hair)
-      const spikeGeo = new THREE.ConeGeometry(0.065, 0.18, 6);
+        const sideBangsR = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.18, 8), matHair);
+        sideBangsR.position.set(0.23, -0.03, 0.15);
+        sideBangsR.rotation.set(0.25, -0.15, -0.15);
+        hairGroup.add(sideBangsR);
+      } else {
+        // NỮ CHIBI: TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Mặc định / Bun)
+        // Nơ cột tóc hồng xinh xắn
+        const tieGeo = new THREE.TorusGeometry(0.045, 0.02, 8, 16);
+        const matTie = makeToonMat(0xf43f5e);
+        const tieMesh = new THREE.Mesh(tieGeo, matTie);
+        tieMesh.position.set(0.12, 0.24, -0.16);
+        tieMesh.rotation.set(0.6, 0.4, 0);
+        hairGroup.add(tieMesh);
 
-      // Đỉnh gai tóc trung tâm
-      const spike1 = new THREE.Mesh(spikeGeo, matHair);
-      spike1.position.set(0, 0.32, 0.04);
-      spike1.rotation.set(0.2, 0, 0.1);
-      hairGroup.add(spike1);
+        // Đuôi ngựa bồng bềnh uốn cong sang vai
+        const ponyPoints = [
+          new THREE.Vector3(0.12, 0.24, -0.16),
+          new THREE.Vector3(0.26, 0.16, -0.18),
+          new THREE.Vector3(0.30, 0.02, -0.10),
+          new THREE.Vector3(0.28, -0.15, -0.02),
+          new THREE.Vector3(0.24, -0.28, 0.05),
+        ];
+        const curve = new THREE.CatmullRomCurve3(ponyPoints);
+        const ponyGeo = new THREE.TubeGeometry(curve, 20, 0.065, 10, false);
+        const ponyMesh = new THREE.Mesh(ponyGeo, matHair);
+        hairGroup.add(ponyMesh);
 
-      // Gai lệch trái
-      const spike2 = new THREE.Mesh(spikeGeo, matHair);
-      spike2.position.set(-0.11, 0.28, 0.08);
-      spike2.rotation.set(0.15, 0.3, 0.4);
-      hairGroup.add(spike2);
+        // Tóc mai uốn cong hai bên gò má
+        const sideBangsLGeo = new THREE.ConeGeometry(0.038, 0.22, 8);
+        const sideBangsL = new THREE.Mesh(sideBangsLGeo, matHair);
+        sideBangsL.position.set(-0.25, -0.05, 0.14);
+        sideBangsL.rotation.set(0.3, 0.2, 0.15);
+        hairGroup.add(sideBangsL);
 
-      // Gai lệch phải
-      const spike3 = new THREE.Mesh(spikeGeo, matHair);
-      spike3.position.set(0.11, 0.28, 0.08);
-      spike3.rotation.set(0.15, -0.3, -0.4);
-      hairGroup.add(spike3);
+        const sideBangsRGeo = new THREE.ConeGeometry(0.038, 0.22, 8);
+        const sideBangsR = new THREE.Mesh(sideBangsRGeo, matHair);
+        sideBangsR.position.set(0.25, -0.05, 0.14);
+        sideBangsR.rotation.set(0.3, -0.2, -0.15);
+        hairGroup.add(sideBangsR);
 
-      // Gai tóc mai hai bên
-      const spike4 = new THREE.Mesh(spikeGeo, matHair);
-      spike4.position.set(-0.22, 0.12, 0.06);
-      spike4.rotation.set(0.1, 0.2, 0.7);
-      hairGroup.add(spike4);
+        // Mái bay phía trước trán
+        const frontBangGeo = new THREE.SphereGeometry(0.09, 10, 8);
+        const frontBang = new THREE.Mesh(frontBangGeo, matHair);
+        frontBang.position.set(-0.06, 0.19, 0.22);
+        frontBang.scale.set(1.5, 0.5, 0.7);
+        hairGroup.add(frontBang);
+      }
+    } else {
+      // NAM CƯ SĨ
+      if (character.hairStyle === 'bun') {
+        // NAM: BÚI TÓC THIỀN MÔN / TRUYỀN THỐNG (Topknot)
+        // Búi tóc trên đỉnh đầu
+        const bunGeo = new THREE.SphereGeometry(0.08, 12, 10);
+        const bunMesh = new THREE.Mesh(bunGeo, matHair);
+        bunMesh.position.set(0, 0.32, 0.02);
+        hairGroup.add(bunMesh);
 
-      const spike5 = new THREE.Mesh(spikeGeo, matHair);
-      spike5.position.set(0.22, 0.12, 0.06);
-      spike5.rotation.set(0.1, -0.2, -0.7);
-      hairGroup.add(spike5);
+        // Vòng dây thắt búi tóc
+        const tieGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12);
+        const matTie = makeToonMat(0x1e293b);
+        const tieMesh = new THREE.Mesh(tieGeo, matTie);
+        tieMesh.position.set(0, 0.27, 0.02);
+        hairGroup.add(tieMesh);
 
-      // Highlight mảng sáng trên tóc
-      const hiMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.06), matHairHi);
-      hiMesh.position.set(0.04, 0.27, 0.18);
-      hiMesh.rotation.set(0.4, -0.2, 0.1);
-      hairGroup.add(hiMesh);
+        // Trâm cài tóc gỗ/vàng xuyên ngang
+        const pinGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.26, 6);
+        const matPin = makeToonMat(0xd97706);
+        const pinMesh = new THREE.Mesh(pinGeo, matPin);
+        pinMesh.position.set(0, 0.32, 0.02);
+        pinMesh.rotation.z = Math.PI / 2;
+        hairGroup.add(pinMesh);
 
-      // Mái trước tỉa nhọn phóng khoáng
-      const bang1 = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 5), matHair);
-      bang1.position.set(-0.08, 0.18, 0.24);
-      bang1.rotation.set(-0.35, 0, -0.2);
-      hairGroup.add(bang1);
+        // Mái trước gọn gàng
+        const frontBangGeo = new THREE.SphereGeometry(0.08, 10, 8);
+        const frontBang = new THREE.Mesh(frontBangGeo, matHair);
+        frontBang.position.set(0, 0.19, 0.22);
+        frontBang.scale.set(1.4, 0.5, 0.6);
+        hairGroup.add(frontBang);
 
-      const bang2 = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.13, 5), matHair);
-      bang2.position.set(0.06, 0.19, 0.24);
-      bang2.rotation.set(-0.32, 0, 0.25);
-      hairGroup.add(bang2);
+        // Tóc mai hai bên
+        const sideL = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.16, 6), matHair);
+        sideL.position.set(-0.23, 0.04, 0.1);
+        sideL.rotation.set(0.1, 0.1, 0.3);
+        hairGroup.add(sideL);
+
+        const sideR = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.16, 6), matHair);
+        sideR.position.set(0.23, 0.04, 0.1);
+        sideR.rotation.set(0.1, -0.1, -0.3);
+        hairGroup.add(sideR);
+      } else {
+        // NAM: TÓC NGẮN SPIKY TỈA GAI XẾP LỚP (Mặc định / Short)
+        const spikeGeo = new THREE.ConeGeometry(0.065, 0.18, 6);
+
+        // Đỉnh gai tóc trung tâm
+        const spike1 = new THREE.Mesh(spikeGeo, matHair);
+        spike1.position.set(0, 0.32, 0.04);
+        spike1.rotation.set(0.2, 0, 0.1);
+        hairGroup.add(spike1);
+
+        // Gai lệch trái
+        const spike2 = new THREE.Mesh(spikeGeo, matHair);
+        spike2.position.set(-0.11, 0.28, 0.08);
+        spike2.rotation.set(0.15, 0.3, 0.4);
+        hairGroup.add(spike2);
+
+        // Gai lệch phải
+        const spike3 = new THREE.Mesh(spikeGeo, matHair);
+        spike3.position.set(0.11, 0.28, 0.08);
+        spike3.rotation.set(0.15, -0.3, -0.4);
+        hairGroup.add(spike3);
+
+        // Gai tóc mai hai bên
+        const spike4 = new THREE.Mesh(spikeGeo, matHair);
+        spike4.position.set(-0.22, 0.12, 0.06);
+        spike4.rotation.set(0.1, 0.2, 0.7);
+        hairGroup.add(spike4);
+
+        const spike5 = new THREE.Mesh(spikeGeo, matHair);
+        spike5.position.set(0.22, 0.12, 0.06);
+        spike5.rotation.set(0.1, -0.2, -0.7);
+        hairGroup.add(spike5);
+
+        // Highlight mảng sáng trên tóc
+        const hiMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.06), matHairHi);
+        hiMesh.position.set(0.04, 0.27, 0.18);
+        hiMesh.rotation.set(0.4, -0.2, 0.1);
+        hairGroup.add(hiMesh);
+
+        // Mái trước tỉa nhọn phóng khoáng
+        const bang1 = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 5), matHair);
+        bang1.position.set(-0.08, 0.18, 0.24);
+        bang1.rotation.set(-0.35, 0, -0.2);
+        hairGroup.add(bang1);
+
+        const bang2 = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.13, 5), matHair);
+        bang2.position.set(0.06, 0.19, 0.24);
+        bang2.rotation.set(-0.32, 0, 0.25);
+        hairGroup.add(bang2);
+      }
     }
   }
 

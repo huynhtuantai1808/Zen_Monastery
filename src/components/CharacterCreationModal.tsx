@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CharacterAppearance, GenderType, RobeColorType, HairStyleType, AccessoryType } from '../types/game';
 import { Sparkles, Check, X, Shuffle } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
@@ -14,17 +14,52 @@ interface CharacterCreationModalProps {
 const NAME_SUGGESTIONS_MALE = ['Tuệ Minh', 'Tịnh An', 'Chân Thiện', 'Minh Triết', 'Tâm An', 'Bảo Quang'];
 const NAME_SUGGESTIONS_FEMALE = ['Diệu Tâm', 'Ngọc Tâm', 'Tịnh Như', 'Diệu Âm', 'Liên Hoa', 'Thanh Tịnh'];
 
-const ROBE_COLORS: { id: RobeColorType; name: string; hex: string; desc: string }[] = [
-  { id: 'lam', name: 'Lam Thanh Tịnh', hex: '#60a5fa', desc: 'Sắc lam anime dịu mát trẻ trung' },
-  { id: 'nau', name: 'Nâu Trầm Ấm', hex: '#92400e', desc: 'Màu đất mộc mạc, nhẫn nại và khiêm cung' },
-  { id: 'xam', name: 'Xám Khói Thiền Môn', hex: '#64748b', desc: 'Sắc xám tĩnh lặng như sương sớm đỉnh núi' },
-  { id: 'bach', name: 'Bạch Y Thuần Khiết', hex: '#f8fafc', desc: 'Màu trắng thanh khiết, tâm không tì vết' },
+const getRobeOptions = (gender: GenderType) => [
+  {
+    id: 'lam' as RobeColorType,
+    name: gender === 'female' ? 'Hồng Pastel Dịu Ngọt' : 'Lam Thanh Tịnh',
+    hex: gender === 'female' ? '#f472b6' : '#60a5fa',
+    desc: gender === 'female' ? 'Sơ mi hồng pastel ngọt ngào như mẫu thiết kế nữ' : 'Sơ mi lam anime trẻ trung như mẫu thiết kế nam',
+  },
+  {
+    id: 'nau' as RobeColorType,
+    name: 'Nâu Trầm Ấm',
+    hex: '#d97706',
+    desc: 'Màu be/nâu đất mộc mạc, nhẫn nại và khiêm cung',
+  },
+  {
+    id: 'xam' as RobeColorType,
+    name: 'Xám Tối Giản',
+    hex: '#94a3b8',
+    desc: 'Sắc xám khói tĩnh lặng hiện đại thanh đạm',
+  },
+  {
+    id: 'bach' as RobeColorType,
+    name: 'Bạch Y Thuần Khiết',
+    hex: '#f8fafc',
+    desc: 'Sơ mi trắng thanh khiết, tâm không tì vết',
+  },
 ];
 
-const HAIR_STYLES: { id: HairStyleType; name: string; icon: string }[] = [
-  { id: 'short', name: 'Tóc Ngắn Anime', icon: '👦' },
-  { id: 'bun', name: 'Tóc Búi Duyên Dáng', icon: '👱' },
-  { id: 'shaved', name: 'Quy Y Thanh Tịnh', icon: '🧑‍🦲' },
+const getHairOptions = (gender: GenderType) => [
+  {
+    id: 'short' as HairStyleType,
+    name: gender === 'male' ? 'Tóc Ngắn Spiky' : 'Tóc Bob Ngắn',
+    icon: gender === 'male' ? '👦' : '👧',
+    desc: gender === 'male' ? 'Tỉa layer năng động chuẩn mẫu nam' : 'Tóc ngắn cúp đuôi thanh tú',
+  },
+  {
+    id: 'bun' as HairStyleType,
+    name: gender === 'female' ? 'Tóc Đuôi Ngựa Wavy' : 'Búi Tóc Thiền Môn',
+    icon: gender === 'female' ? '👱‍♀️' : '🧘‍♂️',
+    desc: gender === 'female' ? 'Đuôi ngựa cao gợn sóng chuẩn mẫu nữ' : 'Búi tóc truyền thống thanh nhã',
+  },
+  {
+    id: 'shaved' as HairStyleType,
+    name: 'Quy Y Cạo Đầu',
+    icon: '🧑‍🦲',
+    desc: '3 Chấm Giới Hương thanh tịnh thiền môn',
+  },
 ];
 
 const ACCESSORIES: { id: AccessoryType; name: string; icon: string; desc: string }[] = [
@@ -42,16 +77,38 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
 }) => {
   const [character, setCharacter] = useState<CharacterAppearance>(initialCharacter);
 
-  const handleGenderChange = (gender: GenderType) => {
+  // Đồng bộ lại state khi initialCharacter thay đổi từ ngoài
+  useEffect(() => {
+    setCharacter(initialCharacter);
+  }, [initialCharacter]);
+
+  const handleGenderChange = (newGender: GenderType) => {
     soundEngine.playWoodenFish();
-    const names = gender === 'male' ? NAME_SUGGESTIONS_MALE : NAME_SUGGESTIONS_FEMALE;
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    setCharacter((prev) => ({
-      ...prev,
-      gender,
-      name: prev.name === initialCharacter.name ? randomName : prev.name,
-      hairStyle: gender === 'female' && prev.hairStyle === 'short' ? 'bun' : prev.hairStyle,
-    }));
+    setCharacter((prev) => {
+      const isSwitching = prev.gender !== newGender;
+      let newHair = prev.hairStyle;
+      if (isSwitching) {
+        if (prev.hairStyle !== 'shaved') {
+          newHair = newGender === 'female' ? 'bun' : 'short';
+        }
+      }
+
+      // Đổi tên ngẫu nhiên phù hợp với giới tính mới nếu tên đang là tên mẫu hoặc rỗng
+      let newName = prev.name;
+      const isOldMaleName = NAME_SUGGESTIONS_MALE.includes(prev.name);
+      const isOldFemaleName = NAME_SUGGESTIONS_FEMALE.includes(prev.name);
+      if (isSwitching || isOldMaleName || isOldFemaleName || !prev.name.trim()) {
+        const list = newGender === 'male' ? NAME_SUGGESTIONS_MALE : NAME_SUGGESTIONS_FEMALE;
+        newName = list[Math.floor(Math.random() * list.length)];
+      }
+
+      return {
+        ...prev,
+        gender: newGender,
+        hairStyle: newHair,
+        name: newName,
+      };
+    });
   };
 
   const handleRandomizeName = () => {
@@ -66,8 +123,9 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
     onSave(character);
   };
 
-  // Live SVG Avatar Rendering
-  const currentRobe = ROBE_COLORS.find((r) => r.id === character.robeColor) || ROBE_COLORS[0];
+  const robeOptions = getRobeOptions(character.gender);
+  const hairOptions = getHairOptions(character.gender);
+  const currentRobe = robeOptions.find((r) => r.id === character.robeColor) || robeOptions[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-xl overflow-y-auto">
@@ -193,7 +251,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                 <span className="w-5 h-5 rounded-full bg-indigo-500 text-white inline-flex items-center justify-center text-[11px]">3</span> Màu Y Phục Anime:
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {ROBE_COLORS.map((r) => (
+                {robeOptions.map((r) => (
                   <button
                     key={r.id}
                     type="button"
@@ -213,6 +271,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                     />
                     <div className="min-w-0">
                       <div className="text-xs font-heading font-bold text-purple-950 truncate">{r.name}</div>
+                      <div className="text-[10px] text-purple-700/80 font-sans truncate">{r.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -225,7 +284,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white inline-flex items-center justify-center text-[11px]">4</span> Kiểu Tóc & Diện Mạo:
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {HAIR_STYLES.map((h) => (
+                {hairOptions.map((h) => (
                   <button
                     key={h.id}
                     type="button"
@@ -233,14 +292,15 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
                       soundEngine.playWoodenFish();
                       setCharacter({ ...character, hairStyle: h.id });
                     }}
-                    className={`p-2.5 rounded-2xl border-2 text-center flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                    className={`p-2 rounded-2xl border-2 text-center flex flex-col items-center gap-1 transition-all cursor-pointer ${
                       character.hairStyle === h.id
-                        ? 'bg-pink-100/90 border-pink-500 font-black shadow-md scale-[1.02]'
+                        ? 'bg-pink-100/90 border-pink-500 font-black shadow-md ring-2 ring-pink-400/40 scale-[1.02]'
                         : 'bg-white/80 border-purple-100 hover:bg-purple-50'
                     }`}
                   >
                     <span className="text-xl">{h.icon}</span>
                     <span className="text-[11px] font-heading font-bold text-purple-950">{h.name}</span>
+                    <span className="text-[9px] text-purple-700/75 leading-tight">{h.desc}</span>
                   </button>
                 ))}
               </div>

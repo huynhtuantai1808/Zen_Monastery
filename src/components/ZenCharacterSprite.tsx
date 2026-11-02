@@ -97,11 +97,60 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   const skinShade = '#fed7aa';
 
   // ==========================================
-  // 1. VẼ MÁI TÓC CHIBI THEO ĐÚNG CONCEPT ART
+  // 1. VẼ MÁI TÓC CHIBI THEO ĐÚNG CONCEPT ART & TÙY BIẾN
   // ==========================================
   const renderHair = () => {
+    // 1. QUY Y CẠO ĐẦU: Nhẵn bóng + 3 Chấm Giới Hương trên trán
+    if (character.hairStyle === 'shaved') {
+      return (
+        <g id="shaved-head-hair">
+          {/* 3 Chấm Giới Hương thiền môn thẳng hàng trên trán */}
+          <circle cx="80" cy="36" r="1.8" fill="#d97706" />
+          <circle cx="80" cy="41" r="1.8" fill="#d97706" />
+          <circle cx="80" cy="46" r="1.8" fill="#d97706" />
+        </g>
+      );
+    }
+
+    // 2. NỮ CƯ SĨ
     if (isFemale) {
-      // FEMALE CHIBI: Tóc đuôi ngựa cao gợn sóng + lọn tóc mai uốn cong hai bên
+      if (character.hairStyle === 'short') {
+        // NỮ: Tóc ngắn Bob ôm gò má thanh tú dễ thương
+        return (
+          <g id="female-chibi-short-hair">
+            {/* Khối tóc bồng bềnh ôm đầu */}
+            <path
+              d="M50,54 C46,26 62,18 80,18 C98,18 114,26 110,54 C104,32 94,27 80,27 C66,27 56,32 50,54 Z"
+              fill={hairColor}
+            />
+            {/* Highlight đỉnh đầu */}
+            <path
+              d="M62,25 Q80,21 98,25"
+              fill="none"
+              stroke={hairHighlight}
+              strokeWidth="3"
+              strokeLinecap="round"
+              opacity="0.7"
+            />
+            {/* Tóc mái rẽ ngôi nhẹ */}
+            <path
+              d="M52,48 C58,38 70,36 76,46 C78,42 85,38 98,44 C106,48 108,54 108,54 C100,34 88,32 78,38 C68,32 58,36 52,48 Z"
+              fill={hairColor}
+            />
+            {/* Tóc bob ngắn cụp ôm hai bên má */}
+            <path
+              d="M49,52 C44,66 46,78 54,84 C50,74 48,64 54,52 Z"
+              fill={hairColor}
+            />
+            <path
+              d="M111,52 C116,66 114,78 106,84 C110,74 112,64 106,52 Z"
+              fill={hairColor}
+            />
+          </g>
+        );
+      }
+
+      // NỮ: Tóc đuôi ngựa cao gợn sóng (mặc định / bun)
       return (
         <g id="female-chibi-hair">
           {/* Đuôi ngựa bồng bềnh uốn lượn bên vai phải (như hình mẫu) */}
@@ -120,7 +169,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
           />
 
           {/* Dây thắt nơ / dây buộc tóc */}
-          <ellipse cx="94" cy="38" rx="5" ry="4" fill="#1e293b" />
+          <ellipse cx="94" cy="38" rx="5" ry="4" fill="#f43f5e" />
 
           {/* Khối tóc bồng bềnh trên đỉnh đầu */}
           <path
@@ -156,7 +205,45 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
       );
     }
 
-    // MALE CHIBI: Tóc ngắn spiky tỉa layer, các lọn tóc vểnh năng động (như hình mẫu)
+    // 3. NAM CƯ SĨ
+    if (character.hairStyle === 'bun') {
+      // NAM: Búi tóc thiền môn / võ sĩ truyền thống
+      return (
+        <g id="male-chibi-bun-hair">
+          {/* Búi tóc trên đỉnh đầu */}
+          <circle cx="80" cy="14" r="8" fill={hairColor} />
+          {/* Dây buộc tóc */}
+          <rect x="74" y="18" width="12" height="4" fill="#1e293b" rx="1" />
+          {/* Trâm cài gỗ / vàng xuyên ngang */}
+          <line x1="68" y1="14" x2="92" y2="14" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
+
+          {/* Khối tóc ôm đầu */}
+          <path
+            d="M51,55 C46,28 62,20 80,20 C98,20 114,28 109,55 C104,34 94,28 80,28 C66,28 56,34 51,55 Z"
+            fill={hairColor}
+          />
+          {/* Highlight sợi tóc đỉnh đầu */}
+          <path
+            d="M60,26 Q80,22 100,26"
+            fill="none"
+            stroke={hairHighlight}
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            opacity="0.75"
+          />
+          {/* Tóc mái gọn gàng để lộ trán */}
+          <path
+            d="M52,48 Q64,50 72,44 Q80,50 88,44 Q96,50 108,48 Q106,36 80,34 Q54,36 52,48 Z"
+            fill={hairColor}
+          />
+          {/* Tóc mai hai bên tai */}
+          <path d="M52,46 Q50,58 55,64 Q53,56 56,50 Z" fill={hairColor} />
+          <path d="M108,46 Q110,58 105,64 Q107,56 104,50 Z" fill={hairColor} />
+        </g>
+      );
+    }
+
+    // NAM: Tóc ngắn spiky tỉa layer, các lọn tóc vểnh năng động (như hình mẫu)
     return (
       <g id="male-chibi-hair">
         {/* Khối tóc chính ôm vòm đầu */}
@@ -192,6 +279,46 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
         <path d="M108,46 Q110,58 105,64 Q107,56 104,50 Z" fill={hairColor} />
       </g>
     );
+  };
+
+  // ==========================================
+  // 1.5. VẼ PHÁP BẢO PHỤ KIỆN TÙY THÂN
+  // ==========================================
+  const renderAccessory = () => {
+    if (character.accessory === 'beads') {
+      return (
+        <g id="chibi-accessory-beads">
+          {/* Chuỗi 18 hạt bồ đề đeo quanh cổ rủ xuống ngực áo */}
+          <ellipse cx="80" cy="88" rx="14" ry="10" fill="none" stroke="#78350f" strokeWidth="3" strokeDasharray="2,3" />
+          <circle cx="80" cy="99" r="2.5" fill="#b45309" stroke="#451a03" strokeWidth="0.8" />
+          <line x1="80" y1="101" x2="80" y2="108" stroke="#eab308" strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+      );
+    }
+    if (character.accessory === 'bag') {
+      return (
+        <g id="chibi-accessory-bag">
+          {/* Dây quai đeo chéo qua vai */}
+          <path d="M66,82 L105,124" stroke="#1e3a8a" strokeWidth="3.5" strokeLinecap="round" />
+          {/* Túi vải chàm bên hông */}
+          <rect x="96" y="118" width="15" height="18" rx="4" fill="#1e40af" stroke="#172554" strokeWidth="1.2" />
+          <path d="M96,122 L111,122" stroke="#3b82f6" strokeWidth="1" />
+          <circle cx="103.5" cy="125" r="1.2" fill="#fbbf24" />
+        </g>
+      );
+    }
+    if (character.accessory === 'hat') {
+      return (
+        <g id="chibi-accessory-hat">
+          {/* Nón lá mộc mạc đeo sau lưng */}
+          <ellipse cx="80" cy="102" rx="20" ry="14" fill="#fef08a" stroke="#ca8a04" strokeWidth="1.2" />
+          <ellipse cx="80" cy="102" rx="15" ry="10" fill="#fef9c3" stroke="#eab308" strokeWidth="0.8" />
+          <circle cx="80" cy="102" r="3" fill="#ca8a04" />
+          <path d="M70,86 Q80,94 90,86" fill="none" stroke={isFemale ? '#f472b6' : '#60a5fa'} strokeWidth="1.5" />
+        </g>
+      );
+    }
+    return null;
   };
 
   // ==========================================
@@ -471,7 +598,8 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <rect x="74" y="66" width="12" height="14" fill={skinShade} rx="3" />
             <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
 
-            {/* Mái tóc & Ngũ quan */}
+            {/* Pháp bảo tùy thân, Mái tóc & Ngũ quan */}
+            {renderAccessory()}
             {renderHair()}
             {renderFace('smile')}
           </svg>
@@ -512,6 +640,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
               {/* Cổ & Đầu */}
               <rect x="74" y="66" width="12" height="14" fill={skinTone} rx="3" />
               <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
+              {renderAccessory()}
               {renderHair()}
               {renderFace('smile')}
             </svg>
@@ -549,6 +678,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <circle cx="70" cy="50" r="27" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
 
             <g transform="translate(-10, 0)">
+              {renderAccessory()}
               {renderHair()}
               {renderFace('smile')}
             </g>
@@ -585,6 +715,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <rect x="74" y="60" width="12" height="14" fill={skinTone} rx="4" />
             <circle cx="80" cy="50" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
 
+            {renderAccessory()}
             {renderHair()}
             {renderFace('meditate')}
           </svg>
@@ -614,6 +745,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             <rect x="74" y="66" width="12" height="14" fill={skinTone} rx="3" />
             <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
+            {renderAccessory()}
             {renderHair()}
             {renderFace('smile')}
           </svg>
@@ -650,6 +782,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             <rect x="79" y="66" width="12" height="14" fill={skinTone} rx="3" />
             <circle cx="85" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
             <g transform="translate(5, 0)">
+              {renderAccessory()}
               {renderHair()}
               {renderFace('smile')}
             </g>
@@ -676,6 +809,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             <rect x="74" y="66" width="12" height="14" fill={skinTone} rx="3" />
             <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
+            {renderAccessory()}
             {renderHair()}
             {renderFace('smile')}
           </svg>
@@ -704,6 +838,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             <rect x="74" y="66" width="12" height="14" fill={skinTone} rx="3" />
             <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
+            {renderAccessory()}
             {renderHair()}
             {renderFace('smile')}
           </svg>
@@ -729,6 +864,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
             <rect x="74" y="66" width="12" height="14" fill={skinTone} rx="3" />
             <circle cx="80" cy="54" r="28" fill={skinTone} stroke="#fb923c" strokeWidth="1.2" />
+            {renderAccessory()}
             {renderHair()}
             {renderFace('smile')}
           </svg>

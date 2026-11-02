@@ -604,7 +604,7 @@ export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
 
     animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
-  }, [playerX, playerY, targetPos, facingLeft, isWalking, timePhase, isRaining, character, level, nearHotspot, bellRipples, bambooDropAngle]);
+  }, [playerX, playerY, targetPos, facingLeft, isWalking, timePhase, isRaining, character.gender, character.robeColor, character.hairStyle, character.accessory, character.name, level, nearHotspot, bellRipples, bambooDropAngle]);
 
   // Bamboo water drop cycle simulation
   useEffect(() => {
@@ -1565,8 +1565,6 @@ function drawWalkingCharacter(
 
   // 7. Hair Styles & Accessories Matching Concept Art & Character Customization
   const isShaved = character.hairStyle === 'shaved';
-  const isBun = character.hairStyle === 'bun';
-  const isShort = character.hairStyle === 'short' || (!isFemale && !isShaved && !isBun);
 
   ctx.fillStyle = hairColor;
 
@@ -1578,89 +1576,128 @@ function drawWalkingCharacter(
     ctx.arc(0, -48, 1.2, 0, Math.PI * 2);
     ctx.arc(0, -45, 1.2, 0, Math.PI * 2);
     ctx.fill();
-  } else if (isFemale || isBun) {
-    // TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Ponytail / Bun)
-    // Đuôi ngựa bồng bềnh uốn lượn sang vai phải
-    ctx.beginPath();
-    ctx.moveTo(6, -55);
-    ctx.quadraticCurveTo(18, -62, 16, -46);
-    ctx.quadraticCurveTo(18, -32, 12, -25);
-    ctx.quadraticCurveTo(14, -38, 8, -48);
-    ctx.closePath();
-    ctx.fill();
-
-    // Nơ cột tóc xinh xắn
-    ctx.fillStyle = '#f43f5e';
-    ctx.beginPath();
-    ctx.arc(8, -55, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Mũ tóc bao phủ
-    ctx.fillStyle = hairColor;
-    ctx.beginPath();
-    ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
-    ctx.fill();
-
-    // Tóc mai uốn cong hai bên má
-    ctx.beginPath();
-    ctx.moveTo(-13, -46);
-    ctx.quadraticCurveTo(-10, -36, -8, -34);
-    ctx.quadraticCurveTo(-7, -42, -5, -48);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(13, -46);
-    ctx.quadraticCurveTo(10, -36, 8, -34);
-    ctx.quadraticCurveTo(7, -42, 5, -48);
-    ctx.fill();
-
-    // Mái bay trước trán
-    ctx.beginPath();
-    ctx.moveTo(-9, -52);
-    ctx.quadraticCurveTo(-3, -48, 0, -50);
-    ctx.quadraticCurveTo(4, -48, 9, -52);
-    ctx.lineTo(8, -58);
-    ctx.lineTo(-8, -58);
-    ctx.closePath();
-    ctx.fill();
-  } else if (isShort) {
-    // TÓC NGẮN TỈA GAI XẾP LỚP (Layered Spiky Hair)
-    ctx.beginPath();
-    ctx.arc(0, -47, 14, Math.PI * 0.85, Math.PI * 2.15);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(-12, -52);
-    ctx.lineTo(-17, -56);
-    ctx.lineTo(-10, -58);
-    ctx.lineTo(-6, -64);
-    ctx.lineTo(-2, -60);
-    ctx.lineTo(2, -65);
-    ctx.lineTo(6, -60);
-    ctx.lineTo(13, -62);
-    ctx.lineTo(11, -56);
-    ctx.lineTo(15, -53);
-    ctx.lineTo(12, -48);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = hairHighlight;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-5, -60);
-    ctx.lineTo(0, -61);
-    ctx.lineTo(5, -59);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(-11, -50);
-    ctx.lineTo(-7, -46);
-    ctx.lineTo(-4, -51);
-    ctx.lineTo(0, -46);
-    ctx.lineTo(4, -51);
-    ctx.lineTo(8, -46);
-    ctx.lineTo(11, -50);
-    ctx.closePath();
-    ctx.fill();
+  } else if (isFemale) {
+    if (character.hairStyle === 'short') {
+      // NỮ CHIBI: TÓC BOB NGẮN THANH TÚ
+      ctx.beginPath();
+      ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-13, -48);
+      ctx.quadraticCurveTo(-15, -36, -10, -32);
+      ctx.quadraticCurveTo(-8, -38, -6, -46);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(13, -48);
+      ctx.quadraticCurveTo(15, -36, 10, -32);
+      ctx.quadraticCurveTo(8, -38, 6, -46);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-9, -52);
+      ctx.quadraticCurveTo(-3, -48, 0, -50);
+      ctx.quadraticCurveTo(4, -48, 9, -52);
+      ctx.lineTo(8, -58);
+      ctx.lineTo(-8, -58);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // NỮ CHIBI: TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Mặc định / Bun)
+      ctx.beginPath();
+      ctx.moveTo(6, -55);
+      ctx.quadraticCurveTo(18, -62, 16, -46);
+      ctx.quadraticCurveTo(18, -32, 12, -25);
+      ctx.quadraticCurveTo(14, -38, 8, -48);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(8, -55, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = hairColor;
+      ctx.beginPath();
+      ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-13, -46);
+      ctx.quadraticCurveTo(-10, -36, -8, -34);
+      ctx.quadraticCurveTo(-7, -42, -5, -48);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(13, -46);
+      ctx.quadraticCurveTo(10, -36, 8, -34);
+      ctx.quadraticCurveTo(7, -42, 5, -48);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-9, -52);
+      ctx.quadraticCurveTo(-3, -48, 0, -50);
+      ctx.quadraticCurveTo(4, -48, 9, -52);
+      ctx.lineTo(8, -58);
+      ctx.lineTo(-8, -58);
+      ctx.closePath();
+      ctx.fill();
+    }
+  } else {
+    if (character.hairStyle === 'bun') {
+      // NAM: BÚI TÓC THIỀN MÔN (Topknot)
+      ctx.beginPath();
+      ctx.arc(0, -62, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-3, -59, 6, 2);
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-6, -62);
+      ctx.lineTo(6, -62);
+      ctx.stroke();
+      ctx.fillStyle = hairColor;
+      ctx.beginPath();
+      ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-9, -52);
+      ctx.quadraticCurveTo(0, -48, 9, -52);
+      ctx.lineTo(8, -56);
+      ctx.lineTo(-8, -56);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // NAM: TÓC NGẮN SPIKY TỈA GAI (Mặc định / Short)
+      ctx.beginPath();
+      ctx.arc(0, -47, 14, Math.PI * 0.85, Math.PI * 2.15);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-12, -52);
+      ctx.lineTo(-17, -56);
+      ctx.lineTo(-10, -58);
+      ctx.lineTo(-6, -64);
+      ctx.lineTo(-2, -60);
+      ctx.lineTo(2, -65);
+      ctx.lineTo(6, -60);
+      ctx.lineTo(13, -62);
+      ctx.lineTo(11, -56);
+      ctx.lineTo(15, -53);
+      ctx.lineTo(12, -48);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = hairHighlight;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-5, -60);
+      ctx.lineTo(0, -61);
+      ctx.lineTo(5, -59);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-11, -50);
+      ctx.lineTo(-7, -46);
+      ctx.lineTo(-4, -51);
+      ctx.lineTo(0, -46);
+      ctx.lineTo(4, -51);
+      ctx.lineTo(8, -46);
+      ctx.lineTo(11, -50);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
   // 8. Phụ kiện (Accessories)

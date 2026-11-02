@@ -870,9 +870,20 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       currentActionRef.current = 'idle';
 
 
-      // Remove previous realistic model if any
+      // Remove previous realistic model if any & dispose resources
       if (realisticModelRef.current) {
         monkGroupRef.current?.remove(realisticModelRef.current);
+        realisticModelRef.current.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.geometry?.dispose();
+            if (Array.isArray(mesh.material)) {
+              mesh.material.forEach((m) => (m as THREE.Material).dispose());
+            } else if (mesh.material) {
+              (mesh.material as THREE.Material).dispose();
+            }
+          }
+        });
       }
       realisticModelRef.current = rig.modelGroup;
       monkGroupRef.current?.add(rig.modelGroup);
@@ -884,7 +895,13 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [character]);
+  }, [
+    character.gender,
+    character.robeColor,
+    character.hairStyle,
+    character.accessory,
+    character.name,
+  ]);
 
   // Toggle Camera Mode: 3rd-Person Eye-Level vs On Rainy Days Top-Down vs Isometric
   const toggleCameraMode = () => {
