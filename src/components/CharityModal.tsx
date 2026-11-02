@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2 } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
+import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 interface CharityModalProps {
   onComplete: (merit: number, staminaRestore: number) => void;
@@ -46,6 +48,7 @@ export const CharityModal: React.FC<CharityModalProps> = ({
   spendStamina,
 }) => {
   const [people, setPeople] = useState<Beneficiary[]>(BENEFICIARIES);
+  const character = useGameStore((state) => state.stats.character);
   const [tab, setTab] = useState<'MEAL' | 'RELEASE'>('MEAL');
   const [releasedBirds, setReleasedBirds] = useState<number>(0);
   const [feedback, setFeedback] = useState<string>('Múc phần cơm chay nóng hổi dâng tặng bằng hai tay với tâm từ bi...');
@@ -132,10 +135,12 @@ export const CharityModal: React.FC<CharityModalProps> = ({
         {/* TAB 1: PHÁT CƠM CHAY TỪ THIỆN */}
         {!isFinished && tab === 'MEAL' && (
           <div className="space-y-3 my-2">
-            {/* Visual Big Porridge Pot */}
+            {/* Visual Big Porridge Pot with Chibi Character */}
             <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-950/40 via-stone-900 to-amber-950/40 border border-amber-600/30 flex items-center justify-between text-xs font-serif">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl animate-bounce">🍲</span>
+              <div className="flex items-center gap-2.5">
+                <div className="shrink-0 -my-2">
+                  <ZenCharacterSprite character={character} pose="charity" scale={0.58} showNameTag={false} />
+                </div>
                 <div>
                   <div className="font-bold text-amber-200">Nồi Cháo Chay Ấm Nóng Tình Người</div>
                   <div className="text-[11px] text-stone-400">Nấu từ gạo mới, hạt sen & củ cải ngọt lành</div>
@@ -193,16 +198,19 @@ export const CharityModal: React.FC<CharityModalProps> = ({
         {/* TAB 2: PHÓNG SINH CỨU MẠNG */}
         {!isFinished && tab === 'RELEASE' && (
           <div className="my-3 space-y-4 text-center">
-            <div className="h-44 rounded-2xl bg-gradient-to-b from-sky-950/40 to-stone-900 border border-sky-500/30 flex flex-col items-center justify-center p-4">
-              <span className="text-5xl animate-bounce">🕊️</span>
-              <div className="text-sm font-serif text-sky-200 mt-2 font-bold">
-                Phóng Sinh Cánh Chim Về Trời
-              </div>
-              <p className="text-xs text-stone-300 font-serif max-w-xs mt-1">
-                Mở lồng cho chim sáo, chim sẻ tung cánh bay về với trời cao tự do, nuôi dưỡng lòng đại bi thương xót muôn loài.
-              </p>
-              <div className="mt-2 text-xs font-mono text-emerald-300">
-                Đã phóng sinh: {releasedBirds} sinh linh
+            <div className="h-48 rounded-2xl bg-gradient-to-b from-sky-950/40 to-stone-900 border border-sky-500/30 flex items-center justify-around p-3">
+              <ZenCharacterSprite character={character} pose="idle" scale={0.72} showNameTag={false} />
+              <div className="flex flex-col items-center text-center max-w-xs">
+                <span className="text-4xl animate-bounce">🕊️</span>
+                <div className="text-sm font-serif text-sky-200 mt-1 font-bold">
+                  Phóng Sinh Cánh Chim Về Trời
+                </div>
+                <p className="text-[11px] text-stone-300 font-serif mt-1">
+                  Mở lồng cho chim sáo tung cánh bay về với trời cao tự do, nuôi dưỡng lòng đại bi thương xót muôn loài.
+                </p>
+                <div className="mt-1 text-xs font-mono text-emerald-300 font-bold">
+                  Đã phóng sinh: {releasedBirds} sinh linh
+                </div>
               </div>
             </div>
 

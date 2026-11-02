@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2 } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
+import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 interface AltarCleaningModalProps {
   onComplete: (merit: number, staminaRestore: number) => void;
@@ -14,6 +16,7 @@ export const AltarCleaningModal: React.FC<AltarCleaningModalProps> = ({
   spendStamina,
 }) => {
   // 4 steps of altar reverence
+  const character = useGameStore((state) => state.stats.character);
   const [cleanedDust, setCleanedDust] = useState<number[]>([1, 2, 3, 4]); // 4 dust spots on lotus throne
   const [censerPolished, setCenserPolished] = useState<boolean>(false);
   const [flowersArranged, setFlowersArranged] = useState<boolean>(false);
@@ -85,8 +88,17 @@ export const AltarCleaningModal: React.FC<AltarCleaningModalProps> = ({
           </button>
         </div>
 
-        {/* Altar Presentation Viewport */}
+        {/* Altar Presentation Viewport with Chibi Character */}
         <div className="my-4 relative h-60 sm:h-68 rounded-2xl bg-gradient-to-b from-stone-950 via-stone-900 to-amber-950/30 border-2 border-amber-600/30 p-4 flex flex-col items-center justify-between overflow-hidden shadow-inner">
+          {/* Chibi Character lau bàn thờ */}
+          <div className="absolute left-3 sm:left-6 bottom-2 z-20 pointer-events-none">
+            <ZenCharacterSprite
+              character={character}
+              pose="cleaning"
+              scale={0.68}
+              showNameTag={false}
+            />
+          </div>
           {/* Buddha Golden Halo */}
           <div
             className={`absolute top-6 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full transition-all duration-1000 ${

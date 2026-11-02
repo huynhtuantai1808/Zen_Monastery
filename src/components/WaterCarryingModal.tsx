@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Droplets } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
+import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 interface WaterCarryingModalProps {
   onComplete: (merit: number, staminaRestore: number) => void;
@@ -13,6 +15,7 @@ export const WaterCarryingModal: React.FC<WaterCarryingModalProps> = ({
   onClose,
   spendStamina,
 }) => {
+  const character = useGameStore((state) => state.stats.character);
   const [step, setStep] = useState<'DRAW' | 'CARRY' | 'POUR' | 'FINISHED'>('DRAW');
   const [tripCount, setTripCount] = useState<number>(0);
   const targetTrips = 2;
@@ -124,16 +127,19 @@ export const WaterCarryingModal: React.FC<WaterCarryingModalProps> = ({
         {/* BƯỚC 1: MÚC NƯỚC GIẾNG SUỐI */}
         {step === 'DRAW' && (
           <div className="my-5 text-center space-y-4">
-            <div className="relative h-44 rounded-2xl bg-gradient-to-b from-sky-950/40 to-stone-900 border border-sky-500/30 flex flex-col items-center justify-center p-4">
-              <span className="text-5xl animate-bounce">⛲</span>
-              <div className="text-sm font-serif text-sky-200 mt-2 font-bold">
-                Giếng Tiên Nước Suối Trong Veo
+            <div className="relative h-48 rounded-2xl bg-gradient-to-b from-sky-950/40 to-stone-900 border border-sky-500/30 flex items-center justify-around p-3">
+              <ZenCharacterSprite character={character} pose="idle" scale={0.72} showNameTag={false} />
+              <div className="flex flex-col items-center text-center max-w-xs">
+                <span className="text-4xl animate-bounce">⛲</span>
+                <div className="text-sm font-serif text-sky-200 mt-1 font-bold">
+                  Giếng Tiên Nước Suối Trong Veo
+                </div>
+                <p className="text-[11px] text-stone-300 font-serif mt-1">
+                  Dòng nước ngầm từ đỉnh núi Vân Sơn thanh ngọt, dâng cúng Phật và pha trà đại chúng.
+                </p>
               </div>
-              <p className="text-xs text-stone-300 font-serif max-w-xs mt-1">
-                Dòng nước ngầm từ đỉnh núi Vân Sơn thanh ngọt, dùng để dâng cúng Phật và pha trà đại chúng.
-              </p>
-              <div className="absolute top-3 left-4 text-xs font-mono text-amber-300 bg-stone-900/80 px-2 py-0.5 rounded-lg border border-amber-500/30">
-                Chuyến gánh: {tripCount}/{targetTrips}
+              <div className="absolute top-3 left-4 text-xs font-mono text-amber-300 bg-stone-900/80 px-2 py-0.5 rounded-lg border border-amber-500/30 shadow">
+                Chuyến: {tripCount}/{targetTrips}
               </div>
             </div>
 

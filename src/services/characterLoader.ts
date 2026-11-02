@@ -227,7 +227,12 @@ export async function loadRealisticCharacter(character: CharacterAppearance): Pr
 
   // Elevate model position so shoe soles align flush with y = 0.00 inside monkGroup
   model.position.set(0, isFemale ? 0.082 : 0.121, 0);
-  model.rotation.set(0, 0, 0);
+  // Cute Chibi anime proportions: slightly larger head & compact adorable stature
+  model.scale.set(0.94, 0.90, 0.94);
+  const headBone = skinnedMesh ? getBoneByName('Head', (skinnedMesh as any).skeleton) : undefined;
+  if (headBone) {
+    headBone.scale.set(1.26, 1.26, 1.26);
+  }
   model.rotation.set(0, 0, 0);
 
   return {

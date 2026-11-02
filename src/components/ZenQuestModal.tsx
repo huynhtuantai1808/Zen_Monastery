@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, Sparkles, Award, ScrollText, ArrowRight, ShieldCheck } from 'lucide-react';
 import { ZEN_QUESTS, ZEN_MILESTONES, type ZenQuestItem } from '../data/zenQuests';
+import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 
 interface ZenQuestModalProps {
@@ -18,6 +20,7 @@ export const ZenQuestModal: React.FC<ZenQuestModalProps> = ({
   onClaimQuestReward: _onClaim,
   onClose,
 }) => {
+  const character = useGameStore((state) => state.stats.character);
   const [activeTab, setActiveTab] = useState<'DAILY' | 'MILESTONES'>('DAILY');
 
   const totalQuests = ZEN_QUESTS.length;
@@ -32,8 +35,10 @@ export const ZenQuestModal: React.FC<ZenQuestModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-stone-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl text-amber-300">
-              📜
+            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-stone-950/80 border-2 border-amber-400/60 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+              <div className="scale-75 -translate-y-2">
+                <ZenCharacterSprite character={character} pose="idle" showNameTag={false} scale={0.42} />
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-2">

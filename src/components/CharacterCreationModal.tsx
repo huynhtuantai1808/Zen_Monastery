@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { CharacterAppearance, GenderType, RobeColorType, HairStyleType, AccessoryType } from '../types/game';
 import { Sparkles, Check, X, Shuffle } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 interface CharacterCreationModalProps {
   initialCharacter: CharacterAppearance;
@@ -106,102 +107,15 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({
               {/* Anime Magic Circle Glow */}
               <div className="absolute w-40 h-40 rounded-full bg-gradient-to-tr from-pink-500/30 to-purple-500/30 blur-2xl animate-pulse" />
 
-              {/* Dynamic 2D SVG Anime Character */}
-              <svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]">
-                {/* Shadow */}
-                <ellipse cx="80" cy="182" rx="42" ry="10" fill="rgba(0,0,0,0.5)" />
-
-                {/* Robe Body */}
-                <path
-                  d="M50,110 L110,110 L124,175 L36,175 Z"
-                  fill={currentRobe.hex}
-                  stroke="#3b0764"
-                  strokeWidth="2"
+              {/* Cute Chibi Character Sprite */}
+              <div className="relative z-10">
+                <ZenCharacterSprite
+                  character={character}
+                  pose="idle"
+                  scale={1.05}
+                  showNameTag={false}
                 />
-                {/* Sash / Dây đai vàng */}
-                <rect x="46" y="125" width="68" height="10" fill="#fbbf24" rx="3" />
-
-                {/* Shoulders */}
-                <path
-                  d="M45,90 Q80,75 115,90 L110,115 L50,115 Z"
-                  fill={currentRobe.hex}
-                />
-
-                {/* Head / Neck */}
-                <rect x="73" y="65" width="14" height="20" fill="#fed7aa" rx="4" />
-                <circle cx="80" cy="55" r="24" fill="#fed7aa" />
-
-                {/* Anime Eyes with Highlights */}
-                {character.gender === 'female' ? (
-                  <g>
-                    {/* Big Anime Eyes */}
-                    <ellipse cx="73" cy="53" rx="5" ry="6" fill="#1e1b4b" />
-                    <ellipse cx="87" cy="53" rx="5" ry="6" fill="#1e1b4b" />
-                    {/* Highlights */}
-                    <circle cx="71.5" cy="51" r="1.8" fill="#ffffff" />
-                    <circle cx="85.5" cy="51" r="1.8" fill="#ffffff" />
-                    {/* Upper Lashes */}
-                    <path d="M67,49 Q73,46 78,50" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M82,50 Q87,46 93,49" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
-                    {/* Cute Blush */}
-                    <circle cx="68" cy="60" r="3.5" fill="#f43f5e" opacity="0.4" />
-                    <circle cx="92" cy="60" r="3.5" fill="#f43f5e" opacity="0.4" />
-                  </g>
-                ) : (
-                  <g>
-                    {/* Male Anime Eyes */}
-                    <ellipse cx="73" cy="53" rx="4.5" ry="5.5" fill="#0f172a" />
-                    <ellipse cx="87" cy="53" rx="4.5" ry="5.5" fill="#0f172a" />
-                    <circle cx="72" cy="51" r="1.5" fill="#ffffff" />
-                    <circle cx="86" cy="51" r="1.5" fill="#ffffff" />
-                    {/* Brows */}
-                    <path d="M68,47 Q73,45 78,48" fill="none" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                    <path d="M82,48 Q87,45 92,47" fill="none" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  </g>
-                )}
-
-                {/* Cute smile */}
-                <path d="M77,65 Q80,68 83,65" fill="none" stroke="#e11d48" strokeWidth="1.8" strokeLinecap="round" />
-
-                {/* Hair styles */}
-                {character.hairStyle === 'short' && (
-                  <path
-                    d="M54,50 Q80,22 106,50 Q100,34 80,30 Q60,34 54,50 Z"
-                    fill="#180800"
-                  />
-                )}
-                {character.hairStyle === 'bun' && (
-                  <g>
-                    <path
-                      d="M54,52 Q80,26 106,52 Q100,34 80,31 Q60,34 54,52 Z"
-                      fill="#180800"
-                    />
-                    {/* Flowing side locks for anime female */}
-                    <path d="M56,54 Q50,72 54,88" fill="none" stroke="#180800" strokeWidth="3" strokeLinecap="round" />
-                    <path d="M104,54 Q110,72 106,88" fill="none" stroke="#180800" strokeWidth="3" strokeLinecap="round" />
-                    {/* Búi tóc trên đỉnh đầu + ribbon */}
-                    <circle cx="80" cy="24" r="11" fill="#180800" />
-                    <rect x="74" y="22" width="12" height="4" fill="#f472b6" rx="2" />
-                  </g>
-                )}
-                {character.hairStyle === 'shaved' && (
-                  <circle cx="80" cy="38" r="2.5" fill="#f59e0b" />
-                )}
-
-                {/* Accessories */}
-                {character.accessory === 'beads' && (
-                  <g>
-                    <ellipse cx="80" cy="98" rx="22" ry="18" fill="none" stroke="#92400e" strokeWidth="3" strokeDasharray="3 3" />
-                    <circle cx="80" cy="116" r="4.5" fill="#fbbf24" />
-                  </g>
-                )}
-                {character.accessory === 'bag' && (
-                  <path d="M96,115 L120,135 L115,155 L90,135 Z" fill="#6366f1" opacity="0.9" />
-                )}
-                {character.accessory === 'hat' && (
-                  <path d="M40,36 L80,8 L120,36 Z" fill="#fde047" stroke="#b45309" strokeWidth="1.5" opacity="0.95" />
-                )}
-              </svg>
+              </div>
             </div>
 
             <div className="mt-4 text-center">

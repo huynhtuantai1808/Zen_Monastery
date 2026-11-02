@@ -86,8 +86,8 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
             title="Nhấn để tùy biến ngoại hình và pháp danh"
             className="relative group p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border-2 border-amber-400/60 hover:border-amber-300 transition-all cursor-pointer shadow-lg bg-stone-950/80 flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 overflow-hidden shrink-0"
           >
-            <div className="scale-60 sm:scale-75 translate-y-0.5 sm:translate-y-1">
-              <ZenCharacterSprite character={character} pose="idle" showNameTag={false} scale={0.5} />
+            <div className="scale-75 sm:scale-90 -translate-y-3 flex items-center justify-center">
+              <ZenCharacterSprite character={character} pose="idle" showNameTag={false} scale={0.38} />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 px-1 py-0.1 sm:px-1.5 sm:py-0.2 bg-amber-500 text-stone-950 font-bold text-[8px] sm:text-[9px] rounded-tl-md border-t border-l border-stone-900">
               Lv.{level}

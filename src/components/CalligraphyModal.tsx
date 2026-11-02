@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Feather, RefreshCw, CheckCircle2, Award, Sparkles, X, ScrollText } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 export interface SutraCalligraphyItem {
   id: string;
@@ -65,7 +66,8 @@ export const CalligraphyModal: React.FC<CalligraphyModalProps> = ({
   onAddMerit,
   spendStamina,
 }) => {
-  const { addUnlockedQuote } = useGameStore();
+  const { stats, addUnlockedQuote } = useGameStore();
+  const character = stats.character;
   const [selectedItem, setSelectedItem] = useState<SutraCalligraphyItem>(SUTRA_CALLIGRAPHY_LIST[0]);
   const [inkColor, setInkColor] = useState<string>('#1c1917'); // Mực tàu cổ
   const [brushSize, setBrushSize] = useState<number>(14);
@@ -327,6 +329,17 @@ export const CalligraphyModal: React.FC<CalligraphyModalProps> = ({
             </div>
 
             {/* Dụng Cụ Bút Mực */}
+            {/* Nhân vật Chibi cầm bút lông thư pháp */}
+            <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-stone-900/90 border border-amber-900/40">
+              <div className="w-14 h-16 flex items-center justify-center shrink-0">
+                <ZenCharacterSprite character={character} pose="calligraphy" scale={0.56} showNameTag={false} />
+              </div>
+              <div>
+                <div className="text-xs font-serif font-bold text-amber-200">{character.name}</div>
+                <div className="text-[10px] text-stone-400 font-serif">Tọa án thư Tàng Kinh Các</div>
+              </div>
+            </div>
+
             <div className="bg-stone-900/90 p-3.5 rounded-2xl border border-stone-800 space-y-3">
               <div className="text-xs font-serif font-bold text-stone-300">Nét Cọ Thư Pháp:</div>
               <div className="flex items-center gap-3">

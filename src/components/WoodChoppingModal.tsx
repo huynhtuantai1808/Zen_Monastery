@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2 } from 'lucide-react';
 import { soundEngine } from '../services/audioEngine';
+import { useGameStore } from '../store/gameStore';
+import { ZenCharacterSprite } from './ZenCharacterSprite';
 
 interface WoodChoppingModalProps {
   onComplete: (merit: number, staminaRestore: number) => void;
@@ -13,6 +15,7 @@ export const WoodChoppingModal: React.FC<WoodChoppingModalProps> = ({
   onClose,
   spendStamina,
 }) => {
+  const character = useGameStore((state) => state.stats.character);
   const [choppedCount, setChoppedCount] = useState<number>(0);
   const targetCount = 3;
   const [isSwinging, setIsSwinging] = useState<boolean>(false);
@@ -141,41 +144,41 @@ export const WoodChoppingModal: React.FC<WoodChoppingModalProps> = ({
         {/* Content Body */}
         {!isFinished ? (
           <div className="my-4 space-y-4">
-            {/* Visual Chopping Area */}
-            <div className="relative h-44 sm:h-52 rounded-2xl bg-gradient-to-b from-stone-950 to-stone-900 border border-stone-800 flex flex-col items-center justify-end pb-4 overflow-hidden">
+            {/* Visual Chopping Area with Cute Chibi Character */}
+            <div className="relative h-48 sm:h-56 rounded-2xl bg-gradient-to-b from-stone-950 to-stone-900 border border-stone-800 flex items-end justify-center gap-3 sm:gap-6 pb-2 overflow-hidden">
               {/* Smoke from kitchen in background */}
-              <div className="absolute top-3 right-6 text-stone-600 text-xs font-serif italic animate-pulse">
+              <div className="absolute top-3 right-6 text-stone-500 text-xs font-serif italic animate-pulse">
                 Khói bếp lam chiều...
               </div>
 
-              {/* Axe Animation */}
-              <div
-                className={`absolute transition-transform duration-200 origin-bottom-right text-4xl sm:text-5xl ${
-                  isSwinging ? 'top-16 translate-x-4 rotate-45 scale-110' : 'top-6 -translate-x-6 -rotate-12'
-                }`}
-                style={{ left: '50%' }}
-              >
-                🪓
+              {/* Chibi Character chẻ củi */}
+              <div className={`transition-all duration-200 transform origin-bottom ${isSwinging ? 'translate-x-2 -rotate-12 scale-105' : 'translate-x-0 rotate-0'}`}>
+                <ZenCharacterSprite
+                  character={character}
+                  pose="chopping"
+                  scale={0.72}
+                  showNameTag={false}
+                />
               </div>
 
               {/* Wood Log on Chopping Block */}
-              <div className="relative flex flex-col items-center">
+              <div className="relative flex flex-col items-center mb-1">
                 {/* Wood log */}
                 <div
                   className={`w-16 h-20 rounded-md bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950 border border-amber-700/60 shadow-lg flex items-center justify-center transition-all ${
-                    isSwinging ? 'scale-x-110' : ''
+                    isSwinging ? 'scale-x-110 -translate-y-1' : ''
                   }`}
                 >
                   <div className="w-2 h-16 border-r border-amber-950/60" />
                 </div>
                 {/* Chopping stump */}
-                <div className="w-32 h-10 rounded-lg bg-stone-800 border-2 border-stone-700 flex items-center justify-center text-[10px] text-stone-400 font-mono shadow-md">
+                <div className="w-28 h-9 rounded-lg bg-stone-800 border-2 border-stone-700 flex items-center justify-center text-[10px] text-stone-400 font-mono shadow-md">
                   Thớt Gỗ Nghiến
                 </div>
               </div>
 
               {/* Progress Count */}
-              <div className="absolute top-3 left-4 px-2.5 py-1 rounded-xl bg-stone-900/90 border border-amber-500/30 text-xs text-amber-300 font-serif flex items-center gap-1.5">
+              <div className="absolute top-3 left-4 px-2.5 py-1 rounded-xl bg-stone-900/90 border border-amber-500/30 text-xs text-amber-300 font-serif flex items-center gap-1.5 shadow">
                 <span>Củi đã chẻ:</span>
                 <span className="font-mono font-bold text-amber-100">{choppedCount}/{targetCount}</span>
               </div>
