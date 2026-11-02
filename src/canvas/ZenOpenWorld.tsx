@@ -64,10 +64,10 @@ const WORLD_WIDTH = 2600;
 const WORLD_HEIGHT = 800;
 
 const ROBE_COLORS: Record<RobeColorType, { male: string; female: string; maleShade: string; femaleShade: string; pants: string; pantsShade: string }> = {
-  lam: { male: '#8ea3b7', female: '#8ea3b7', maleShade: '#72879c', femaleShade: '#72879c', pants: '#7a8f9f', pantsShade: '#5a6e7e' },
-  nau: { male: '#a86a45', female: '#a86a45', maleShade: '#8c5232', femaleShade: '#8c5232', pants: '#8c5232', pantsShade: '#6a3c20' },
-  xam: { male: '#94a3b8', female: '#94a3b8', maleShade: '#64748b', femaleShade: '#64748b', pants: '#64748b', pantsShade: '#475569' },
-  bach: { male: '#f8fafc', female: '#f8fafc', maleShade: '#cbd5e1', femaleShade: '#cbd5e1', pants: '#cbd5e1', pantsShade: '#94a3b8' },
+  lam: { male: '#8ea3b7', female: '#8ea3b7', maleShade: '#72879c', femaleShade: '#72879c', pants: '#7a8f9f', pantsShade: '#627685' },
+  nau: { male: '#a86a45', female: '#a86a45', maleShade: '#8b4e2b', femaleShade: '#8b4e2b', pants: '#935632', pantsShade: '#703a19' },
+  xam: { male: '#94a3b8', female: '#94a3b8', maleShade: '#64748b', femaleShade: '#64748b', pants: '#788494', pantsShade: '#576271' },
+  bach: { male: '#f8fafc', female: '#f8fafc', maleShade: '#e2e8f0', femaleShade: '#e2e8f0', pants: '#e2e8f0', pantsShade: '#cbd5e1' },
 };
 
 export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
@@ -1467,8 +1467,8 @@ function drawWalkingCharacter(
     ctx.beginPath();
     ctx.moveTo(-8, -32);
     ctx.lineTo(8, -32);
-    ctx.lineTo(10, -9);
-    ctx.lineTo(-10, -9);
+    ctx.lineTo(10, -6);
+    ctx.lineTo(-10, -6);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = shirtShade;
@@ -1480,9 +1480,9 @@ function drawWalkingCharacter(
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(-8, -19);
-    ctx.lineTo(-10, -9);
+    ctx.lineTo(-10, -6);
     ctx.moveTo(8, -19);
-    ctx.lineTo(10, -9);
+    ctx.lineTo(10, -6);
     ctx.stroke();
 
     // HOA SEN VÀNG THÊU TRÊN NGỰC ÁO NỮ
@@ -1511,8 +1511,8 @@ function drawWalkingCharacter(
     ctx.beginPath();
     ctx.moveTo(-9, -32);
     ctx.lineTo(9, -32);
-    ctx.lineTo(9, -16);
-    ctx.lineTo(-9, -16);
+    ctx.lineTo(9.5, -12);
+    ctx.lineTo(-9.5, -12);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = shirtShade;
@@ -1523,10 +1523,10 @@ function drawWalkingCharacter(
     ctx.strokeStyle = shirtShade;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(-9, -19);
-    ctx.lineTo(-9, -16);
-    ctx.moveTo(9, -19);
-    ctx.lineTo(9, -16);
+    ctx.moveTo(-9, -17);
+    ctx.lineTo(-9.5, -12);
+    ctx.moveTo(9, -17);
+    ctx.lineTo(9.5, -12);
     ctx.stroke();
 
     // Cổ đứng mandarin ôm khít

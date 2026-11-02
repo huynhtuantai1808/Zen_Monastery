@@ -13,29 +13,44 @@ export interface ChibiCharacterRig {
 
 export type RealisticCharacterRig = ChibiCharacterRig;
 
-// Bảng màu áo sơ mi / trang phục đồng bộ hoàn toàn với CharacterCreationModal
-const SHIRT_PALETTES: Record<
+// Bảng màu Pháp phục Phật tử (Đồ Lam, Nâu Sồng, Xám Khói, Bạch Y) đồng bộ hoàn toàn với CharacterCreationModal và ZenCharacterSprite
+export const SHIRT_PALETTES: Record<
   RobeColorType,
   {
     maleShirt: number;
     femaleShirt: number;
+    pants: number;
+    button: number;
+    name: string;
   }
 > = {
   lam: {
-    maleShirt: 0xdbeafe, // Xanh dương nhạt như hình mẫu Male Chibi
-    femaleShirt: 0xfce7f3, // Hồng pastel như hình mẫu Female Chibi
+    maleShirt: 0x8ea3b7, // Xanh lam Phật tử truyền thống chuẩn mẫu thiết kế
+    femaleShirt: 0x8ea3b7,
+    pants: 0x7a8f9f,
+    button: 0x334155,
+    name: 'Đồ Lam Phật Tử',
   },
   nau: {
-    maleShirt: 0xfed7aa, // Nâu be ấm
-    femaleShirt: 0xfed7aa,
+    maleShirt: 0xa86a45, // Nâu sồng thiền môn mộc mạc
+    femaleShirt: 0xa86a45,
+    pants: 0x935632,
+    button: 0x451a03,
+    name: 'Nâu Sồng Thiền Môn',
   },
   xam: {
-    maleShirt: 0xe2e8f0, // Xám tối giản
-    femaleShirt: 0xe2e8f0,
+    maleShirt: 0x94a3b8, // Xám khói thanh đạm
+    femaleShirt: 0x94a3b8,
+    pants: 0x788494,
+    button: 0x1e293b,
+    name: 'Xám Khói Thiền Tịnh',
   },
   bach: {
-    maleShirt: 0xffffff, // Bạch y trắng tinh khôi
-    femaleShirt: 0xffffff,
+    maleShirt: 0xf8fafc, // Bạch y thuần khiết
+    femaleShirt: 0xf8fafc,
+    pants: 0xe2e8f0,
+    button: 0x475569,
+    name: 'Bạch Y Thuần Khiết',
   },
 };
 
@@ -119,31 +134,41 @@ function createChibiFaceTexture(isFemale: boolean, isShaved: boolean): THREE.Can
     ctx.ellipse(cx, 235, 30, 36, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Điểm sáng sao lấp lánh chính (Double glints)
+    // Đồng tử đen sâu thẳm
+    ctx.fillStyle = '#0f0a06';
+    ctx.beginPath();
+    ctx.arc(cx, 228, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Đốm sáng phản chiếu lớn (Chibi Sparkle Highlight)
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(cx - 10, 208, 14, 0, Math.PI * 2);
+    ctx.ellipse(cx - 10, 205, 12, 16, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Điểm sáng phụ dưới
+    // Đốm sáng phụ nhỏ góc đối diện
     ctx.beginPath();
-    ctx.arc(cx + 12, 246, 7.5, 0, Math.PI * 2);
+    ctx.arc(cx + 12, 245, 7, 0, Math.PI * 2);
     ctx.fill();
 
-    // Viền mi mắt trên cong tinh tế
-    ctx.strokeStyle = '#18181b';
-    ctx.lineWidth = isFemale ? 9 : 7;
+    ctx.beginPath();
+    ctx.arc(cx - 6, 252, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Đường viền mi mắt trên cong dày chuẩn anime
+    ctx.strokeStyle = '#1c1917';
+    ctx.lineWidth = isFemale ? 6.5 : 5.0;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.arc(cx, 218, 38, Math.PI * 1.15, Math.PI * 1.85);
     ctx.stroke();
 
-    // Đuôi mi mắt cong vút cho Nữ Chibi
+    // Đuôi mi cong kiêu sa cho nữ
     if (isFemale) {
-      const dir = cx < 256 ? -1 : 1;
       ctx.beginPath();
-      ctx.moveTo(cx + dir * 32, 204);
-      ctx.lineTo(cx + dir * 46, 196);
+      const wingDir = cx > 256 ? 1 : -1;
+      ctx.moveTo(cx + wingDir * 32, 200);
+      ctx.lineTo(cx + wingDir * 42, 192);
       ctx.stroke();
     }
   };
@@ -151,12 +176,11 @@ function createChibiFaceTexture(isFemale: boolean, isShaved: boolean): THREE.Can
   drawAnimeEye(170);
   drawAnimeEye(342);
 
-  // Lông mày
+  // Lông mày thanh tú
   ctx.strokeStyle = '#3f2e24';
-  ctx.lineWidth = isFemale ? 6 : 8;
+  ctx.lineWidth = isFemale ? 3.5 : 5.0;
   ctx.lineCap = 'round';
   if (isFemale) {
-    // Lông mày thanh tú dịu dàng
     ctx.beginPath();
     ctx.arc(170, 185, 42, Math.PI * 1.25, Math.PI * 1.7);
     ctx.stroke();
@@ -206,7 +230,8 @@ function createChibiFaceTexture(isFemale: boolean, isShaved: boolean): THREE.Can
 }
 
 /**
- * Xây dựng Mô hình Nhân vật 3D Anime Chibi hoàn toàn tương thích với Thiết Kế và CharacterCreationModal
+ * Xây dựng Mô hình Nhân vật 3D Anime Chibi chuẩn Mẫu Thiết Kế Đồ Lam Phật Tử
+ * Hoàn toàn đồng bộ với CharacterCreationModal, ZenCharacterSprite và ZenOpenWorld
  */
 export async function loadChibiCharacter(character: CharacterAppearance): Promise<ChibiCharacterRig> {
   const isFemale = character.gender === 'female';
@@ -214,12 +239,11 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
 
   const palette = SHIRT_PALETTES[character.robeColor] || SHIRT_PALETTES.lam;
   const shirtColor = isFemale ? palette.femaleShirt : palette.maleShirt;
-  const pantsColor = isFemale ? 0x475569 : 0x334155; // Quần âu xám than vs Slate denim
+  const pantsColor = palette.pants;
+  const buttonColor = palette.button;
   const hairColor = 0x3f2e24; // Nâu trầm tự nhiên
   const hairHighlight = 0x5c4033;
   const skinColor = 0xffedd5;
-  const beltColor = 0x451a03;
-  const buckleColor = 0x94a3b8;
 
   // Root Model Group
   const model = new THREE.Group();
@@ -231,70 +255,131 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   hip.position.set(0, 0.58, 0);
   model.add(hip);
 
+  // Materials
+  const matShirt = makeToonMat(shirtColor);
+  const matPants = makeToonMat(pantsColor);
+  const matSkin = makeToonMat(skinColor);
+  const matButton = makeToonMat(buttonColor);
+  const matHair = makeToonMat(hairColor);
+  const matHairHi = makeToonMat(hairHighlight);
+  const matGold = makeToonMat(0xf59e0b); // Hoa sen & hạt mẹ vàng
+  const matWood = makeToonMat(0x78350f); // Chuỗi bồ đề gỗ
+  const matTassel = makeToonMat(0xd97706); // Tua rua vàng cam
+
+  // Đáy quần Phật tử (Pelvis / Crotch) - Kết nối tự nhiên hai ống quần
+  const pelvisGeo = new THREE.CylinderGeometry(0.20, 0.17, 0.16, 14);
+  const pelvisMesh = new THREE.Mesh(pelvisGeo, matPants);
+  pelvisMesh.position.set(0, -0.05, 0);
+  hip.add(pelvisMesh);
+
   // ==========================================
-  // 1. TORSO & SƠ MI CASUAL
+  // 1. TORSO & ĐỒ LAM PHẬT TỬ
   // ==========================================
   const torso = new THREE.Group();
   torso.name = 'Torso';
   hip.add(torso);
 
-  const matShirt = makeToonMat(shirtColor);
-  const matPants = makeToonMat(pantsColor);
-  const matSkin = makeToonMat(skinColor);
-  const matBelt = makeToonMat(beltColor);
-  const matBuckle = makeToonMat(buckleColor);
-  const matHair = makeToonMat(hairColor);
-  const matHairHi = makeToonMat(hairHighlight);
-  const matCollar = makeToonMat(0xffffff);
+  if (isFemale) {
+    // -----------------------------------------------------------------
+    // NỮ: ÁO TRÀNG LAM DÁNG DÀI THƯỚT THA XẺ TÀ HÔNG + HOA SEN THÊU NGỰC
+    // -----------------------------------------------------------------
+    // Thân áo trên (Bodice)
+    const bodiceGeo = new THREE.CylinderGeometry(0.22, 0.23, 0.28, 16);
+    const bodiceMesh = new THREE.Mesh(bodiceGeo, matShirt);
+    bodiceMesh.position.set(0, 0.24, 0);
+    bodiceMesh.castShadow = true;
+    bodiceMesh.receiveShadow = true;
+    torso.add(bodiceMesh);
 
-  // Thân áo sơ mi (hình trụ vuốt nhẹ theo dáng Chibi)
-  const shirtGeo = new THREE.CylinderGeometry(0.23, 0.21, 0.38, 16);
-  const shirtMesh = new THREE.Mesh(shirtGeo, matShirt);
-  shirtMesh.position.set(0, 0.19, 0);
-  shirtMesh.castShadow = true;
-  shirtMesh.receiveShadow = true;
-  torso.add(shirtMesh);
+    // Cổ tàu ôm sát trang nhã (Mandarin collar)
+    const collarGeo = new THREE.CylinderGeometry(0.088, 0.09, 0.05, 16);
+    const collarMesh = new THREE.Mesh(collarGeo, matShirt);
+    collarMesh.position.set(0, 0.39, 0);
+    torso.add(collarMesh);
 
-  // Phần hở cổ chữ V lộ da
-  const chestSkinGeo = new THREE.BufferGeometry();
-  const chestVerts = new Float32Array([
-    -0.08, 0.38, 0.215,
-     0.08, 0.38, 0.215,
-     0.00, 0.26, 0.225,
-  ]);
-  chestSkinGeo.setAttribute('position', new THREE.BufferAttribute(chestVerts, 3));
-  chestSkinGeo.computeVertexNormals();
-  const chestSkinMesh = new THREE.Mesh(chestSkinGeo, matSkin);
-  torso.add(chestSkinMesh);
+    // Khuy cài vải chéo vai phải (Frog buttons)
+    const btn1 = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), matButton);
+    btn1.position.set(0.04, 0.35, 0.22);
+    torso.add(btn1);
+    const btn2 = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), matButton);
+    btn2.position.set(0.075, 0.31, 0.21);
+    torso.add(btn2);
 
-  // Cổ bẻ sơ mi trắng (White V-Collar Lapels)
-  const collarLGeo = new THREE.BoxGeometry(0.045, 0.12, 0.02);
-  const collarL = new THREE.Mesh(collarLGeo, matCollar);
-  collarL.position.set(-0.065, 0.32, 0.22);
-  collarL.rotation.set(0, 0, -0.35);
-  torso.add(collarL);
+    const seamGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.11, 6);
+    const seamMesh = new THREE.Mesh(seamGeo, matButton);
+    seamMesh.position.set(0.055, 0.33, 0.215);
+    seamMesh.rotation.set(0, 0, -Math.PI / 4);
+    torso.add(seamMesh);
 
-  const collarR = new THREE.Mesh(collarLGeo, matCollar);
-  collarR.position.set(0.065, 0.32, 0.22);
-  collarR.rotation.set(0, 0, 0.35);
-  torso.add(collarR);
+    // ĐÓA HOA SEN VÀNG THÊU TRÊN NGỰC ÁO LAM NỮ (Lotus Embroidery)
+    const lotusGroup = new THREE.Group();
+    lotusGroup.position.set(-0.065, 0.26, 0.225);
+    const centerPetal = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.04, 8), matGold);
+    centerPetal.rotation.x = 0.2;
+    lotusGroup.add(centerPetal);
+    const petalL = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.034, 8), matGold);
+    petalL.position.set(-0.018, -0.004, 0);
+    petalL.rotation.z = 0.45;
+    lotusGroup.add(petalL);
+    const petalR = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.034, 8), matGold);
+    petalR.position.set(0.018, -0.004, 0);
+    petalR.rotation.z = -0.45;
+    lotusGroup.add(petalR);
+    torso.add(lotusGroup);
 
-  // Thắt lưng da nâu (Leather Belt)
-  const beltGeo = new THREE.CylinderGeometry(0.215, 0.215, 0.05, 16);
-  const beltMesh = new THREE.Mesh(beltGeo, matBelt);
-  beltMesh.position.set(0, 0.025, 0);
-  torso.add(beltMesh);
+    // TÀ ÁO DÀI THƯỚT THA XẺ TÀ HÔNG (Buông qua đầu gối xuống 3/4 chân)
+    // Tà trước (Front Flap)
+    const frontFlapGeo = new THREE.BoxGeometry(0.34, 0.46, 0.03);
+    const frontFlap = new THREE.Mesh(frontFlapGeo, matShirt);
+    frontFlap.position.set(0, -0.09, 0.13);
+    frontFlap.rotation.x = -0.06;
+    frontFlap.castShadow = true;
+    torso.add(frontFlap);
 
-  // Khóa thắt lưng kim loại vuông
-  const buckleGeo = new THREE.BoxGeometry(0.06, 0.055, 0.02);
-  const buckleMesh = new THREE.Mesh(buckleGeo, matBuckle);
-  buckleMesh.position.set(0, 0.025, 0.218);
-  torso.add(buckleMesh);
+    // Tà sau (Back Flap)
+    const backFlapGeo = new THREE.BoxGeometry(0.34, 0.46, 0.03);
+    const backFlap = new THREE.Mesh(backFlapGeo, matShirt);
+    backFlap.position.set(0, -0.09, -0.13);
+    backFlap.rotation.x = 0.06;
+    backFlap.castShadow = true;
+    torso.add(backFlap);
+  } else {
+    // -----------------------------------------------------------------
+    // NAM: ÁO LAM PHẬT TỬ CỔ TÀU BUÔNG NGOÀI QUẦN XẺ TÀ ĐÙI
+    // -----------------------------------------------------------------
+    // Thân áo buông qua hông tới giữa đùi (không có thắt lưng da!)
+    const tunicGeo = new THREE.CylinderGeometry(0.24, 0.255, 0.46, 16);
+    const tunicMesh = new THREE.Mesh(tunicGeo, matShirt);
+    tunicMesh.position.set(0, 0.15, 0);
+    tunicMesh.castShadow = true;
+    tunicMesh.receiveShadow = true;
+    torso.add(tunicMesh);
 
-  // Cổ (Neck)
-  const neckGeo = new THREE.CylinderGeometry(0.075, 0.085, 0.10, 12);
+    // Cổ tàu đứng (Mandarin collar)
+    const collarGeo = new THREE.CylinderGeometry(0.092, 0.095, 0.055, 16);
+    const collarMesh = new THREE.Mesh(collarGeo, matShirt);
+    collarMesh.position.set(0, 0.39, 0);
+    torso.add(collarMesh);
+
+    // 2 khuy cài vải chéo vai phải
+    const btn1 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), matButton);
+    btn1.position.set(0.045, 0.34, 0.23);
+    torso.add(btn1);
+    const btn2 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), matButton);
+    btn2.position.set(0.08, 0.29, 0.22);
+    torso.add(btn2);
+
+    const seamGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6);
+    const seamMesh = new THREE.Mesh(seamGeo, matButton);
+    seamMesh.position.set(0.06, 0.315, 0.225);
+    seamMesh.rotation.set(0, 0, -Math.PI / 4);
+    torso.add(seamMesh);
+  }
+
+  // Cổ da (Neck)
+  const neckGeo = new THREE.CylinderGeometry(0.075, 0.085, 0.08, 12);
   const neckMesh = new THREE.Mesh(neckGeo, matSkin);
-  neckMesh.position.set(0, 0.40, 0);
+  neckMesh.position.set(0, 0.42, 0);
   torso.add(neckMesh);
 
   // ==========================================
@@ -344,27 +429,23 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
     if (isFemale) {
       if (character.hairStyle === 'short') {
         // NỮ CHIBI: TÓC BOB NGẮN THANH TÚ
-        // Lọn tóc bob cụp hai bên ôm sát cằm
         const bobLGeo = new THREE.CylinderGeometry(0.065, 0.045, 0.22, 10);
         const bobL = new THREE.Mesh(bobLGeo, matHair);
         bobL.position.set(-0.24, -0.04, 0.08);
         bobL.rotation.set(0.2, 0.1, 0.18);
         hairGroup.add(bobL);
 
-        const bobRGeo = new THREE.CylinderGeometry(0.065, 0.045, 0.22, 10);
-        const bobR = new THREE.Mesh(bobRGeo, matHair);
+        const bobR = new THREE.Mesh(bobLGeo, matHair);
         bobR.position.set(0.24, -0.04, 0.08);
         bobR.rotation.set(0.2, -0.1, -0.18);
         hairGroup.add(bobR);
 
-        // Mái bay phía trước trán
         const frontBangGeo = new THREE.SphereGeometry(0.09, 10, 8);
         const frontBang = new THREE.Mesh(frontBangGeo, matHair);
         frontBang.position.set(-0.04, 0.19, 0.22);
         frontBang.scale.set(1.5, 0.5, 0.7);
         hairGroup.add(frontBang);
 
-        // Tóc mai nhỏ ôm gò má
         const sideBangsL = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.18, 8), matHair);
         sideBangsL.position.set(-0.23, -0.03, 0.15);
         sideBangsL.rotation.set(0.25, 0.15, 0.15);
@@ -376,7 +457,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         hairGroup.add(sideBangsR);
       } else {
         // NỮ CHIBI: TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Mặc định / Bun)
-        // Nơ cột tóc hồng xinh xắn
         const tieGeo = new THREE.TorusGeometry(0.045, 0.02, 8, 16);
         const matTie = makeToonMat(0xf43f5e);
         const tieMesh = new THREE.Mesh(tieGeo, matTie);
@@ -384,7 +464,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         tieMesh.rotation.set(0.6, 0.4, 0);
         hairGroup.add(tieMesh);
 
-        // Đuôi ngựa bồng bềnh uốn cong sang vai
         const ponyPoints = [
           new THREE.Vector3(0.12, 0.24, -0.16),
           new THREE.Vector3(0.26, 0.16, -0.18),
@@ -397,7 +476,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         const ponyMesh = new THREE.Mesh(ponyGeo, matHair);
         hairGroup.add(ponyMesh);
 
-        // Tóc mai uốn cong hai bên gò má
         const sideBangsLGeo = new THREE.ConeGeometry(0.038, 0.22, 8);
         const sideBangsL = new THREE.Mesh(sideBangsLGeo, matHair);
         sideBangsL.position.set(-0.25, -0.05, 0.14);
@@ -410,7 +488,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         sideBangsR.rotation.set(0.3, -0.2, -0.15);
         hairGroup.add(sideBangsR);
 
-        // Mái bay phía trước trán
         const frontBangGeo = new THREE.SphereGeometry(0.09, 10, 8);
         const frontBang = new THREE.Mesh(frontBangGeo, matHair);
         frontBang.position.set(-0.06, 0.19, 0.22);
@@ -418,23 +495,19 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         hairGroup.add(frontBang);
       }
     } else {
-      // NAM CƯ SĨ
       if (character.hairStyle === 'bun') {
-        // NAM: BÚI TÓC THIỀN MÔN / TRUYỀN THỐNG (Topknot)
-        // Búi tóc trên đỉnh đầu
+        // NAM: BÚI TÓC THIỀN MÔN (Topknot)
         const bunGeo = new THREE.SphereGeometry(0.08, 12, 10);
         const bunMesh = new THREE.Mesh(bunGeo, matHair);
         bunMesh.position.set(0, 0.32, 0.02);
         hairGroup.add(bunMesh);
 
-        // Vòng dây thắt búi tóc
         const tieGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12);
         const matTie = makeToonMat(0x1e293b);
         const tieMesh = new THREE.Mesh(tieGeo, matTie);
         tieMesh.position.set(0, 0.27, 0.02);
         hairGroup.add(tieMesh);
 
-        // Trâm cài tóc gỗ/vàng xuyên ngang
         const pinGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.26, 6);
         const matPin = makeToonMat(0xd97706);
         const pinMesh = new THREE.Mesh(pinGeo, matPin);
@@ -442,14 +515,12 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         pinMesh.rotation.z = Math.PI / 2;
         hairGroup.add(pinMesh);
 
-        // Mái trước gọn gàng
         const frontBangGeo = new THREE.SphereGeometry(0.08, 10, 8);
         const frontBang = new THREE.Mesh(frontBangGeo, matHair);
         frontBang.position.set(0, 0.19, 0.22);
         frontBang.scale.set(1.4, 0.5, 0.6);
         hairGroup.add(frontBang);
 
-        // Tóc mai hai bên
         const sideL = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.16, 6), matHair);
         sideL.position.set(-0.23, 0.04, 0.1);
         sideL.rotation.set(0.1, 0.1, 0.3);
@@ -460,28 +531,24 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         sideR.rotation.set(0.1, -0.1, -0.3);
         hairGroup.add(sideR);
       } else {
-        // NAM: TÓC NGẮN SPIKY TỈA GAI XẾP LỚP (Mặc định / Short)
+        // NAM: TÓC NGẮN SPIKY TỈA GAI (Mặc định / Short)
         const spikeGeo = new THREE.ConeGeometry(0.065, 0.18, 6);
 
-        // Đỉnh gai tóc trung tâm
         const spike1 = new THREE.Mesh(spikeGeo, matHair);
         spike1.position.set(0, 0.32, 0.04);
         spike1.rotation.set(0.2, 0, 0.1);
         hairGroup.add(spike1);
 
-        // Gai lệch trái
         const spike2 = new THREE.Mesh(spikeGeo, matHair);
         spike2.position.set(-0.11, 0.28, 0.08);
         spike2.rotation.set(0.15, 0.3, 0.4);
         hairGroup.add(spike2);
 
-        // Gai lệch phải
         const spike3 = new THREE.Mesh(spikeGeo, matHair);
         spike3.position.set(0.11, 0.28, 0.08);
         spike3.rotation.set(0.15, -0.3, -0.4);
         hairGroup.add(spike3);
 
-        // Gai tóc mai hai bên
         const spike4 = new THREE.Mesh(spikeGeo, matHair);
         spike4.position.set(-0.22, 0.12, 0.06);
         spike4.rotation.set(0.1, 0.2, 0.7);
@@ -492,13 +559,11 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         spike5.rotation.set(0.1, -0.2, -0.7);
         hairGroup.add(spike5);
 
-        // Highlight mảng sáng trên tóc
         const hiMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.06), matHairHi);
         hiMesh.position.set(0.04, 0.27, 0.18);
         hiMesh.rotation.set(0.4, -0.2, 0.1);
         hairGroup.add(hiMesh);
 
-        // Mái trước tỉa nhọn phóng khoáng
         const bang1 = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 5), matHair);
         bang1.position.set(-0.08, 0.18, 0.24);
         bang1.rotation.set(-0.35, 0, -0.2);
@@ -516,18 +581,17 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   if (character.accessory === 'beads') {
     // Chuỗi hạt bồ đề đeo cổ
     const beadsGroup = new THREE.Group();
-    const beadMat = makeToonMat(0x78350f);
     const beadRadius = 0.14;
     const beadCount = 18;
     for (let b = 0; b < beadCount; b++) {
       const angle = (b / beadCount) * Math.PI * 2;
-      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), beadMat);
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), matWood);
       bead.position.set(Math.cos(angle) * beadRadius, 0.24 + Math.sin(angle) * 0.05, Math.sin(angle) * beadRadius * 0.8 + 0.08);
       beadsGroup.add(bead);
     }
     torso.add(beadsGroup);
   } else if (character.accessory === 'hat') {
-    // Nón lá mộc mạc đeo sau lưng hoặc đội đầu
+    // Nón lá mộc mạc
     const hatGeo = new THREE.ConeGeometry(0.38, 0.16, 16, 1, true);
     const matHat = makeToonMat(0xfde047);
     const hatMesh = new THREE.Mesh(hatGeo, matHat);
@@ -535,42 +599,46 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
     hatMesh.rotation.set(Math.PI * 0.55, 0, 0);
     torso.add(hatMesh);
   } else if (character.accessory === 'bag') {
-    // Túi vải chàm đeo chéo
-    const matBag = makeToonMat(0x1e3a8a);
+    // Túi vải Phật tử: Nữ túi nâu sen, Nam túi lam chữ An
+    const bagColor = isFemale ? 0x854d0e : 0x64748b;
+    const matBag = makeToonMat(bagColor);
     const bagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.06), matBag);
     bagMesh.position.set(0.20, 0.08, 0.10);
     bagMesh.rotation.set(0, 0.2, -0.2);
     torso.add(bagMesh);
 
-    // Dây đeo chéo qua vai
     const strapGeo = new THREE.TorusGeometry(0.28, 0.015, 6, 16);
     const strapMesh = new THREE.Mesh(strapGeo, matBag);
     strapMesh.position.set(0, 0.20, 0);
     strapMesh.rotation.set(0.4, 0.8, 0.6);
     torso.add(strapMesh);
+
+    if (isFemale) {
+      const bagLotus = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 6), matGold);
+      bagLotus.position.set(0.20, 0.08, 0.14);
+      torso.add(bagLotus);
+    }
   }
 
   // ==========================================
-  // 3. TAY (ARMS) VỚI TAY ÁO XẮN 3/4
+  // 3. TAY (ARMS) VÀ PHÁP KHÍ NIỆM PHẬT
   // ==========================================
   const leftArm = new THREE.Group();
   leftArm.name = 'LeftArm';
   leftArm.position.set(-0.25, 0.32, 0);
   torso.add(leftArm);
 
-  // Tay áo sơ mi xắn 3/4 (Sleeve)
-  const sleeveGeo = new THREE.CylinderGeometry(0.065, 0.07, 0.16, 10);
+  // Tay áo lam xắn 3/4
+  const sleeveGeo = new THREE.CylinderGeometry(0.068, 0.074, 0.17, 10);
   const leftSleeve = new THREE.Mesh(sleeveGeo, matShirt);
   leftSleeve.position.set(0, -0.07, 0);
   leftArm.add(leftSleeve);
 
-  // Cổ tay áo cuộn gập (Cuff)
-  const cuffGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.035, 10);
+  const cuffGeo = new THREE.CylinderGeometry(0.076, 0.076, 0.035, 10);
   const leftCuff = new THREE.Mesh(cuffGeo, matShirt);
   leftCuff.position.set(0, -0.15, 0);
   leftArm.add(leftCuff);
 
-  // Cẳng tay & Bàn tay da (Forearm & Hand)
   const leftForearm = new THREE.Group();
   leftForearm.name = 'LeftForearm';
   leftForearm.position.set(0, -0.16, 0);
@@ -585,6 +653,35 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   const leftHand = new THREE.Mesh(handGeo, matSkin);
   leftHand.position.set(0, -0.14, 0);
   leftForearm.add(leftHand);
+
+  // PHÁP BẢO CẦM TAY HOẶC ĐEO CỔ TAY
+  if (isFemale) {
+    // NỮ: Nâng chuỗi 18 hạt bồ đề niệm Phật có hạt mẹ và tua rua vàng cam
+    const rosaryGroup = new THREE.Group();
+    const rosaryRadius = 0.055;
+    for (let b = 0; b < 18; b++) {
+      const a = (b / 18) * Math.PI * 2;
+      const beadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), matWood);
+      beadMesh.position.set(Math.cos(a) * rosaryRadius, Math.sin(a) * rosaryRadius * 1.3, 0);
+      rosaryGroup.add(beadMesh);
+    }
+    const tassel = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.014, 0.08, 6), matTassel);
+    tassel.position.set(0, -rosaryRadius * 1.3 - 0.04, 0);
+    rosaryGroup.add(tassel);
+    rosaryGroup.position.set(0, -0.04, 0.05);
+    leftHand.add(rosaryGroup);
+  } else {
+    // NAM: Vòng chuỗi hạt ôm cổ tay trái
+    const wristBeadsL = new THREE.Group();
+    for (let b = 0; b < 8; b++) {
+      const a = (b / 8) * Math.PI * 2;
+      const bm = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), matWood);
+      bm.position.set(Math.cos(a) * 0.055, 0, Math.sin(a) * 0.055);
+      wristBeadsL.add(bm);
+    }
+    wristBeadsL.position.set(0, -0.09, 0);
+    leftForearm.add(wristBeadsL);
+  }
 
   // Cánh tay phải (Right Arm)
   const rightArm = new THREE.Group();
@@ -613,10 +710,23 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightHand.position.set(0, -0.14, 0);
   rightForearm.add(rightHand);
 
+  if (!isFemale) {
+    // NAM: Vòng chuỗi hạt ôm cổ tay phải
+    const wristBeadsR = new THREE.Group();
+    for (let b = 0; b < 8; b++) {
+      const a = (b / 8) * Math.PI * 2;
+      const bm = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), matWood);
+      bm.position.set(Math.cos(a) * 0.055, 0, Math.sin(a) * 0.055);
+      wristBeadsR.add(bm);
+    }
+    wristBeadsR.position.set(0, -0.09, 0);
+    rightForearm.add(wristBeadsR);
+  }
+
   // ==========================================
-  // 4. CHÂN & GIÀY (LEGS & SHOES)
+  // 4. QUẦN LAM ỐNG SUÔNG & GIÀY PHẬT TỬ
   // ==========================================
-  const legRadius = 0.072;
+  const legRadius = 0.088; // Quần lam suông rộng rãi thoải mái
   const thighLen = 0.24;
   const shinLen = 0.24;
 
@@ -626,7 +736,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   leftLeg.position.set(-0.11, 0, 0);
   hip.add(leftLeg);
 
-  const leftThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius * 0.95, thighLen, 12), matPants);
+  const leftThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius * 0.96, thighLen, 12), matPants);
   leftThighMesh.position.set(0, -thighLen / 2, 0);
   leftThighMesh.castShadow = true;
   leftLeg.add(leftThighMesh);
@@ -636,7 +746,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   leftShin.position.set(0, -thighLen, 0);
   leftLeg.add(leftShin);
 
-  const leftShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius * 0.95, legRadius * 0.85, shinLen, 12), matPants);
+  const leftShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius * 0.96, legRadius * 0.88, shinLen, 12), matPants);
   leftShinMesh.position.set(0, -shinLen / 2, 0);
   leftShinMesh.castShadow = true;
   leftShin.add(leftShinMesh);
@@ -648,22 +758,22 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   leftShin.add(leftFoot);
 
   if (isFemale) {
-    // Giày lười trắng/xám (White slip-on loafers)
-    const matShoe = makeToonMat(0xf8fafc);
-    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.07, 0.18), matShoe);
+    // NỮ: Hài vải đen Phật tử đế bệt thanh nhã
+    const matShoe = makeToonMat(0x1e293b);
+    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.065, 0.18), matShoe);
     shoeMesh.position.set(0, -0.035, 0.02);
     leftFoot.add(shoeMesh);
   } else {
-    // Giày sneaker đen mũi bọc cao su trắng (Black Converse-style)
-    const matShoe = makeToonMat(0x18181b);
-    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.19), matShoe);
+    // NAM: Giày kung-fu vải đen Phật tử viền đế trắng
+    const matShoe = makeToonMat(0x0f172a);
+    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.065, 0.19), matShoe);
     shoeMesh.position.set(0, -0.035, 0.02);
     leftFoot.add(shoeMesh);
 
-    // Mũi giày cao su trắng
-    const toeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.05, 0.06), matCollar);
-    toeMesh.position.set(0, -0.045, 0.085);
-    leftFoot.add(toeMesh);
+    const matSole = makeToonMat(0xffffff);
+    const soleMesh = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.015, 0.192), matSole);
+    soleMesh.position.set(0, -0.06, 0.02);
+    leftFoot.add(soleMesh);
   }
 
   // Chân Phải (Right Leg)
@@ -672,7 +782,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightLeg.position.set(0.11, 0, 0);
   hip.add(rightLeg);
 
-  const rightThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius * 0.95, thighLen, 12), matPants);
+  const rightThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius * 0.96, thighLen, 12), matPants);
   rightThighMesh.position.set(0, -thighLen / 2, 0);
   rightThighMesh.castShadow = true;
   rightLeg.add(rightThighMesh);
@@ -682,7 +792,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightShin.position.set(0, -thighLen, 0);
   rightLeg.add(rightShin);
 
-  const rightShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius * 0.95, legRadius * 0.85, shinLen, 12), matPants);
+  const rightShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(legRadius * 0.96, legRadius * 0.88, shinLen, 12), matPants);
   rightShinMesh.position.set(0, -shinLen / 2, 0);
   rightShinMesh.castShadow = true;
   rightShin.add(rightShinMesh);
@@ -694,19 +804,20 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightShin.add(rightFoot);
 
   if (isFemale) {
-    const matShoe = makeToonMat(0xf8fafc);
-    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.07, 0.18), matShoe);
+    const matShoe = makeToonMat(0x1e293b);
+    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.065, 0.18), matShoe);
     shoeMesh.position.set(0, -0.035, 0.02);
     rightFoot.add(shoeMesh);
   } else {
-    const matShoe = makeToonMat(0x18181b);
-    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.19), matShoe);
+    const matShoe = makeToonMat(0x0f172a);
+    const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.065, 0.19), matShoe);
     shoeMesh.position.set(0, -0.035, 0.02);
     rightFoot.add(shoeMesh);
 
-    const toeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.05, 0.06), matCollar);
-    toeMesh.position.set(0, -0.045, 0.085);
-    rightFoot.add(toeMesh);
+    const matSole = makeToonMat(0xffffff);
+    const soleMesh = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.015, 0.192), matSole);
+    soleMesh.position.set(0, -0.06, 0.02);
+    rightFoot.add(soleMesh);
   }
 
   // ==========================================
@@ -814,7 +925,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   ];
   const walkClip = new THREE.AnimationClip('walk', walkDur, walkTracks);
 
-  // B. IDLE CLIP (Tư thế đứng chuẩn concept art: Nam chống hông / Nữ vẫy tay chào)
+  // B. IDLE CLIP (Tư thế đứng chuẩn Concept Art Đồ Lam Phật Tử)
   const idleDur = 2.4;
   const idleTracks: THREE.KeyframeTrack[] = [
     // Nhịp thở nhè nhẹ của lồng ngực
@@ -835,28 +946,24 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   ];
 
   if (isFemale) {
-    // NỮ: Tay trái giơ lên vẫy chào vui vẻ (Wave), tay phải buông nhẹ
+    // NỮ: Nâng chuỗi hạt bồ đề niệm Phật trước ngực trang nghiêm thanh tịnh
     idleTracks.push(
       new THREE.QuaternionKeyframeTrack(
         'LeftArm.quaternion',
-        [0, 0.6, 1.2, 1.8, 2.4],
+        [0, 1.2, 2.4],
         [
-          0.15, 0.2, 0.55, 0.8,
-          0.18, 0.25, 0.62, 0.74,
-          0.15, 0.2, 0.55, 0.8,
-          0.18, 0.25, 0.62, 0.74,
-          0.15, 0.2, 0.55, 0.8,
+          0.38, 0.22, 0.28, 0.85,
+          0.39, 0.23, 0.29, 0.84,
+          0.38, 0.22, 0.28, 0.85,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'LeftForearm.quaternion',
-        [0, 0.6, 1.2, 1.8, 2.4],
+        [0, 1.2, 2.4],
         [
-          0, 0, 0.35, 0.93,
-          0, 0, 0.15, 0.98,
-          0, 0, 0.35, 0.93,
-          0, 0, 0.15, 0.98,
-          0, 0, 0.35, 0.93,
+          0.20, -0.15, 0.52, 0.81,
+          0.22, -0.16, 0.53, 0.80,
+          0.20, -0.15, 0.52, 0.81,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
@@ -870,8 +977,28 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
       )
     );
   } else {
-    // NAM: Tay trái chống hông tự tin (Hand on hip), tay phải buông xuôi
+    // NAM: Tay phải chắp nửa ấn chào cung kính chánh niệm, tay trái chống hông tự tin
     idleTracks.push(
+      // Tay phải chắp chào trước ngực
+      new THREE.QuaternionKeyframeTrack(
+        'RightArm.quaternion',
+        [0, 1.2, 2.4],
+        [
+          0.36, -0.25, -0.28, 0.85,
+          0.38, -0.26, -0.29, 0.84,
+          0.36, -0.25, -0.28, 0.85,
+        ]
+      ),
+      new THREE.QuaternionKeyframeTrack(
+        'RightForearm.quaternion',
+        [0, 1.2, 2.4],
+        [
+          0.18, 0.15, -0.54, 0.81,
+          0.20, 0.16, -0.55, 0.80,
+          0.18, 0.15, -0.54, 0.81,
+        ]
+      ),
+      // Tay trái chống hông
       new THREE.QuaternionKeyframeTrack(
         'LeftArm.quaternion',
         [0, 2.4],
@@ -886,15 +1013,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         [
           0.1, 0, 0.52, 0.84,
           0.1, 0, 0.52, 0.84,
-        ]
-      ),
-      new THREE.QuaternionKeyframeTrack(
-        'RightArm.quaternion',
-        [0, 1.2, 2.4],
-        [
-          0, 0, -0.06, 0.998,
-          0, 0, -0.02, 0.999,
-          0, 0, -0.06, 0.998,
         ]
       )
     );
@@ -946,7 +1064,6 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   idleAction.timeScale = 1.0;
   sitAction.timeScale = 1.0;
 
-  // Căn chỉnh vị trí đế giày chạm đất chính xác ở y = 0 bên trong monkGroup
   model.position.set(0, 0, 0);
   model.scale.set(1.0, 1.0, 1.0);
 

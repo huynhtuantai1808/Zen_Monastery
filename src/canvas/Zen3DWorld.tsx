@@ -2183,6 +2183,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           // Monk sitting at the edge of the wooden deck
           monkGroupRef.current.rotation.set(0, -Math.PI / 2, 0);
           currentP.y = 0.89;
+        } else {
+          monkGroupRef.current.rotation.x = 0;
+          monkGroupRef.current.rotation.z = 0;
         }
 
         monkGroupRef.current.position.set(currentP.x, currentP.y, currentP.z);
