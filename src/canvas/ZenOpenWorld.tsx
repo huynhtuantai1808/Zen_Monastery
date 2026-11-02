@@ -63,11 +63,11 @@ interface WorldHotspot {
 const WORLD_WIDTH = 2600;
 const WORLD_HEIGHT = 800;
 
-const ROBE_COLORS: Record<RobeColorType, { main: string; shade: string; sash: string }> = {
-  lam: { main: '#2563eb', shade: '#1d4ed8', sash: '#f59e0b' },
-  nau: { main: '#78350f', shade: '#5b2609', sash: '#d97706' },
-  xam: { main: '#57534e', shade: '#44403c', sash: '#a8a29e' },
-  bach: { main: '#f8fafc', shade: '#cbd5e1', sash: '#f59e0b' },
+const ROBE_COLORS: Record<RobeColorType, { male: string; female: string; maleShade: string; femaleShade: string }> = {
+  lam: { male: '#dbeafe', female: '#fce7f3', maleShade: '#bfdbfe', femaleShade: '#fbcfe8' },
+  nau: { male: '#fed7aa', female: '#fed7aa', maleShade: '#fdba74', femaleShade: '#fdba74' },
+  xam: { male: '#e2e8f0', female: '#e2e8f0', maleShade: '#cbd5e1', femaleShade: '#cbd5e1' },
+  bach: { male: '#ffffff', female: '#ffffff', maleShade: '#f1f5f9', femaleShade: '#f1f5f9' },
 };
 
 export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
@@ -1392,7 +1392,7 @@ function drawSanctuaryZone(ctx: CanvasRenderingContext2D, _step: number) {
   ctx.restore();
 }
 
-// Draw Player Character with Walking Legs & Robe Animation
+// Draw Player Character with Cute Chibi Proportions & Walking Animation (Matching Concept Art)
 function drawWalkingCharacter(
   ctx: CanvasRenderingContext2D,
   px: number,
@@ -1407,98 +1407,247 @@ function drawWalkingCharacter(
   ctx.translate(px, py);
   if (facingLeft) ctx.scale(-1, 1);
 
-  const robe = ROBE_COLORS[character.robeColor] || ROBE_COLORS.lam;
-  const walkCycle = isWalking ? Math.sin(step * 0.25) : 0;
-  const legOffset = isWalking ? Math.sin(step * 0.25) * 8 : 0;
+  const isFemale = character.gender === 'female';
+  const legOffset = isWalking ? Math.sin(step * 0.28) * 6 : 0;
+  const bounceY = isWalking ? -Math.abs(Math.sin(step * 0.28)) * 3 : 0;
 
-  // Shadow on ground
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  // Outfit palettes from Concept Art
+  const palette = ROBE_COLORS[character.robeColor] || ROBE_COLORS.lam;
+  const shirtColor = isFemale ? palette.female : palette.male;
+  const shirtShade = isFemale ? palette.femaleShade : palette.maleShade;
+  const pantsColor = isFemale ? '#475569' : '#334155'; // Charcoal grey vs Slate denim
+  const hairColor = '#3f2e24';
+  const hairHighlight = '#5c4033';
+  const skinTone = '#ffedd5';
+  const skinShade = '#fed7aa';
+
+  // 1. Soft Oval Shadow on ground
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
   ctx.beginPath();
-  ctx.ellipse(0, 4, 18, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 3, 14, 5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Feet / Sandals
-  ctx.fillStyle = '#44403c';
-  ctx.fillRect(-6 + legOffset, 0, 5, 4);
-  ctx.fillRect(1 - legOffset, 0, 5, 4);
+  ctx.save();
+  ctx.translate(0, bounceY);
 
-  // Robe body (Swaying with walk)
-  ctx.fillStyle = robe.main;
+  // 2. Chibi Legs & Shoes (Walking animation)
+  ctx.fillStyle = pantsColor;
+  ctx.fillRect(-7 + legOffset * 0.8, -14, 5, 12);
+  ctx.fillRect(2 - legOffset * 0.8, -14, 5, 12);
+
+  // Shoes: Black sneakers with white rubber caps (Male) or White slip-ons (Female)
+  if (isFemale) {
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(-8 + legOffset * 0.8, -3, 7, 4);
+    ctx.fillRect(1 - legOffset * 0.8, -3, 7, 4);
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(-8 + legOffset * 0.8, -3, 7, 4);
+    ctx.strokeRect(1 - legOffset * 0.8, -3, 7, 4);
+  } else {
+    ctx.fillStyle = '#18181b';
+    ctx.fillRect(-8 + legOffset * 0.8, -3, 7, 4);
+    ctx.fillRect(1 - legOffset * 0.8, -3, 7, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-3 + legOffset * 0.8, -3, 3, 4);
+    ctx.fillRect(6 - legOffset * 0.8, -3, 3, 4);
+  }
+
+  // 3. Brown Leather Belt & Metal Buckle
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(-8, -17, 16, 3.5);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(-2, -17.5, 4, 4);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(-1, -16.5, 2, 2);
+
+  // 4. Torso: Casual Button-Up Shirt / Blouse with open V-collar
+  ctx.fillStyle = shirtColor;
   ctx.beginPath();
-  ctx.moveTo(-12, -45);
-  ctx.lineTo(12, -45);
-  ctx.lineTo(16 + walkCycle * 2, 0);
-  ctx.lineTo(-16 + walkCycle * 2, 0);
+  ctx.moveTo(-9, -32);
+  ctx.lineTo(9, -32);
+  ctx.lineTo(8, -17);
+  ctx.lineTo(-8, -17);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = robe.shade;
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = shirtShade;
+  ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Yellow Sash / Dây đai
-  ctx.fillStyle = robe.sash;
-  ctx.fillRect(-12, -32, 24, 4);
-
-  // Shoulders & Chest
-  ctx.fillStyle = robe.main;
+  // Open V-neck collar & skin show
+  ctx.fillStyle = skinTone;
   ctx.beginPath();
-  ctx.moveTo(-14, -58);
-  ctx.lineTo(14, -58);
-  ctx.lineTo(12, -45);
-  ctx.lineTo(-12, -45);
+  ctx.moveTo(-3, -32);
+  ctx.lineTo(3, -32);
+  ctx.lineTo(0, -26);
   ctx.closePath();
   ctx.fill();
 
-  // Head & Neck
-  ctx.fillStyle = '#fed7aa';
-  ctx.fillRect(-3, -64, 6, 8);
+  // White collar flaps
+  ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.arc(0, -68, 11, 0, Math.PI * 2);
+  ctx.moveTo(-7, -32);
+  ctx.lineTo(-2, -26);
+  ctx.lineTo(-5, -24);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(7, -32);
+  ctx.lineTo(2, -26);
+  ctx.lineTo(5, -24);
+  ctx.closePath();
   ctx.fill();
 
-  // Hair style
-  ctx.fillStyle = '#1c1917';
-  if (character.hairStyle === 'short') {
-    ctx.beginPath();
-    ctx.arc(0, -71, 11.5, Math.PI * 0.9, Math.PI * 2.1);
-    ctx.fill();
-  } else if (character.hairStyle === 'bun') {
-    ctx.beginPath();
-    ctx.arc(0, -71, 11.5, Math.PI * 0.9, Math.PI * 2.1);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, -82, 5, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    // Quy y cạo đầu: 3 chấm giới hương
-    ctx.fillStyle = '#d97706';
-    ctx.beginPath();
-    ctx.arc(-2, -74, 1, 0, Math.PI * 2);
-    ctx.arc(0, -75, 1, 0, Math.PI * 2);
-    ctx.arc(2, -74, 1, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Arms with 3/4 rolled sleeves
+  const armSwing = isWalking ? Math.sin(step * 0.28) * 5 : 0;
+  ctx.fillStyle = shirtColor;
+  ctx.fillRect(-12, -31 + armSwing * 0.4, 4, 8);
+  ctx.fillStyle = skinTone;
+  ctx.fillRect(-12, -23 + armSwing * 0.4, 3.5, 5);
+  ctx.fillStyle = shirtColor;
+  ctx.fillRect(8, -31 - armSwing * 0.4, 4, 8);
+  ctx.fillStyle = skinTone;
+  ctx.fillRect(8.5, -23 - armSwing * 0.4, 3.5, 5);
 
-  // Accessories
-  if (character.accessory === 'beads') {
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 1.8;
+  // 5. Neck
+  ctx.fillStyle = skinShade;
+  ctx.fillRect(-2.5, -36, 5, 5);
+
+  // 6. Cute Chibi Head (Large adorable proportions)
+  ctx.fillStyle = skinTone;
+  ctx.beginPath();
+  ctx.arc(0, -45, 13.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fb923c';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  // Rosy Blush Cheeks
+  ctx.fillStyle = isFemale ? 'rgba(244, 63, 94, 0.4)' : 'rgba(251, 146, 60, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(-7, -42, 3, 1.8, 0, 0, Math.PI * 2);
+  ctx.ellipse(7, -42, 3, 1.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big Sparkling Anime Eyes
+  const drawEye = (x: number) => {
+    ctx.fillStyle = '#3f2e24';
     ctx.beginPath();
-    ctx.ellipse(0, -48, 8, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, -45, 2.5, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath();
+    ctx.ellipse(x, -44, 2, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x - 0.8, -46.5, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 0.8, -44, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#1c1917';
+    ctx.lineWidth = isFemale ? 1.4 : 1.0;
+    ctx.beginPath();
+    ctx.moveTo(x - 3, -48);
+    ctx.quadraticCurveTo(x, -49.5, x + 3, -48);
     ctx.stroke();
-  } else if (character.accessory === 'hat') {
-    ctx.fillStyle = '#fde047';
+  };
+  drawEye(-4.5);
+  drawEye(4.5);
+
+  // Sweet Smile
+  ctx.strokeStyle = '#c2410c';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, -40, 2.2, 0.2 * Math.PI, 0.8 * Math.PI);
+  ctx.stroke();
+
+  // 7. Hair Styles Matching Concept Art
+  ctx.fillStyle = hairColor;
+  if (isFemale) {
+    // Ponytail
     ctx.beginPath();
-    ctx.moveTo(-16, -75);
-    ctx.lineTo(0, -88);
-    ctx.lineTo(16, -75);
+    ctx.moveTo(6, -55);
+    ctx.quadraticCurveTo(18, -62, 16, -46);
+    ctx.quadraticCurveTo(18, -32, 12, -25);
+    ctx.quadraticCurveTo(14, -38, 8, -48);
     ctx.closePath();
     ctx.fill();
-  } else if (character.accessory === 'bag') {
-    ctx.fillStyle = '#1e3a8a';
-    ctx.fillRect(6, -42, 8, 10);
+
+    // Scrunchie
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(8, -55, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bangs
+    ctx.fillStyle = hairColor;
+    ctx.beginPath();
+    ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-13, -46);
+    ctx.quadraticCurveTo(-10, -36, -8, -34);
+    ctx.quadraticCurveTo(-7, -42, -5, -48);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(13, -46);
+    ctx.quadraticCurveTo(10, -36, 8, -34);
+    ctx.quadraticCurveTo(7, -42, 5, -48);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-9, -52);
+    ctx.quadraticCurveTo(-3, -48, 0, -50);
+    ctx.quadraticCurveTo(4, -48, 9, -52);
+    ctx.lineTo(8, -58);
+    ctx.lineTo(-8, -58);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    // MALE: Spiky Hair
+    ctx.beginPath();
+    ctx.arc(0, -47, 14, Math.PI * 0.85, Math.PI * 2.15);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-12, -52);
+    ctx.lineTo(-17, -56);
+    ctx.lineTo(-10, -58);
+    ctx.lineTo(-6, -64);
+    ctx.lineTo(-2, -60);
+    ctx.lineTo(2, -65);
+    ctx.lineTo(6, -60);
+    ctx.lineTo(13, -62);
+    ctx.lineTo(11, -56);
+    ctx.lineTo(15, -53);
+    ctx.lineTo(12, -48);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = hairHighlight;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-5, -60);
+    ctx.lineTo(0, -61);
+    ctx.lineTo(5, -59);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-11, -50);
+    ctx.lineTo(-7, -46);
+    ctx.lineTo(-4, -51);
+    ctx.lineTo(0, -46);
+    ctx.lineTo(4, -51);
+    ctx.lineTo(8, -46);
+    ctx.lineTo(11, -50);
+    ctx.closePath();
+    ctx.fill();
   }
 
+  ctx.restore();
   ctx.restore();
 }
 
