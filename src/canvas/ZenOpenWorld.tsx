@@ -248,10 +248,10 @@ export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
       id: 'bell-tower',
       x: 820,
       y: 580,
-      radius: 65,
+      radius: 70,
       icon: '🔔',
-      title: 'Gác Chuông Đại Hồng',
-      desc: 'Thỉnh chuông đại hồng ngân vang thức tỉnh trần gian',
+      title: 'Tháp Chuông & Chú Tiểu Tuệ Tĩnh',
+      desc: 'Thỉnh Đại Hồng Chung 2 tầng 8 mái ngân vang thức tỉnh trần gian cùng Chú Tiểu Tuệ Tĩnh',
       action: handleStrikeBell,
     },
     {
@@ -1115,52 +1115,289 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.lineTo(lx + 4, 542);
   ctx.stroke();
 
-  // Gác Chuông Lim (x: 820)
+  // Tháp Chuông Cổ Tự 2 Tầng 8 Mái & Chú Tiểu Tuệ Tĩnh (x: 820)
   const bx = 820;
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(bx - 45, 420, 10, 140);
-  ctx.fillRect(bx + 35, 420, 10, 140);
-  ctx.fillRect(bx - 50, 440, 100, 10);
 
-  // Mái gác chuông cong
+  // 1. BỆ ĐÁ TAM CẤP (THREE-TIER CARVED STONE PEDESTAL)
+  ctx.fillStyle = '#64748b';
+  ctx.fillRect(bx - 72, 552, 144, 16);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(bx - 64, 538, 128, 14);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(bx - 56, 526, 112, 12);
+
+  // Bậc tam cấp đá chính giữa
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(bx - 22, 538, 44, 28);
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.5;
+  for (let s = 0; s < 4; s++) {
+    ctx.strokeRect(bx - 22, 538 + s * 7, 44, 7);
+  }
+
+  // Lan can đá hai bên bậc tam cấp chạm mây
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(bx - 26, 532, 4, 34);
+  ctx.fillRect(bx + 22, 532, 4, 34);
+
+  // Lan can đá xung quanh sàn thượng với trụ búp sen
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(bx - 54, 514, 28, 12);
+  ctx.fillRect(bx + 26, 514, 28, 12);
+
+  // Trụ sen các góc lan can
+  [-54, -26, 26, 54].forEach((px) => {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(bx + px - 2, 508, 5, 18);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(bx + px + 0.5, 506, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 2. 4 CỘT CÁI GỖ LIM & CHÂN TẢNG ĐÁ
+  [-40, -18, 18, 40].forEach((cx) => {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(bx + cx - 6, 520, 12, 6);
+  });
+
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(bx - 44, 430, 8, 92);
+  ctx.fillRect(bx - 22, 430, 8, 92);
+  ctx.fillRect(bx + 14, 430, 8, 92);
+  ctx.fillRect(bx + 36, 430, 8, 92);
+
+  // Xà hạ & xà thượng gỗ lim
+  ctx.fillStyle = '#291004';
+  ctx.fillRect(bx - 46, 475, 92, 5);
+  ctx.fillRect(bx - 48, 432, 96, 6);
+
+  // 3. TẦNG MÁI HẠ (LOWER CURVED PAGODA ROOF - 4 ĐẦU ĐAO CONG VÚT)
   ctx.fillStyle = '#1c1917';
   ctx.beginPath();
-  ctx.moveTo(bx - 65, 420);
-  ctx.quadraticCurveTo(bx, 380, bx + 65, 420);
-  ctx.quadraticCurveTo(bx, 400, bx - 65, 420);
+  ctx.moveTo(bx - 78, 428);
+  ctx.quadraticCurveTo(bx - 68, 420, bx - 42, 422);
+  ctx.quadraticCurveTo(bx, 412, bx + 42, 422);
+  ctx.quadraticCurveTo(bx + 68, 420, bx + 78, 428);
+  ctx.quadraticCurveTo(bx + 62, 436, bx + 48, 433);
+  ctx.lineTo(bx - 48, 433);
+  ctx.quadraticCurveTo(bx - 62, 436, bx - 78, 428);
+  ctx.closePath();
   ctx.fill();
 
-  // Quả Chuông Đại Hồng Chung đồng thau
+  // Kìm nóc đầu rồng ở hai đầu đao mái hạ
   ctx.fillStyle = '#b45309';
   ctx.beginPath();
-  ctx.moveTo(bx - 18, 445);
-  ctx.quadraticCurveTo(bx - 26, 490, bx - 26, 505);
-  ctx.quadraticCurveTo(bx, 512, bx + 26, 505);
-  ctx.quadraticCurveTo(bx + 26, 490, bx + 18, 445);
+  ctx.arc(bx - 76, 424, 3, 0, Math.PI * 2);
+  ctx.arc(bx + 76, 424, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. CỔ BỒNG THƯỢNG (UPPER CLERESTORY WITH WOODEN BALUSTERS)
+  ctx.fillStyle = '#291004';
+  ctx.fillRect(bx - 32, 386, 64, 26);
+  ctx.fillStyle = '#78350f';
+  for (let bxSl = -26; bxSl <= 26; bxSl += 6) {
+    ctx.fillRect(bx + bxSl - 1, 388, 2, 22);
+  }
+
+  // 5. TẦNG MÁI THƯỢNG (UPPER CURVED PAGODA ROOF & STUPA APEX)
+  ctx.fillStyle = '#1c1917';
+  ctx.beginPath();
+  ctx.moveTo(bx - 56, 386);
+  ctx.quadraticCurveTo(bx - 48, 376, bx - 28, 378);
+  ctx.quadraticCurveTo(bx, 368, bx + 28, 378);
+  ctx.quadraticCurveTo(bx + 48, 376, bx + 56, 386);
+  ctx.quadraticCurveTo(bx + 44, 392, bx + 32, 388);
+  ctx.lineTo(bx - 32, 388);
+  ctx.quadraticCurveTo(bx - 44, 392, bx - 56, 386);
+  ctx.closePath();
+  ctx.fill();
+
+  // Đỉnh tháp: Búp sen hồ lô bình cam lộ
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(bx, 366, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(bx - 1, 359, 2, 6);
+
+  // 6. ĐẠI HỒNG CHUNG BẰNG ĐỒNG (BRONZE GREAT BELL)
+  const isRinging = ripples.length > 0;
+  const bellVibX = isRinging ? Math.sin(step * 0.8) * 2.2 : 0;
+  const bellCx = bx - 6 + bellVibX;
+
+  // Quai rồng Bồ Lao
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(bellCx, 442, 6, Math.PI, 0);
+  ctx.stroke();
+
+  // Thân Chuông
+  ctx.fillStyle = '#b45309';
+  ctx.beginPath();
+  ctx.moveTo(bellCx - 14, 446);
+  ctx.quadraticCurveTo(bellCx - 20, 480, bellCx - 21, 496);
+  ctx.quadraticCurveTo(bellCx, 502, bellCx + 21, 496);
+  ctx.quadraticCurveTo(bellCx + 20, 480, bellCx + 14, 446);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Chày gỗ kình treo gõ chuông
-  ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 4;
+  // Các gờ đúc nổi trang trí & núm chuông
+  ctx.strokeStyle = '#d97706';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(bx + 40, 485);
-  ctx.lineTo(bx + 18, 492);
+  ctx.moveTo(bellCx - 16, 464);
+  ctx.lineTo(bellCx + 16, 464);
+  ctx.moveTo(bellCx - 19, 484);
+  ctx.lineTo(bellCx + 19, 484);
   ctx.stroke();
 
-  // Sóng âm thanh chuông ngân lan tỏa
+  // Núm chuông hoa sen bên phải (nơi chày gỗ gõ vào)
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(bellCx + 16, 478, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 7. CHÀY GỖ TREO DÂY (SUSPENDED WOODEN MALLET)
+  const strikeOffset = isRinging ? Math.sin(step * 0.5) * 8 : 0;
+  const malletX = bx + 16 + strikeOffset;
+  const malletY = 478;
+
+  // Hai sợi dây treo chày
+  ctx.strokeStyle = '#451a03';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(malletX + 4, 436);
+  ctx.lineTo(malletX + 4, malletY - 4);
+  ctx.moveTo(malletX + 22, 436);
+  ctx.lineTo(malletX + 22, malletY - 4);
+  ctx.stroke();
+
+  // Thân chày gỗ
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(malletX, malletY - 4, 26, 8);
+  ctx.beginPath();
+  ctx.arc(malletX, malletY, 4, Math.PI / 2, -Math.PI / 2);
+  ctx.fill();
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(malletX + 5, malletY - 4.5, 2.5, 9);
+  ctx.fillRect(malletX + 20, malletY - 4.5, 2.5, 9);
+
+  // 8. NPC CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG (CHIBI NOVICE MONK)
+  const monkX = bx + 36;
+  const monkY = 524;
+  const strikeLeaning = isRinging ? -4 : 0;
+
+  // Chân Chú Tiểu
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(monkX - 5, monkY - 6, 4, 6);
+  ctx.fillRect(monkX + 2, monkY - 6, 4, 6);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(monkX - 6, monkY - 2, 5, 3);
+  ctx.fillRect(monkX + 1, monkY - 2, 5, 3);
+
+  // Thân áo tràng nâu sồng
+  ctx.fillStyle = '#78350f';
+  ctx.beginPath();
+  ctx.moveTo(monkX - 7 + strikeLeaning, monkY - 22);
+  ctx.lineTo(monkX + 7 + strikeLeaning, monkY - 22);
+  ctx.lineTo(monkX + 9, monkY - 6);
+  ctx.lineTo(monkX - 9, monkY - 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Cổ vạt áo chéo
+  ctx.strokeStyle = '#9a3412';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(monkX + 3 + strikeLeaning, monkY - 22);
+  ctx.lineTo(monkX - 3 + strikeLeaning, monkY - 14);
+  ctx.stroke();
+
+  // Tay phải giữ quai thừng chày gỗ
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(monkX + strikeLeaning, monkY - 17);
+  ctx.lineTo(malletX + 18, malletY + 4);
+  ctx.stroke();
+
+  // Tay trái chắp trước ngực
+  ctx.beginPath();
+  ctx.moveTo(monkX - 3 + strikeLeaning, monkY - 17);
+  ctx.lineTo(monkX - 6 + strikeLeaning, monkY - 14);
+  ctx.stroke();
+
+  // Đầu Chibi tròn trĩnh
+  ctx.fillStyle = '#ffedd5';
+  ctx.beginPath();
+  ctx.arc(monkX + strikeLeaning, monkY - 27, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3 Chấm Giới Hương trên trán
+  ctx.fillStyle = '#d97706';
+  ctx.beginPath();
+  ctx.arc(monkX + strikeLeaning, monkY - 32, 1, 0, Math.PI * 2);
+  ctx.arc(monkX + strikeLeaning - 2, monkY - 33, 0.8, 0, Math.PI * 2);
+  ctx.arc(monkX + strikeLeaning + 2, monkY - 33, 0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mắt Chibi cười híp mí an nhiên
+  ctx.strokeStyle = '#1e1b4b';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(monkX - 3 + strikeLeaning, monkY - 27, 2, Math.PI * 1.1, Math.PI * 1.9);
+  ctx.arc(monkX + 3 + strikeLeaning, monkY - 27, 2, Math.PI * 1.1, Math.PI * 1.9);
+  ctx.stroke();
+
+  // Má hồng Chibi
+  ctx.fillStyle = 'rgba(251, 113, 133, 0.55)';
+  ctx.beginPath();
+  ctx.arc(monkX - 5 + strikeLeaning, monkY - 25, 2, 0, Math.PI * 2);
+  ctx.arc(monkX + 5 + strikeLeaning, monkY - 25, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nụ cười mỉm
+  ctx.strokeStyle = '#b91c1c';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(monkX + strikeLeaning, monkY - 24, 1.8, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Bảng tên NPC Chú Tiểu Tuệ Tĩnh
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+  ctx.fillRect(monkX - 34, monkY - 48, 68, 14);
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(monkX - 34, monkY - 48, 68, 14);
+  ctx.fillStyle = '#fef08a';
+  ctx.font = 'bold 8px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🔔 Chú Tiểu Tuệ Tĩnh', monkX, monkY - 38);
+
+  // 9. SÓNG ÂM THANH KIM QUANG LAN TỎA
   if (ripples.length > 0) {
     ctx.strokeStyle = '#fde047';
     ripples.forEach((_, idx) => {
-      const r = (step * 2 + idx * 30) % 180;
-      ctx.lineWidth = Math.max(0.5, 3 - r / 60);
+      const r = (step * 2.5 + idx * 35) % 200;
+      ctx.lineWidth = Math.max(0.5, 3.5 - r / 50);
       ctx.beginPath();
-      ctx.arc(bx, 480, r, 0, Math.PI * 2);
+      ctx.arc(bellCx, 478, r, 0, Math.PI * 2);
       ctx.stroke();
     });
+
+    // Tia sáng hào quang (Golden light sparkles)
+    ctx.fillStyle = '#fef08a';
+    for (let sp = 0; sp < 6; sp++) {
+      const spA = step * 0.1 + (sp * Math.PI) / 3;
+      const spR = 25 + Math.sin(step * 0.2 + sp) * 12;
+      ctx.beginPath();
+      ctx.arc(bellCx + Math.cos(spA) * spR, 478 + Math.sin(spA) * spR, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   ctx.restore();

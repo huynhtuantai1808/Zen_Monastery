@@ -123,13 +123,19 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: 31.2, maxX: 36.0, minZ: -13.6, maxZ: -13.0, name: 'Pagoda Rail South L' },
   { type: 'box', minX: 40.0, maxX: 44.8, minZ: -13.6, maxZ: -13.0, name: 'Pagoda Rail South R' },
 
-  // 4. Lầu Chuông (Zone 4 Bell Tower) - Columns, Great Bell & Bronze Drum
-  { type: 'circle', x: -29.6, z: -23.6, r: 0.55, name: 'Bell Col 1' },
-  { type: 'circle', x: -29.6, z: -16.4, r: 0.55, name: 'Bell Col 2' },
-  { type: 'circle', x: -22.4, z: -23.6, r: 0.55, name: 'Bell Col 3' },
-  { type: 'circle', x: -22.4, z: -16.4, r: 0.55, name: 'Bell Col 4' },
-  { type: 'circle', x: -26.0, z: -20.0, r: 1.7, name: 'Great Bell' },
-  { type: 'circle', x: -29.0, z: -22.4, r: 1.35, name: 'Bell Drum' },
+  // 4. Tháp Chuông Cổ Tự (Zone 4 Bell Tower - Chuẩn Bản Vẽ 2 Tầng 8 Mái & Chú Tiểu)
+  { type: 'circle', x: -28.6, z: -22.6, r: 0.55, name: 'Bell Col 1 NW' },
+  { type: 'circle', x: -28.6, z: -17.4, r: 0.55, name: 'Bell Col 2 SW' },
+  { type: 'circle', x: -23.4, z: -22.6, r: 0.55, name: 'Bell Col 3 NE' },
+  { type: 'circle', x: -23.4, z: -17.4, r: 0.55, name: 'Bell Col 4 SE' },
+  { type: 'circle', x: -26.0, z: -20.0, r: 1.6, name: 'Great Bronze Bell' },
+  { type: 'circle', x: -23.85, z: -19.35, r: 0.45, name: 'Monk NPC Tue Tinh' },
+  { type: 'circle', x: -28.8, z: -22.2, r: 1.25, name: 'Bell Drum' },
+  { type: 'box', minX: -30.8, maxX: -21.2, minZ: -24.8, maxZ: -24.2, name: 'Bell Rail North' },
+  { type: 'box', minX: -30.8, maxX: -30.2, minZ: -24.8, maxZ: -15.2, name: 'Bell Rail West' },
+  { type: 'box', minX: -21.8, maxX: -21.2, minZ: -24.8, maxZ: -15.2, name: 'Bell Rail East' },
+  { type: 'box', minX: -30.8, maxX: -28.2, minZ: -15.5, maxZ: -15.0, name: 'Bell Rail South L' },
+  { type: 'box', minX: -23.8, maxX: -21.2, minZ: -15.5, maxZ: -15.0, name: 'Bell Rail South R' },
 
   // 5. Hiên Nước & Suối Ngọc (Zone 5 On Rainy Days) - Tatami deck & bridge fully walkable, water blocked
   { type: 'box', minX: -26.0, maxX: -13.0, minZ: 38.0, maxZ: 47.0, name: 'Stream Water North' },
@@ -325,8 +331,13 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     }
   }
 
-  // 3. Lầu Chuông (Zone 4 Bell Tower at -26, -20)
+  // 3. Tháp Chuông Cổ Tự (Zone 4 Bell Tower at -26, -20)
   if (x >= -31.5 && x <= -20.5 && z >= -25.5 && z <= -14.5) {
+    // Front stone steps leading to bell tower platform (Z from -14.5 down to -17.0, X centered around -26)
+    if (Math.abs(x - (-26)) <= 2.2 && z >= -17.0 && z <= -14.5) {
+      const t = Math.max(0.0, Math.min(1.0, (-14.5 - z) / 2.5));
+      return 0.42 + t * (0.89 - 0.42);
+    }
     return 0.89;
   }
 
@@ -389,11 +400,11 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
   },
   {
     id: 'bell',
-    name: '4. Lầu Chuông (Nội thất)',
-    subtitle: 'Đại Hồng Chung bằng đồng & Trống Bát Nhã',
+    name: '4. Tháp Chuông Cổ Tự (2 Tầng 8 Mái)',
+    subtitle: 'Đại Hồng Chung, Chày Kình & Chú Tiểu Tuệ Tĩnh',
     dimensions: '14 × 14 m',
     icon: '🔔',
-    desc: 'Lầu chuông gỗ lim cổ kính với Đại Hồng Chung treo quai rồng và chày kình gõ chuông.',
+    desc: 'Tháp chuông 2 tầng 8 mái chồng diêm theo bản vẽ kiến trúc: bệ đá tam cấp chạm mây, 4 cột cái gỗ lim, cổ bồng chấn song con tiện, Đại Hồng Chung quai rồng Bồ Lao và Chú Tiểu Tuệ Tĩnh thỉnh chuông.',
     pos: { x: -26, y: 0.89, z: -17.5 },
     actionKey: 'BELL',
   },
@@ -824,6 +835,25 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   // Environment Animated objects refs
   const bellMeshRef = useRef<THREE.Mesh | null>(null);
   const bellRingingTimerRef = useRef<number>(0);
+  const chayGoRef = useRef<THREE.Group | null>(null);
+  const bellNpcMonkRef = useRef<{
+    group: THREE.Group;
+    torso: THREE.Group;
+    head: THREE.Group;
+    armR: THREE.Group;
+    armL: THREE.Group;
+  } | null>(null);
+  const soundRipplesGroupRef = useRef<THREE.Group | null>(null);
+
+  // Dialogue Modal State for Chú Tiểu Tuệ Tĩnh (Bell Tower Guardian NPC)
+  const [bellNpcDialogue, setBellNpcDialogue] = useState<{
+    speaker: string;
+    avatar: string;
+    role: string;
+    text: string;
+    gatha?: string;
+  } | null>(null);
+
   const smokeParticlesRef = useRef<THREE.Points | null>(null);
   const spiritParticlesRef = useRef<THREE.Points | null>(null);
   const koiFishListRef = useRef<{ mesh: THREE.Group; angle: number; speed: number; radius: number }[]>([]);
@@ -834,11 +864,30 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const hemiLightRef = useRef<THREE.HemisphereLight | null>(null);
   const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
 
-  // Dedicated sound trigger: Bell ONLY rings when requested at Bell Tower
+  // Dedicated sound trigger: Bell rings and Novice Monk strikes with mallet
   const handleRingBell = useCallback(() => {
     soundEngine.playDistantEchoBell(1, 0.85);
-    bellRingingTimerRef.current = 80;
-    onAddMerit(25, 50, 40, '🔔 Hồng Chung Ngân Vang Đỉnh Núi');
+    bellRingingTimerRef.current = 90;
+    setBellNpcDialogue({
+      speaker: 'Chú Tiểu Tuệ Tĩnh',
+      avatar: '🔔',
+      role: 'Thủ Hộ Lầu Chuông',
+      text: 'Tiếng Đại Hồng Chung đã ngân vang ba cõi! Nguyện tiếng chuông này thức tỉnh tâm mê, tiêu trừ trăm phiền não, mang lại an lạc vô lượng cho thí chủ và vạn vật.',
+      gatha: '🔔 Kệ Thỉnh Chuông:\n"Nguyện thử chung thanh siêu pháp giới\nThiết vi u ám tất giai văn\nVăn trần thanh tịnh chứng viên thông\nNhất thiết chúng sanh thành Chánh giác."',
+    });
+    onAddMerit(35, 50, 40, '🔔 Đại Hồng Chung Ngân Vang Đỉnh Núi');
+  }, [onAddMerit]);
+
+  const handleTalkToMonk = useCallback(() => {
+    soundEngine.playWoodenFish();
+    setBellNpcDialogue({
+      speaker: 'Chú Tiểu Tuệ Tĩnh',
+      avatar: '👦🏻',
+      role: 'Thủ Hộ Lầu Chuông',
+      text: 'A Di Đà Phật! Bần đạo là Chú Tiểu Tuệ Tĩnh, phụ trách giữ gìn lầu chuông và thỉnh chuông sớm tối. Thí chủ lên chốn non thiêng này xin hãy buông xả muộn phiền nơi trần thế, lắng lòng theo từng nhịp chuông thanh tịnh nhé!',
+      gatha: '🔔 Kệ Thỉnh Chuông:\n"Hồng chung sơ khấu, bảo kệ cao tuyên,\nThượng triệt thiên đường, hạ thông địa phủ..."',
+    });
+    onAddMerit(20, 50, 40, '🙏 Đàm Đạo Thiền Môn với Chú Tiểu');
   }, [onAddMerit]);
 
   const handleFeedKoiFish = useCallback(() => {
@@ -1323,43 +1372,25 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     pagodaTower.position.set(38, 0, -20);
     scene.add(pagodaTower);
 
-    // [ZONE 4: LẦU CHUÔNG NỘI THẤT]
-    const bellTowerGroup = new THREE.Group();
-    bellTowerGroup.position.set(-26, 0, -20);
-
-    for (const bcx of [-3.6, 3.6]) {
-      for (const bcz of [-3.6, 3.6]) {
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 8.0, 10), matWoodLim);
-        col.position.set(bcx, 4.0, bcz);
-        bellTowerGroup.add(col);
-      }
-    }
-    const bellFloor = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.8, 10.5), matWoodLim);
-    bellFloor.position.set(0, 0.4, 0);
-    bellTowerGroup.add(bellFloor);
-
-    // Bronze Great Bell
-    const bellGroup = new THREE.Group();
-    bellGroup.position.set(0, 5.0, 0);
-    const bellBody = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.9, 3.2, 16, 4, true), matBronze);
-    bellBody.castShadow = true;
-    bellGroup.add(bellBody);
-    const bellTop = new THREE.Mesh(new THREE.SphereGeometry(1.15, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), matBronze);
-    bellTop.position.set(0, 1.6, 0);
-    bellGroup.add(bellTop);
-    bellMeshRef.current = bellBody;
-    bellTowerGroup.add(bellGroup);
-
-    const drum = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.6, 16), matWoodLim);
-    drum.rotateX(Math.PI / 2);
-    drum.position.set(-3.0, 1.7, -2.4);
-    bellTowerGroup.add(drum);
-
-    const bellRoof = createStylizedCurvedRoof(12, 12, matRoofTile);
-    bellRoof.position.set(0, 8.8, 0);
-    bellRoofsRef.current.push(bellRoof);
-    bellTowerGroup.add(bellRoof);
-    scene.add(bellTowerGroup);
+    // [ZONE 4: THÁP CHUÔNG CỔ TỰ 2 TẦNG 8 MÁI & CHÚ TIỂU THỈNH CHUÔNG (THEO BẢN VẼ MẪU)]
+    const bellTowerData = createAuthenticBellTower(
+      matStoneGrey,
+      matLotusPlinth,
+      matWoodLim,
+      matDarkTimber,
+      matAmberWood,
+      matJadeRoofTile,
+      matBronze,
+      matGold,
+      nightLightsRef
+    );
+    bellTowerData.group.position.set(-26, 0, -20);
+    bellMeshRef.current = bellTowerData.bellMesh;
+    chayGoRef.current = bellTowerData.chayGo;
+    bellNpcMonkRef.current = bellTowerData.npcMonk;
+    soundRipplesGroupRef.current = bellTowerData.soundRipplesGroup;
+    bellTowerData.roofs.forEach((r) => bellRoofsRef.current.push(r));
+    scene.add(bellTowerData.group);
 
     // [ZONE 5: HIÊN NƯỚC & SUỐI NGỌC - ON RAINY DAYS (THEO HÌNH MẪU PHÁT THẢO)]
     const pondGroup = new THREE.Group();
@@ -2262,6 +2293,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Chiêm Bái Bảo Tháp', action: () => p.onAddMerit(25, 50, 40, 'Chiêm Bái Bảo Tháp'), icon: '🏯' });
             } else if (zKey === 'BELL') {
               actionsList.push({ title: 'Thỉnh Đại Hồng Chung', action: handleRingBell, icon: '🔔' });
+              actionsList.push({ title: 'Đàm Đạo với Chú Tiểu', action: handleTalkToMonk, icon: '🙏' });
             } else if (zKey === 'CORRIDOR') {
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
             } else if (zKey === 'SANCTUARY') {
@@ -2470,12 +2502,86 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         return true;
       });
 
-      // Bell Vibration when struck
-      if (bellMeshRef.current && bellRingingTimerRef.current > 0) {
+      // Bell & Bell-Striking Novice Monk Animation (Chú Tiểu Tuệ Tĩnh & Chày Gỗ)
+      if (bellRingingTimerRef.current > 0) {
         bellRingingTimerRef.current--;
-        bellMeshRef.current.rotation.z = Math.sin(stepCount * 0.4) * 0.12;
-      } else if (bellMeshRef.current) {
-        bellMeshRef.current.rotation.z = 0;
+        const timer = bellRingingTimerRef.current; // 90 down to 0
+
+        if (timer > 65) {
+          // Phase 1: Kéo lùi chày gỗ lấy đà
+          const pullT = (90 - timer) / 25; // 0 to 1
+          if (chayGoRef.current) {
+            chayGoRef.current.rotation.z = Math.sin(pullT * Math.PI * 0.5) * 0.18;
+          }
+          if (bellNpcMonkRef.current) {
+            bellNpcMonkRef.current.torso.rotation.z = -0.14 * pullT;
+            bellNpcMonkRef.current.armR.rotation.x = -0.35 * pullT;
+            bellNpcMonkRef.current.armR.rotation.z = 0.25 * pullT;
+          }
+        } else if (timer > 48) {
+          // Phase 2: Dồn lực đẩy mạnh chày gỗ gõ trúng núm chuông!
+          const strikeT = (65 - timer) / 17; // 0 to 1
+          if (chayGoRef.current) {
+            chayGoRef.current.rotation.z = 0.18 - strikeT * 0.36; // Va chạm tại -0.18 rad
+          }
+          if (bellNpcMonkRef.current) {
+            bellNpcMonkRef.current.torso.rotation.z = -0.14 + strikeT * 0.26;
+            bellNpcMonkRef.current.armR.rotation.x = 0.45 * strikeT;
+            bellNpcMonkRef.current.armR.rotation.z = -0.35 * strikeT;
+          }
+        } else {
+          // Phase 3: Chuông rung ngân vang, sóng âm kim quang lan tỏa, Chú Tiểu chắp tay xá Phật
+          const recoilT = (48 - timer) / 48; // 0 to 1
+          const damp = timer / 48; // 1 down to 0
+
+          if (chayGoRef.current) {
+            chayGoRef.current.rotation.z = Math.sin(recoilT * 18.0) * 0.08 * damp;
+          }
+          if (bellMeshRef.current) {
+            bellMeshRef.current.rotation.z = Math.sin(stepCount * 0.6) * 0.08 * damp;
+          }
+          if (soundRipplesGroupRef.current) {
+            soundRipplesGroupRef.current.visible = true;
+            soundRipplesGroupRef.current.children.forEach((ring, idx) => {
+              const ringT = ((48 - timer + idx * 10) % 40) / 40;
+              ring.scale.set(1 + ringT * 4.5, 1 + ringT * 4.5, 1 + ringT * 4.5);
+              const mat = (ring as THREE.Mesh).material as THREE.MeshBasicMaterial;
+              if (mat) {
+                mat.opacity = Math.max(0, (1 - ringT) * 0.85);
+              }
+            });
+          }
+          if (bellNpcMonkRef.current) {
+            bellNpcMonkRef.current.torso.rotation.z = 0;
+            bellNpcMonkRef.current.torso.rotation.x = Math.sin(recoilT * Math.PI) * 0.22; // Cúi đầu chánh niệm
+            const bowT = Math.min(1.0, recoilT * 2.2);
+            bellNpcMonkRef.current.armR.rotation.x = -0.68 * bowT;
+            bellNpcMonkRef.current.armR.rotation.z = -0.42 * bowT;
+            bellNpcMonkRef.current.armL.rotation.x = -0.68 * bowT;
+            bellNpcMonkRef.current.armL.rotation.z = 0.42 * bowT;
+          }
+        }
+      } else {
+        // Trạng thái nghỉ thiền định (Idle)
+        if (bellMeshRef.current) {
+          bellMeshRef.current.rotation.z = 0;
+        }
+        if (chayGoRef.current) {
+          chayGoRef.current.rotation.z = Math.sin(stepCount * 0.03) * 0.015;
+        }
+        if (soundRipplesGroupRef.current) {
+          soundRipplesGroupRef.current.visible = false;
+        }
+        if (bellNpcMonkRef.current) {
+          bellNpcMonkRef.current.torso.position.y = Math.sin(stepCount * 0.04) * 0.01;
+          bellNpcMonkRef.current.head.rotation.y = Math.sin(stepCount * 0.02) * 0.08;
+          bellNpcMonkRef.current.torso.rotation.x = 0;
+          bellNpcMonkRef.current.torso.rotation.z = 0;
+          bellNpcMonkRef.current.armR.rotation.x = -0.25;
+          bellNpcMonkRef.current.armR.rotation.z = 0.15;
+          bellNpcMonkRef.current.armL.rotation.x = -0.55;
+          bellNpcMonkRef.current.armL.rotation.z = 0.35;
+        }
       }
 
       // Swimming Koi Fish
@@ -2565,7 +2671,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       scene.clear();
       renderer.dispose();
     };
-  }, [handleFeedKoiFish, handleRingBell, graphicsQuality]);
+  }, [handleFeedKoiFish, handleRingBell, handleTalkToMonk, graphicsQuality]);
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-stone-950 font-sans">
@@ -2713,6 +2819,63 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOGUE MODAL: CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG */}
+      {bellNpcDialogue && (
+        <div className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-40 pointer-events-auto max-w-[94vw] sm:max-w-md w-full animate-fadeIn">
+          <div className="anime-glass-panel border-2 border-amber-400/50 p-4 sm:p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.7)] backdrop-blur-xl relative">
+            <button
+              onClick={() => setBellNpcDialogue(null)}
+              className="absolute top-3 right-3 text-amber-200 hover:text-white text-xs p-1.5 rounded-full hover:bg-white/10 transition cursor-pointer font-bold"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center text-2xl shadow-lg border border-amber-300/60 ring-2 ring-amber-400/30 shrink-0">
+                {bellNpcDialogue.avatar}
+              </div>
+              <div>
+                <div className="font-heading font-black text-sm sm:text-base text-amber-200 flex items-center gap-1.5">
+                  <span>{bellNpcDialogue.speaker}</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 font-normal">
+                    {bellNpcDialogue.role}
+                  </span>
+                </div>
+                <div className="text-[11px] text-amber-100/70 font-sans">
+                  Tháp Chuông Chùa Sơn Tự
+                </div>
+              </div>
+            </div>
+
+            <div className="text-xs sm:text-sm text-stone-100 font-serif leading-relaxed mb-3 whitespace-pre-line bg-black/30 p-3 rounded-2xl border border-amber-500/20">
+              {bellNpcDialogue.text}
+            </div>
+
+            {bellNpcDialogue.gatha && (
+              <div className="text-[11px] sm:text-xs text-amber-300/90 font-serif italic text-center p-2.5 rounded-xl bg-amber-950/40 border border-amber-400/30 mb-3 whitespace-pre-line leading-relaxed shadow-inner">
+                {bellNpcDialogue.gatha}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={handleRingBell}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-amber-300/50"
+              >
+                <span>🔔</span>
+                <span>Thỉnh Chuông Lại</span>
+              </button>
+              <button
+                onClick={() => setBellNpcDialogue(null)}
+                className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-200 hover:text-white font-heading text-xs transition cursor-pointer border border-amber-400/30"
+              >
+                Tâm An Lạc 🙏
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -3739,6 +3902,626 @@ function createAuthenticJadePagoda(
   pagoda.add(spireLight);
 
   return pagoda;
+}
+
+/** Vẽ khuôn mặt Chú Tiểu Tuệ Tĩnh Chibi Anime thanh tú với 3 nốt giới hương thiền môn */
+function createTueTinhFaceTexture(): THREE.CanvasTexture {
+  const W = 512;
+  const H = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Nền da mịn màng hồng hào Chibi
+  ctx.fillStyle = '#ffedd5';
+  ctx.fillRect(0, 0, W, H);
+
+  // 3 Chấm Giới Hương (Giới Điệp Thiền Môn) trên trán
+  ctx.fillStyle = '#d97706';
+  [100, 118, 136].forEach((y) => {
+    ctx.beginPath();
+    ctx.arc(256, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // Đôi mày thanh tú hiền hòa
+  ctx.strokeStyle = '#451a03';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(170, 205);
+  ctx.quadraticCurveTo(205, 192, 235, 208);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(277, 208);
+  ctx.quadraticCurveTo(307, 192, 342, 205);
+  ctx.stroke();
+
+  // Đôi mắt Chibi to tròn ấm áp
+  const drawEye = (cx: number) => {
+    ctx.strokeStyle = '#1e1b4b';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(cx, 260, 36, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.stroke();
+
+    const irisGrad = ctx.createRadialGradient(cx, 258, 4, cx, 260, 28);
+    irisGrad.addColorStop(0, '#78350f');
+    irisGrad.addColorStop(0.65, '#451a03');
+    irisGrad.addColorStop(1, '#1c1917');
+    ctx.fillStyle = irisGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, 262, 26, 32, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(cx, 262, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx - 9, 250, 9, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx + 8, 272, 5, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  drawEye(205);
+  drawEye(307);
+
+  // Má hồng Chibi e ấp
+  const drawBlush = (bx: number) => {
+    const blushGrad = ctx.createRadialGradient(bx, 310, 2, bx, 310, 32);
+    blushGrad.addColorStop(0, 'rgba(251, 113, 133, 0.45)');
+    blushGrad.addColorStop(0.6, 'rgba(251, 113, 133, 0.22)');
+    blushGrad.addColorStop(1, 'rgba(251, 113, 133, 0)');
+    ctx.fillStyle = blushGrad;
+    ctx.beginPath();
+    ctx.arc(bx, 310, 32, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  drawBlush(170);
+  drawBlush(342);
+
+  // Nụ cười mỉm an nhiên
+  ctx.strokeStyle = '#b91c1c';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(256, 318, 16, Math.PI * 0.15, Math.PI * 0.85);
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  return tex;
+}
+
+/**
+ * Tháp Chuông Chùa Cổ Tự 2 Tầng 8 Mái Chồng Diêm theo bản vẽ kiến trúc phát thảo
+ */
+function createAuthenticBellTower(
+  matStoneGrey: THREE.Material,
+  matLotusPlinth: THREE.Material,
+  matWoodLim: THREE.Material,
+  matDarkTimber: THREE.Material,
+  matAmberWood: THREE.Material,
+  matJadeRoofTile: THREE.Material,
+  matBronze: THREE.Material,
+  matGold: THREE.Material,
+  nightLightsRef: React.MutableRefObject<THREE.PointLight[]>
+): {
+  group: THREE.Group;
+  bellMesh: THREE.Mesh;
+  chayGo: THREE.Group;
+  npcMonk: {
+    group: THREE.Group;
+    torso: THREE.Group;
+    head: THREE.Group;
+    armR: THREE.Group;
+    armL: THREE.Group;
+  };
+  soundRipplesGroup: THREE.Group;
+  roofs: THREE.Group[];
+} {
+  const bellTower = new THREE.Group();
+  const roofs: THREE.Group[] = [];
+
+  // 1. BỆ ĐÁ TAM CẤP (THREE-TIER CARVED STONE PEDESTAL)
+  const base1 = new THREE.Mesh(new THREE.BoxGeometry(11.4, 0.35, 11.4), matStoneGrey);
+  base1.position.set(0, 0.175, 0);
+  base1.receiveShadow = true;
+  bellTower.add(base1);
+
+  const base2 = new THREE.Mesh(new THREE.BoxGeometry(10.6, 0.30, 10.6), matStoneGrey);
+  base2.position.set(0, 0.48, 0);
+  base2.receiveShadow = true;
+  bellTower.add(base2);
+
+  const base3 = new THREE.Mesh(new THREE.BoxGeometry(9.8, 0.28, 9.8), matStoneGrey);
+  base3.position.set(0, 0.75, 0);
+  base3.receiveShadow = true;
+  bellTower.add(base3);
+
+  const stoneTrim = new THREE.Mesh(new THREE.BoxGeometry(9.9, 0.04, 9.9), matLotusPlinth);
+  stoneTrim.position.set(0, 0.89, 0);
+  stoneTrim.receiveShadow = true;
+  bellTower.add(stoneTrim);
+
+  // Bậc tam cấp đá mặt trước
+  for (let s = 0; s < 5; s++) {
+    const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.16, 0.38), matStoneGrey);
+    stepMesh.position.set(0, 0.16 + s * 0.15, 5.0 + (4 - s) * 0.34);
+    stepMesh.receiveShadow = true;
+    bellTower.add(stepMesh);
+  }
+
+  // Hai bên lan can bậc đá chạm mây
+  for (const sx of [-2.05, 2.05]) {
+    const rampGroup = new THREE.Group();
+    rampGroup.position.set(sx, 0, 5.6);
+    for (let r = 0; r < 5; r++) {
+      const rBlock = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.42, 0.38), matLotusPlinth);
+      rBlock.position.set(0, 0.28 + r * 0.15, (2 - r) * 0.34);
+      rampGroup.add(rBlock);
+    }
+    const cloudScroll = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.08, 6, 12, Math.PI * 1.2), matLotusPlinth);
+    cloudScroll.position.set(0, 0.26, 1.2);
+    cloudScroll.rotation.y = sx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    rampGroup.add(cloudScroll);
+    bellTower.add(rampGroup);
+  }
+
+  // 2. LAN CAN ĐÁ TỨ DIỆN
+  const railingGroup = new THREE.Group();
+  const railH = 0.82;
+  const railY = 0.89 + railH / 2;
+
+  const railNorth = new THREE.Mesh(new THREE.BoxGeometry(9.4, railH, 0.22), matStoneGrey);
+  railNorth.position.set(0, railY, -4.7);
+  railingGroup.add(railNorth);
+
+  const railWest = new THREE.Mesh(new THREE.BoxGeometry(0.22, railH, 9.4), matStoneGrey);
+  railWest.position.set(-4.7, railY, 0);
+  railingGroup.add(railWest);
+
+  const railEast = new THREE.Mesh(new THREE.BoxGeometry(0.22, railH, 9.4), matStoneGrey);
+  railEast.position.set(4.7, railY, 0);
+  railingGroup.add(railEast);
+
+  const railSouthL = new THREE.Mesh(new THREE.BoxGeometry(2.6, railH, 0.22), matStoneGrey);
+  railSouthL.position.set(-3.4, railY, 4.7);
+  railingGroup.add(railSouthL);
+
+  const railSouthR = new THREE.Mesh(new THREE.BoxGeometry(2.6, railH, 0.22), matStoneGrey);
+  railSouthR.position.set(3.4, railY, 4.7);
+  railingGroup.add(railSouthR);
+
+  const postCoords = [
+    [-4.7, -4.7], [0, -4.7], [4.7, -4.7],
+    [-4.7, 0], [4.7, 0],
+    [-4.7, 4.7], [-2.1, 4.7], [2.1, 4.7], [4.7, 4.7]
+  ];
+  postCoords.forEach(([px, pz]) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.32, railH + 0.15, 0.32), matLotusPlinth);
+    post.position.set(px, railY + 0.08, pz);
+    railingGroup.add(post);
+
+    const bud = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.24, 6), matLotusPlinth);
+    bud.position.set(px, railY + 0.65, pz);
+    railingGroup.add(bud);
+  });
+  bellTower.add(railingGroup);
+
+  // 3. 4 CỘT CÁI GỖ LIM & CHÂN TẢNG ĐÁ HOA SEN
+  const colCoords = [
+    [-2.6, -2.6],
+    [-2.6, 2.6],
+    [2.6, -2.6],
+    [2.6, 2.6],
+  ];
+  const colH = 4.4;
+  const colY = 1.15 + colH / 2;
+
+  colCoords.forEach(([cx, cz]) => {
+    const plinthBase = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.22, 16), matLotusPlinth);
+    plinthBase.position.set(cx, 1.0, cz);
+    plinthBase.receiveShadow = true;
+    bellTower.add(plinthBase);
+
+    for (let p = 0; p < 8; p++) {
+      const angle = (p * Math.PI) / 4;
+      const petal = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 5), matLotusPlinth);
+      petal.rotation.x = Math.PI / 2;
+      petal.rotation.z = angle;
+      petal.position.set(cx + Math.cos(angle) * 0.52, 1.05, cz + Math.sin(angle) * 0.52);
+      bellTower.add(petal);
+    }
+
+    const colMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.46, colH, 16), matWoodLim);
+    colMesh.position.set(cx, colY, cz);
+    colMesh.castShadow = true;
+    colMesh.receiveShadow = true;
+    bellTower.add(colMesh);
+
+    const corbel = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 0.65), matDarkTimber);
+    corbel.position.set(cx, colY + colH / 2 - 0.15, cz);
+    bellTower.add(corbel);
+  });
+
+  // 4. HỆ XÀ GỖ KẾT NỐI (TIE-BEAMS & BRACKET CORBELS)
+  const beamLowFB = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.20, 0.28), matDarkTimber);
+  beamLowFB.position.set(0, 3.65, -2.6);
+  bellTower.add(beamLowFB);
+  const beamLowFB2 = beamLowFB.clone();
+  beamLowFB2.position.set(0, 3.65, 2.6);
+  bellTower.add(beamLowFB2);
+
+  const beamLowLR = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 5.4), matDarkTimber);
+  beamLowLR.position.set(-2.6, 3.65, 0);
+  bellTower.add(beamLowLR);
+  const beamLowLR2 = beamLowLR.clone();
+  beamLowLR2.position.set(2.6, 3.65, 0);
+  bellTower.add(beamLowLR2);
+
+  const beamUpFB = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.28, 0.34), matDarkTimber);
+  beamUpFB.position.set(0, 5.45, -2.6);
+  bellTower.add(beamUpFB);
+  const beamUpFB2 = beamUpFB.clone();
+  beamUpFB2.position.set(0, 5.45, 2.6);
+  bellTower.add(beamUpFB2);
+
+  const beamUpLR = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 5.6), matDarkTimber);
+  beamUpLR.position.set(-2.6, 5.45, 0);
+  bellTower.add(beamUpLR);
+  const beamUpLR2 = beamUpLR.clone();
+  beamUpLR2.position.set(2.6, 5.45, 0);
+  bellTower.add(beamUpLR2);
+
+  const centerBellBeam = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.42, 0.45), matDarkTimber);
+  centerBellBeam.position.set(0, 5.35, 0);
+  bellTower.add(centerBellBeam);
+
+  // 5. TẦNG MÁI HẠ (4 ĐẦU ĐAO CONG VÚT)
+  const lowerRoof = createJadeCurvedRoof(11.6, 11.6, 2.3, matJadeRoofTile, matGold);
+  lowerRoof.position.set(0, 5.5, 0);
+  roofs.push(lowerRoof);
+  bellTower.add(lowerRoof);
+
+  // 6. CỔ BỒNG THƯỢNG (CLERESTORY WITH BALUSTERS)
+  const clerestoryGroup = new THREE.Group();
+  clerestoryGroup.position.set(0, 6.2, 0);
+
+  for (const [cx, cz] of [[-2.1, -2.1], [-2.1, 2.1], [2.1, -2.1], [2.1, 2.1]]) {
+    const col2 = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 1.4, 12), matDarkTimber);
+    col2.position.set(cx, 0.7, cz);
+    clerestoryGroup.add(col2);
+  }
+
+  const clFloor = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.16, 5.4), matDarkTimber);
+  clFloor.position.set(0, 0.08, 0);
+  clerestoryGroup.add(clFloor);
+
+  const clCeil = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.18, 5.4), matDarkTimber);
+  clCeil.position.set(0, 1.35, 0);
+  clerestoryGroup.add(clCeil);
+
+  for (let s = -5; s <= 5; s++) {
+    const pos = s * 0.36;
+    if (Math.abs(s) > 4) continue;
+    const bN = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 8), matAmberWood);
+    bN.position.set(pos, 0.7, -2.1);
+    clerestoryGroup.add(bN);
+
+    const bS = bN.clone();
+    bS.position.set(pos, 0.7, 2.1);
+    clerestoryGroup.add(bS);
+
+    const bW = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 8), matAmberWood);
+    bW.position.set(-2.1, 0.7, pos);
+    clerestoryGroup.add(bW);
+
+    const bE = bW.clone();
+    bE.position.set(2.1, 0.7, pos);
+    clerestoryGroup.add(bE);
+  }
+
+  const bellLight = new THREE.PointLight(0xfef08a, 1.4, 16);
+  bellLight.position.set(0, 0.7, 0);
+  nightLightsRef.current.push(bellLight);
+  clerestoryGroup.add(bellLight);
+  bellTower.add(clerestoryGroup);
+
+  // 7. TẦNG MÁI THƯỢNG & ĐỈNH THÁP BÚP SEN
+  const upperRoof = createJadeCurvedRoof(8.6, 8.6, 2.2, matJadeRoofTile, matGold);
+  upperRoof.position.set(0, 7.6, 0);
+  roofs.push(upperRoof);
+  bellTower.add(upperRoof);
+
+  const spireGroup = new THREE.Group();
+  spireGroup.position.set(0, 9.8, 0);
+
+  const spirePlinth = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.1, 0.32, 12), matLotusPlinth);
+  spireGroup.add(spirePlinth);
+
+  for (let r = 0; r < 3; r++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.75 - r * 0.16, 0.08, 6, 16), matGold);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(0, 0.28 + r * 0.24, 0);
+    spireGroup.add(ring);
+  }
+
+  const gourdBase = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), matGold);
+  gourdBase.position.set(0, 1.15, 0);
+  spireGroup.add(gourdBase);
+
+  const gourdTop = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), matGold);
+  gourdTop.position.set(0, 1.7, 0);
+  spireGroup.add(gourdTop);
+
+  const spireApex = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 8), matGold);
+  spireApex.position.set(0, 2.15, 0);
+  spireGroup.add(spireApex);
+  bellTower.add(spireGroup);
+
+  // 8. ĐẠI HỒNG CHUNG BẰNG ĐỒNG
+  const bellGroup = new THREE.Group();
+  bellGroup.position.set(0, 4.8, 0);
+
+  const dragonArch = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.12, 8, 16, Math.PI), matBronze);
+  dragonArch.position.set(0, 0.38, 0);
+  bellGroup.add(dragonArch);
+
+  const chainLink = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 6, 12), matDarkTimber);
+  chainLink.position.set(0, 0.68, 0);
+  bellGroup.add(chainLink);
+
+  const bellDome = new THREE.Mesh(new THREE.SphereGeometry(0.92, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), matBronze);
+  bellDome.position.set(0, 0, 0);
+  bellDome.castShadow = true;
+  bellGroup.add(bellDome);
+
+  const bellUpper = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 1.28, 1.25, 24), matBronze);
+  bellUpper.position.set(0, -0.625, 0);
+  bellUpper.castShadow = true;
+  bellGroup.add(bellUpper);
+
+  const bellLower = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.68, 1.15, 24), matBronze);
+  bellLower.position.set(0, -1.825, 0);
+  bellLower.castShadow = true;
+  bellGroup.add(bellLower);
+
+  const bellSkirt = new THREE.Mesh(new THREE.CylinderGeometry(1.68, 1.95, 0.35, 24), matBronze);
+  bellSkirt.position.set(0, -2.575, 0);
+  bellSkirt.castShadow = true;
+  bellGroup.add(bellSkirt);
+
+  for (const ry of [-0.3, -1.25, -2.4]) {
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.3 + Math.abs(ry) * 0.22, 0.04, 6, 24), matGold);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.set(0, ry, 0);
+    bellGroup.add(rim);
+  }
+
+  for (let b = 0; b < 4; b++) {
+    const bAngle = (b * Math.PI) / 2;
+    const boss = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), matGold);
+    boss.scale.set(1.4, 1.0, 1.0);
+    boss.rotation.y = -bAngle;
+    boss.position.set(Math.cos(bAngle) * 1.45, -1.55, Math.sin(bAngle) * 1.45);
+    bellGroup.add(boss);
+
+    const plaque = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.06), matDarkTimber);
+    plaque.position.set(Math.cos(bAngle + Math.PI / 4) * 1.18, -0.75, Math.sin(bAngle + Math.PI / 4) * 1.18);
+    plaque.rotation.y = -(bAngle + Math.PI / 4) + Math.PI / 2;
+    bellGroup.add(plaque);
+  }
+  bellTower.add(bellGroup);
+
+  // 9. CHÀY GỖ TREO DÂY (SUSPENDED MALLET)
+  const chayPivot = new THREE.Group();
+  chayPivot.position.set(2.35, 5.35, 0);
+
+  const rope1 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.05, 8), matDarkTimber);
+  rope1.position.set(-0.65, -1.025, 0);
+  chayPivot.add(rope1);
+
+  const rope2 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.05, 8), matDarkTimber);
+  rope2.position.set(0.65, -1.025, 0);
+  chayPivot.add(rope2);
+
+  const chayLog = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 16), matAmberWood);
+  chayLog.rotation.z = Math.PI / 2;
+  chayLog.position.set(0, -2.1, 0);
+  chayLog.castShadow = true;
+  chayPivot.add(chayLog);
+
+  const chayHead = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), matAmberWood);
+  chayHead.position.set(-1.1, -2.1, 0);
+  chayPivot.add(chayHead);
+
+  for (const dx of [-0.85, 0.85]) {
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.035, 8, 16), matBronze);
+    collar.rotation.y = Math.PI / 2;
+    collar.position.set(dx, -2.1, 0);
+    chayPivot.add(collar);
+  }
+
+  const gripRope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.65, 8), matDarkTimber);
+  gripRope.position.set(-0.15, -2.45, 0.25);
+  chayPivot.add(gripRope);
+  bellTower.add(chayPivot);
+
+  // 10. NPC CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG (CHIBI BUDDHIST NOVICE MONK)
+  const npcGroup = new THREE.Group();
+  npcGroup.position.set(2.15, 0.89, 0.65);
+  npcGroup.rotation.y = -2.45;
+
+  const matPants = new THREE.MeshStandardMaterial({ color: 0x6d3917, roughness: 0.8 });
+  const matShoe = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+
+  for (const lx of [-0.14, 0.14]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.38, 10), matPants);
+    leg.position.set(lx, 0.19, 0);
+    npcGroup.add(leg);
+
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.07, 0.22), matShoe);
+    shoe.position.set(lx, 0.035, 0.04);
+    npcGroup.add(shoe);
+  }
+
+  const torsoGroup = new THREE.Group();
+  torsoGroup.position.set(0, 0.42, 0);
+
+  const matRobe = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.75 });
+  const matRobeCollar = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.7 });
+
+  const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.46, 0.28), matRobe);
+  bodyMesh.position.set(0, 0.23, 0);
+  bodyMesh.castShadow = true;
+  torsoGroup.add(bodyMesh);
+
+  const skirtMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.31, 0.36, 12), matRobe);
+  skirtMesh.position.set(0, 0.04, 0);
+  torsoGroup.add(skirtMesh);
+
+  const collarCross = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.29), matRobeCollar);
+  collarCross.position.set(0.04, 0.42, 0.01);
+  collarCross.rotation.z = -0.35;
+  torsoGroup.add(collarCross);
+
+  for (let i = 0; i < 16; i++) {
+    const bAngle = (i / 16) * Math.PI * 2;
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), matAmberWood);
+    bead.position.set(Math.cos(bAngle) * 0.15, 0.36 + Math.sin(bAngle) * 0.06, Math.sin(bAngle) * 0.12 + 0.04);
+    torsoGroup.add(bead);
+  }
+
+  const armR = new THREE.Group();
+  armR.position.set(0.22, 0.38, 0);
+
+  const rSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.28, 10), matRobe);
+  rSleeve.rotation.z = -Math.PI / 3;
+  rSleeve.position.set(0.12, -0.06, 0.08);
+  armR.add(rSleeve);
+
+  const matSkin = new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.5 });
+  const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
+  rHand.position.set(0.24, -0.12, 0.18);
+  armR.add(rHand);
+  torsoGroup.add(armR);
+
+  const armL = new THREE.Group();
+  armL.position.set(-0.22, 0.38, 0);
+
+  const lSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.26, 10), matRobe);
+  lSleeve.rotation.z = Math.PI / 4;
+  lSleeve.position.set(-0.10, -0.06, 0.08);
+  armL.add(lSleeve);
+
+  const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
+  lHand.position.set(-0.16, 0.04, 0.16);
+  armL.add(lHand);
+  torsoGroup.add(armL);
+
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, 0.52, 0);
+
+  const headGeo = new THREE.SphereGeometry(0.27, 24, 20);
+  const faceTex = createTueTinhFaceTexture();
+  const matFace = new THREE.MeshStandardMaterial({
+    map: faceTex,
+    roughness: 0.5,
+  });
+  const headMesh = new THREE.Mesh(headGeo, matFace);
+  headMesh.rotation.y = -Math.PI / 2;
+  headMesh.castShadow = true;
+  headGroup.add(headMesh);
+
+  for (const ex of [-0.27, 0.27]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), matSkin);
+    ear.scale.set(0.5, 1.0, 0.7);
+    ear.position.set(ex, 0, -0.02);
+    headGroup.add(ear);
+  }
+
+  torsoGroup.add(headGroup);
+  npcGroup.add(torsoGroup);
+  bellTower.add(npcGroup);
+
+  // 11. TRỐNG BÁT NHÃ CỔ TRUYỀN
+  const drumGroup = new THREE.Group();
+  drumGroup.position.set(-2.8, 1.65, -2.2);
+
+  for (const dx of [-0.65, 0.65]) {
+    const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 1.5, 8), matDarkTimber);
+    leg1.rotation.z = dx > 0 ? 0.25 : -0.25;
+    leg1.position.set(dx, -0.4, 0);
+    drumGroup.add(leg1);
+  }
+  const drumCross = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.14), matDarkTimber);
+  drumCross.position.set(0, -0.75, 0);
+  drumGroup.add(drumCross);
+
+  const drumBody = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 1.45, 18), matWoodLim);
+  drumBody.rotateX(Math.PI / 2);
+  drumBody.castShadow = true;
+  drumGroup.add(drumBody);
+
+  const matDrumHead = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.85 });
+  for (const dz of [-0.73, 0.73]) {
+    const dHead = new THREE.Mesh(new THREE.CircleGeometry(0.94, 18), matDrumHead);
+    if (dz < 0) dHead.rotateY(Math.PI);
+    dHead.position.set(0, 0, dz);
+    drumGroup.add(dHead);
+
+    const rimRing = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.035, 6, 24), matBronze);
+    rimRing.position.set(0, 0, dz);
+    drumGroup.add(rimRing);
+  }
+  bellTower.add(drumGroup);
+
+  // 12. CỤM SÓNG ÂM KIM QUANG (CONCENTRIC GOLDEN RIPPLES)
+  const soundRipplesGroup = new THREE.Group();
+  soundRipplesGroup.position.set(0, 3.25, 0);
+  soundRipplesGroup.visible = false;
+
+  for (let i = 0; i < 4; i++) {
+    const ringGeo = new THREE.RingGeometry(1.6, 1.75, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xfef08a,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotateX(Math.PI / 2);
+    soundRipplesGroup.add(ring);
+  }
+  bellTower.add(soundRipplesGroup);
+
+  return {
+    group: bellTower,
+    bellMesh: bellGroup as unknown as THREE.Mesh,
+    chayGo: chayPivot,
+    npcMonk: {
+      group: npcGroup,
+      torso: torsoGroup,
+      head: headGroup,
+      armR,
+      armL,
+    },
+    soundRipplesGroup,
+    roofs,
+  };
 }
 
 // Stylized Moon Window Wall
