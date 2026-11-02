@@ -244,9 +244,8 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative inline-flex flex-col items-center select-none ${className} ${
-        onClick ? 'cursor-pointer hover:scale-105 active:scale-95 transition-all' : ''
-      }`}
+      className={`relative inline-flex flex-col items-center select-none ${className} ${onClick ? 'cursor-pointer hover:scale-105 active:scale-95 transition-all' : ''
+        }`}
       style={{ transform: `scale(${scale})` }}
     >
       {/* Name and Title Tag */}
@@ -266,7 +265,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
 
       {/* Main Chibi Character Graphic */}
       <div className={`relative ${isBreathingAnim ? 'animate-pulse' : ''}`}>
-        
+
         {/* =========================================================
             POSE 1: MEDITATING (TỌA THIỀN KIẾT GIÀ TRÊN BỒ ĐOÀN SEN)
             ========================================================= */}
@@ -385,9 +384,8 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
           <div className="relative">
             <svg
               viewBox="0 0 160 200"
-              className={`w-40 h-50 sm:w-48 sm:h-60 drop-shadow-2xl overflow-visible transition-transform duration-300 ${
-                isSweepingAnim ? '-rotate-4 translate-x-1' : 'rotate-0'
-              }`}
+              className={`w-40 h-50 sm:w-48 sm:h-60 drop-shadow-2xl overflow-visible transition-transform duration-300 ${isSweepingAnim ? '-rotate-4 translate-x-1' : 'rotate-0'
+                }`}
             >
               {/* Bóng Chibi dưới đất */}
               <ellipse cx="80" cy="188" rx="42" ry="9" fill="rgba(0,0,0,0.3)" />
