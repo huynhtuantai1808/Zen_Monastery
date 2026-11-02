@@ -835,7 +835,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   // Environment Animated objects refs
   const bellMeshRef = useRef<THREE.Mesh | null>(null);
   const bellRingingTimerRef = useRef<number>(0);
+  const bellAnimFrameRef = useRef<number>(0);
+  const isAutoBellActiveRef = useRef<boolean>(true);
+  const [isAutoBellActive, setIsAutoBellActive] = useState<boolean>(true);
   const chayGoRef = useRef<THREE.Group | null>(null);
+  const impactFlashRef = useRef<THREE.Mesh | null>(null);
   const bellNpcMonkRef = useRef<{
     group: THREE.Group;
     torso: THREE.Group;
@@ -867,16 +871,26 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   // Dedicated sound trigger: Bell rings and Novice Monk strikes with mallet
   const handleRingBell = useCallback(() => {
     soundEngine.playDistantEchoBell(1, 0.85);
-    bellRingingTimerRef.current = 90;
+    bellRingingTimerRef.current = 240;
+    // Fast-forward animation directly to strike anticipation
+    bellAnimFrameRef.current = 480;
     setBellNpcDialogue({
       speaker: 'Chú Tiểu Tuệ Tĩnh',
       avatar: '🔔',
       role: 'Thủ Hộ Lầu Chuông',
-      text: 'Tiếng Đại Hồng Chung đã ngân vang ba cõi! Nguyện tiếng chuông này thức tỉnh tâm mê, tiêu trừ trăm phiền não, mang lại an lạc vô lượng cho thí chủ và vạn vật.',
-      gatha: '🔔 Kệ Thỉnh Chuông:\n"Nguyện thử chung thanh siêu pháp giới\nThiết vi u ám tất giai văn\nVăn trần thanh tịnh chứng viên thông\nNhất thiết chúng sanh thành Chánh giác."',
+      text: 'Tiếng Đại Hồng Chung đã ngân vang ba cõi! Chú Tiểu đang thỉnh chuông tiêu trừ phiền não, mang lại an lạc vô lượng cho thí chủ và muôn loài khắp mười phương.',
+      gatha: '🔔 Kệ Thỉnh Chuông:\n"Nguyện tiếng chuông này vang pháp giới\nThiết vi u ám tất giai văn\nVăn trần thanh tịnh chứng viên thông\nNhất thiết chúng sanh thành Chánh giác."',
     });
     onAddMerit(35, 50, 40, '🔔 Đại Hồng Chung Ngân Vang Đỉnh Núi');
   }, [onAddMerit]);
+
+  const toggleAutoBell = useCallback(() => {
+    setIsAutoBellActive((prev) => {
+      const next = !prev;
+      isAutoBellActiveRef.current = next;
+      return next;
+    });
+  }, []);
 
   const handleTalkToMonk = useCallback(() => {
     soundEngine.playWoodenFish();
@@ -1387,6 +1401,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     bellTowerData.group.position.set(-26, 0, -20);
     bellMeshRef.current = bellTowerData.bellMesh;
     chayGoRef.current = bellTowerData.chayGo;
+    impactFlashRef.current = bellTowerData.impactFlash;
     bellNpcMonkRef.current = bellTowerData.npcMonk;
     soundRipplesGroupRef.current = bellTowerData.soundRipplesGroup;
     bellTowerData.roofs.forEach((r) => bellRoofsRef.current.push(r));
@@ -2294,6 +2309,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             } else if (zKey === 'BELL') {
               actionsList.push({ title: 'Thỉnh Đại Hồng Chung', action: handleRingBell, icon: '🔔' });
               actionsList.push({ title: 'Đàm Đạo với Chú Tiểu', action: handleTalkToMonk, icon: '🙏' });
+              actionsList.push({
+                title: isAutoBellActive ? 'Tắt Gõ Chuông Tự Động' : 'Bật Gõ Chuông Tự Động',
+                action: toggleAutoBell,
+                icon: isAutoBellActive ? '⏸️' : '▶️'
+              });
             } else if (zKey === 'CORRIDOR') {
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
             } else if (zKey === 'SANCTUARY') {
@@ -2502,85 +2522,157 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         return true;
       });
 
-      // Bell & Bell-Striking Novice Monk Animation (Chú Tiểu Tuệ Tĩnh & Chày Gỗ)
-      if (bellRingingTimerRef.current > 0) {
-        bellRingingTimerRef.current--;
-        const timer = bellRingingTimerRef.current; // 90 down to 0
+      // ══════════════════════════════════════════════════════════════════
+      // HOẠT ẢNH GÕ CHUÔNG NPC CHÚ TIỂU TUỆ TĨNH & ĐẠI HỒNG CHUNG
+      // Chu kỳ 720 frames (~12s) thiền định, lấy đà, vung chày gõ mạnh, chuông ngân & chắp tay xá Phật
+      // ══════════════════════════════════════════════════════════════════
+      if (isAutoBellActiveRef.current || bellRingingTimerRef.current > 0) {
+        bellAnimFrameRef.current++;
+        if (bellRingingTimerRef.current > 0) bellRingingTimerRef.current--;
+      }
 
-        if (timer > 65) {
-          // Phase 1: Kéo lùi chày gỗ lấy đà
-          const pullT = (90 - timer) / 25; // 0 to 1
-          if (chayGoRef.current) {
-            chayGoRef.current.rotation.z = Math.sin(pullT * Math.PI * 0.5) * 0.18;
-          }
-          if (bellNpcMonkRef.current) {
-            bellNpcMonkRef.current.torso.rotation.z = -0.14 * pullT;
-            bellNpcMonkRef.current.armR.rotation.x = -0.35 * pullT;
-            bellNpcMonkRef.current.armR.rotation.z = 0.25 * pullT;
-          }
-        } else if (timer > 48) {
-          // Phase 2: Dồn lực đẩy mạnh chày gỗ gõ trúng núm chuông!
-          const strikeT = (65 - timer) / 17; // 0 to 1
-          if (chayGoRef.current) {
-            chayGoRef.current.rotation.z = 0.18 - strikeT * 0.36; // Va chạm tại -0.18 rad
-          }
-          if (bellNpcMonkRef.current) {
-            bellNpcMonkRef.current.torso.rotation.z = -0.14 + strikeT * 0.26;
-            bellNpcMonkRef.current.armR.rotation.x = 0.45 * strikeT;
-            bellNpcMonkRef.current.armR.rotation.z = -0.35 * strikeT;
-          }
-        } else {
-          // Phase 3: Chuông rung ngân vang, sóng âm kim quang lan tỏa, Chú Tiểu chắp tay xá Phật
-          const recoilT = (48 - timer) / 48; // 0 to 1
-          const damp = timer / 48; // 1 down to 0
+      const cycleFrame = bellAnimFrameRef.current % 720;
+      const monk = bellNpcMonkRef.current;
+      const chay = chayGoRef.current;
+      const bell = bellMeshRef.current;
+      const ripples = soundRipplesGroupRef.current;
+      const flash = impactFlashRef.current;
 
-          if (chayGoRef.current) {
-            chayGoRef.current.rotation.z = Math.sin(recoilT * 18.0) * 0.08 * damp;
+      const BASE_TORSO_Y = 0.46; // Độ cao thân trên chuẩn - không bao giờ để NPC bị chìm dưới sàn!
+
+      if (cycleFrame < 480) {
+        // GIAI ĐOẠN 0: NGHỈ THIỀN ĐỊNH & LẮNG NGHE CHUÔNG NGÂN (0s - 8s)
+        if (bell) bell.rotation.z = 0;
+        if (chay) chay.rotation.z = Math.sin(stepCount * 0.03) * 0.018;
+        if (ripples) ripples.visible = false;
+        if (flash) (flash.material as THREE.MeshBasicMaterial).opacity = 0;
+
+        if (monk) {
+          // Thở nhẹ nhàng chánh niệm trên độ cao sàn chuẩn
+          monk.torso.position.y = BASE_TORSO_Y + Math.sin(stepCount * 0.04) * 0.012;
+          monk.head.rotation.y = Math.sin(stepCount * 0.02) * 0.08;
+          monk.head.rotation.x = -0.05;
+          monk.torso.rotation.x = 0;
+          monk.torso.rotation.z = 0;
+          // Hai tay đặt tự nhiên trên thân chày gỗ
+          monk.armR.rotation.x = -0.75;
+          monk.armR.rotation.y = -0.15;
+          monk.armR.rotation.z = -0.12;
+          monk.armL.rotation.x = -0.70;
+          monk.armL.rotation.y = 0.20;
+          monk.armL.rotation.z = 0.12;
+        }
+      } else if (cycleFrame < 560) {
+        // GIAI ĐOẠN 1: LẤY ĐÀ - KÉO LÙI CHÀY GỖ (8s - 9.3s)
+        const t = (cycleFrame - 480) / 80; // 0 to 1
+        const easeT = Math.sin(t * Math.PI * 0.5);
+
+        // Chú Tiểu ngả người ra sau kéo lùi chày gỗ
+        if (monk) {
+          monk.torso.position.y = BASE_TORSO_Y - 0.02 * easeT;
+          monk.torso.rotation.x = -0.32 * easeT;
+          monk.head.rotation.x = -0.18 * easeT;
+          monk.armR.rotation.x = -0.75 + 0.42 * easeT;
+          monk.armR.rotation.z = -0.12 - 0.18 * easeT;
+          monk.armL.rotation.x = -0.70 + 0.42 * easeT;
+          monk.armL.rotation.z = 0.12 + 0.18 * easeT;
+        }
+        if (chay) {
+          chay.rotation.z = 0.24 * easeT;
+        }
+        if (ripples) ripples.visible = false;
+        if (flash) (flash.material as THREE.MeshBasicMaterial).opacity = 0;
+      } else if (cycleFrame < 595) {
+        // GIAI ĐOẠN 2: DỒN LỰC VUNG CHÀY GÕ MẠNH VÀO NÚM CHUÔNG (9.3s - 9.9s)
+        const t = (cycleFrame - 560) / 35; // 0 to 1
+        const accelT = t * t; // Gia tốc mạnh mẽ khi vung
+
+        // Chú Tiểu rướn toàn thân về phía trước, hai tay đẩy chày gỗ hết tầm với
+        if (monk) {
+          monk.torso.position.y = BASE_TORSO_Y + 0.02 * Math.sin(t * Math.PI);
+          monk.torso.rotation.x = -0.32 + 0.72 * accelT; // Từ ngả sau (-0.32) vươn mạnh tới (+0.40)
+          monk.head.rotation.x = -0.18 + 0.38 * accelT;
+          monk.armR.rotation.x = -0.33 - 0.85 * accelT; // Đẩy thẳng tay tới -1.18
+          monk.armR.rotation.z = -0.30 + 0.25 * accelT;
+          monk.armL.rotation.x = -0.28 - 0.85 * accelT;
+          monk.armL.rotation.z = 0.30 - 0.25 * accelT;
+        }
+        if (chay) {
+          chay.rotation.z = 0.24 - 0.46 * accelT; // Vung từ +0.24 tới va chạm tại -0.22 rad
+        }
+      } else if (cycleFrame < 680) {
+        // GIAI ĐOẠN 3: VA CHẠM, CHUÔNG NGÂN VANG, SÓNG ÂM KIM QUANG & CHẮP TAY XÁ PHẬT (9.9s - 11.3s)
+        const t = (cycleFrame - 595) / 85; // 0 to 1
+
+        // Khoảnh khắc va chạm tại frame 595: phát âm thanh chuông nếu người chơi ở gần
+        if (cycleFrame === 595) {
+          const distToBell = Math.hypot(playerPosRef.current.x - (-26), playerPosRef.current.z - (-20));
+          if (distToBell < 55) {
+            soundEngine.playDistantEchoBell(1, Math.max(0.3, 0.95 - distToBell / 60));
           }
-          if (bellMeshRef.current) {
-            bellMeshRef.current.rotation.z = Math.sin(stepCount * 0.6) * 0.08 * damp;
-          }
-          if (soundRipplesGroupRef.current) {
-            soundRipplesGroupRef.current.visible = true;
-            soundRipplesGroupRef.current.children.forEach((ring, idx) => {
-              const ringT = ((48 - timer + idx * 10) % 40) / 40;
-              ring.scale.set(1 + ringT * 4.5, 1 + ringT * 4.5, 1 + ringT * 4.5);
-              const mat = (ring as THREE.Mesh).material as THREE.MeshBasicMaterial;
-              if (mat) {
-                mat.opacity = Math.max(0, (1 - ringT) * 0.85);
-              }
-            });
-          }
-          if (bellNpcMonkRef.current) {
-            bellNpcMonkRef.current.torso.rotation.z = 0;
-            bellNpcMonkRef.current.torso.rotation.x = Math.sin(recoilT * Math.PI) * 0.22; // Cúi đầu chánh niệm
-            const bowT = Math.min(1.0, recoilT * 2.2);
-            bellNpcMonkRef.current.armR.rotation.x = -0.68 * bowT;
-            bellNpcMonkRef.current.armR.rotation.z = -0.42 * bowT;
-            bellNpcMonkRef.current.armL.rotation.x = -0.68 * bowT;
-            bellNpcMonkRef.current.armL.rotation.z = 0.42 * bowT;
-          }
+        }
+
+        // Tia lửa tóe sáng (Impact flash) trong 12 frame đầu sau va chạm
+        if (flash) {
+          const fT = Math.max(0, 1 - (cycleFrame - 595) / 14);
+          (flash.material as THREE.MeshBasicMaterial).opacity = fT * 0.95;
+          flash.scale.set(1 + (1 - fT) * 2.5, 1 + (1 - fT) * 2.5, 1 + (1 - fT) * 2.5);
+        }
+
+        // Chày gỗ nảy lại dao động điều hòa giảm dần
+        if (chay) {
+          chay.rotation.z = -0.22 + Math.sin(t * 18.0) * 0.10 * (1 - t);
+        }
+
+        // Đại Hồng Chung rung chấn thanh thoát
+        if (bell) {
+          bell.rotation.z = Math.sin(t * 32.0) * 0.07 * (1 - t);
+        }
+
+        // Sóng âm kim quang lan tỏa
+        if (ripples) {
+          ripples.visible = true;
+          ripples.children.forEach((ring, idx) => {
+            const rT = ((cycleFrame - 595 + idx * 12) % 45) / 45;
+            ring.scale.set(1 + rT * 5.2, 1 + rT * 5.2, 1 + rT * 5.2);
+            const mat = (ring as THREE.Mesh).material as THREE.MeshBasicMaterial;
+            if (mat) mat.opacity = Math.max(0, (1 - rT) * 0.85);
+          });
+        }
+
+        // Chú Tiểu thu tay về trước ngực, chắp hai tay lại thành ấn Hiệp Chưởng (Anjali) và cúi đầu xá Phật
+        if (monk) {
+          const bowProgress = Math.min(1.0, t * 2.2);
+          monk.torso.position.y = BASE_TORSO_Y;
+          monk.torso.rotation.x = 0.40 * (1 - bowProgress) + 0.24 * bowProgress;
+          monk.head.rotation.x = 0.20 * (1 - bowProgress) + 0.32 * bowProgress;
+          // Hai bàn tay chập lại chính giữa ngực
+          monk.armR.rotation.x = -1.18 * (1 - bowProgress) - 0.68 * bowProgress;
+          monk.armR.rotation.z = -0.05 * (1 - bowProgress) - 0.60 * bowProgress;
+          monk.armR.rotation.y = -0.25 * bowProgress;
+          monk.armL.rotation.x = -1.13 * (1 - bowProgress) - 0.68 * bowProgress;
+          monk.armL.rotation.z = 0.05 * (1 - bowProgress) + 0.60 * bowProgress;
+          monk.armL.rotation.y = 0.25 * bowProgress;
         }
       } else {
-        // Trạng thái nghỉ thiền định (Idle)
-        if (bellMeshRef.current) {
-          bellMeshRef.current.rotation.z = 0;
-        }
-        if (chayGoRef.current) {
-          chayGoRef.current.rotation.z = Math.sin(stepCount * 0.03) * 0.015;
-        }
-        if (soundRipplesGroupRef.current) {
-          soundRipplesGroupRef.current.visible = false;
-        }
-        if (bellNpcMonkRef.current) {
-          bellNpcMonkRef.current.torso.position.y = Math.sin(stepCount * 0.04) * 0.01;
-          bellNpcMonkRef.current.head.rotation.y = Math.sin(stepCount * 0.02) * 0.08;
-          bellNpcMonkRef.current.torso.rotation.x = 0;
-          bellNpcMonkRef.current.torso.rotation.z = 0;
-          bellNpcMonkRef.current.armR.rotation.x = -0.25;
-          bellNpcMonkRef.current.armR.rotation.z = 0.15;
-          bellNpcMonkRef.current.armL.rotation.x = -0.55;
-          bellNpcMonkRef.current.armL.rotation.z = 0.35;
+        // GIAI ĐOẠN 4: HỒI PHỤC TƯ THẾ CHUẨN BỊ CHO HỒI CHUÔNG TIẾP THEO (11.3s - 12s)
+        const t = (cycleFrame - 680) / 40; // 0 to 1
+        if (chay) chay.rotation.z = Math.sin(stepCount * 0.03) * 0.018;
+        if (bell) bell.rotation.z = 0;
+        if (ripples) ripples.visible = false;
+        if (flash) (flash.material as THREE.MeshBasicMaterial).opacity = 0;
+
+        if (monk) {
+          // Trở lại tư thế giữ chày gỗ vững vàng
+          monk.torso.position.y = BASE_TORSO_Y;
+          monk.torso.rotation.x = 0.24 * (1 - t);
+          monk.head.rotation.x = 0.32 * (1 - t) - 0.05 * t;
+          monk.armR.rotation.x = -0.68 * (1 - t) - 0.75 * t;
+          monk.armR.rotation.z = -0.60 * (1 - t) - 0.12 * t;
+          monk.armR.rotation.y = -0.25 * (1 - t) - 0.15 * t;
+          monk.armL.rotation.x = -0.68 * (1 - t) - 0.70 * t;
+          monk.armL.rotation.z = 0.60 * (1 - t) + 0.12 * t;
+          monk.armL.rotation.y = 0.25 * (1 - t) + 0.20 * t;
         }
       }
 
@@ -2671,7 +2763,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       scene.clear();
       renderer.dispose();
     };
-  }, [handleFeedKoiFish, handleRingBell, handleTalkToMonk, graphicsQuality]);
+  }, [handleFeedKoiFish, handleRingBell, handleTalkToMonk, toggleAutoBell, graphicsQuality]);
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-stone-950 font-sans">
@@ -4030,6 +4122,7 @@ function createAuthenticBellTower(
     armL: THREE.Group;
   };
   soundRipplesGroup: THREE.Group;
+  impactFlash: THREE.Mesh;
   roofs: THREE.Group[];
 } {
   const bellTower = new THREE.Group();
@@ -4272,17 +4365,21 @@ function createAuthenticBellTower(
   spireGroup.add(spireApex);
   bellTower.add(spireGroup);
 
-  // 8. ĐẠI HỒNG CHUNG BẰNG ĐỒNG
+  // 8. ĐẠI HỒNG CHUNG BẰNG ĐỒNG (TREO BẰNG DÂY XÍCH TỪ XÀ THƯỢNG)
   const bellGroup = new THREE.Group();
-  bellGroup.position.set(0, 4.8, 0);
+  bellGroup.position.set(0, 3.85, 0);
 
   const dragonArch = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.12, 8, 16, Math.PI), matBronze);
   dragonArch.position.set(0, 0.38, 0);
   bellGroup.add(dragonArch);
 
-  const chainLink = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 6, 12), matDarkTimber);
-  chainLink.position.set(0, 0.68, 0);
-  bellGroup.add(chainLink);
+  // Xích sắt dài nối từ quai rồng lên xà cái trung tâm (y = 5.35)
+  for (let cl = 0; cl < 4; cl++) {
+    const chainLink = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 6, 12), matDarkTimber);
+    chainLink.position.set(0, 0.62 + cl * 0.24, 0);
+    if (cl % 2 === 1) chainLink.rotation.y = Math.PI / 2;
+    bellGroup.add(chainLink);
+  }
 
   const bellDome = new THREE.Mesh(new THREE.SphereGeometry(0.92, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), matBronze);
   bellDome.position.set(0, 0, 0);
@@ -4326,114 +4423,127 @@ function createAuthenticBellTower(
   }
   bellTower.add(bellGroup);
 
-  // 9. CHÀY GỖ TREO DÂY (SUSPENDED MALLET)
+  // 9. CHÀY GỖ TREO DÂY (SUSPENDED MALLET - VỪA TẦM VỚI CHÚ TIỂU)
   const chayPivot = new THREE.Group();
   chayPivot.position.set(2.35, 5.35, 0);
 
-  const rope1 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.05, 8), matDarkTimber);
-  rope1.position.set(-0.65, -1.025, 0);
+  // 2 dây treo dài 3.05m nối xuống độ cao y = 2.30m (ngang tầm ngực Chú Tiểu)
+  const rope1 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 3.05, 8), matDarkTimber);
+  rope1.position.set(-0.65, -1.525, 0);
   chayPivot.add(rope1);
 
-  const rope2 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.05, 8), matDarkTimber);
-  rope2.position.set(0.65, -1.025, 0);
+  const rope2 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 3.05, 8), matDarkTimber);
+  rope2.position.set(0.65, -1.525, 0);
   chayPivot.add(rope2);
 
   const chayLog = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 16), matAmberWood);
   chayLog.rotation.z = Math.PI / 2;
-  chayLog.position.set(0, -2.1, 0);
+  chayLog.position.set(0, -3.05, 0);
   chayLog.castShadow = true;
   chayPivot.add(chayLog);
 
   const chayHead = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), matAmberWood);
-  chayHead.position.set(-1.1, -2.1, 0);
+  chayHead.position.set(-1.05, -3.05, 0);
   chayPivot.add(chayHead);
 
   for (const dx of [-0.85, 0.85]) {
     const collar = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.035, 8, 16), matBronze);
     collar.rotation.y = Math.PI / 2;
-    collar.position.set(dx, -2.1, 0);
+    collar.position.set(dx, -3.05, 0);
     chayPivot.add(collar);
   }
 
   const gripRope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.65, 8), matDarkTimber);
-  gripRope.position.set(-0.15, -2.45, 0.25);
+  gripRope.position.set(-0.15, -3.35, 0.25);
   chayPivot.add(gripRope);
   bellTower.add(chayPivot);
 
+  // Điểm tóe sáng va chạm khi gõ chuông (Impact Spark Flash)
+  const impactFlash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.26, 10, 10),
+    new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0 })
+  );
+  impactFlash.position.set(1.35, 2.30, 0);
+  bellTower.add(impactFlash);
+
   // 10. NPC CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG (CHIBI BUDDHIST NOVICE MONK)
+  // Đặt vững chãi trên sàn bệ đá thượng (y = 0.92, cao hơn mặt stoneTrim y = 0.91 để không bị chìm)
   const npcGroup = new THREE.Group();
-  npcGroup.position.set(2.15, 0.89, 0.65);
+  npcGroup.position.set(2.15, 0.92, 0.65);
   npcGroup.rotation.y = -2.45;
 
   const matPants = new THREE.MeshStandardMaterial({ color: 0x6d3917, roughness: 0.8 });
   const matShoe = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
 
+  // Đôi chân Chú Tiểu đứng thẳng vững vàng trên sàn
   for (const lx of [-0.14, 0.14]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.38, 10), matPants);
-    leg.position.set(lx, 0.19, 0);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.44, 10), matPants);
+    leg.position.set(lx, 0.22, 0);
     npcGroup.add(leg);
 
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.07, 0.22), matShoe);
-    shoe.position.set(lx, 0.035, 0.04);
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.24), matShoe);
+    shoe.position.set(lx, 0.04, 0.04);
     npcGroup.add(shoe);
   }
 
+  // Thân trên bắt đầu từ độ cao 0.46m (trên đùi và hông)
   const torsoGroup = new THREE.Group();
-  torsoGroup.position.set(0, 0.42, 0);
+  torsoGroup.position.set(0, 0.46, 0);
 
   const matRobe = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.75 });
   const matRobeCollar = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.7 });
 
-  const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.46, 0.28), matRobe);
-  bodyMesh.position.set(0, 0.23, 0);
+  const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.48, 0.30), matRobe);
+  bodyMesh.position.set(0, 0.24, 0);
   bodyMesh.castShadow = true;
   torsoGroup.add(bodyMesh);
 
-  const skirtMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.31, 0.36, 12), matRobe);
-  skirtMesh.position.set(0, 0.04, 0);
+  // Vạt áo tràng nâu sồng buông rủ ngang đùi, không chạm sàn
+  const skirtMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.32, 0.36, 12), matRobe);
+  skirtMesh.position.set(0, 0.06, 0);
   torsoGroup.add(skirtMesh);
 
-  const collarCross = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.29), matRobeCollar);
-  collarCross.position.set(0.04, 0.42, 0.01);
+  const collarCross = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.30), matRobeCollar);
+  collarCross.position.set(0.04, 0.43, 0.01);
   collarCross.rotation.z = -0.35;
   torsoGroup.add(collarCross);
 
   for (let i = 0; i < 16; i++) {
     const bAngle = (i / 16) * Math.PI * 2;
     const bead = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), matAmberWood);
-    bead.position.set(Math.cos(bAngle) * 0.15, 0.36 + Math.sin(bAngle) * 0.06, Math.sin(bAngle) * 0.12 + 0.04);
+    bead.position.set(Math.cos(bAngle) * 0.16, 0.38 + Math.sin(bAngle) * 0.06, Math.sin(bAngle) * 0.13 + 0.04);
     torsoGroup.add(bead);
   }
 
   const armR = new THREE.Group();
-  armR.position.set(0.22, 0.38, 0);
+  armR.position.set(0.23, 0.40, 0);
 
-  const rSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.28, 10), matRobe);
+  const rSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.30, 10), matRobe);
   rSleeve.rotation.z = -Math.PI / 3;
-  rSleeve.position.set(0.12, -0.06, 0.08);
+  rSleeve.position.set(0.13, -0.06, 0.08);
   armR.add(rSleeve);
 
   const matSkin = new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.5 });
   const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
-  rHand.position.set(0.24, -0.12, 0.18);
+  rHand.position.set(0.26, -0.12, 0.18);
   armR.add(rHand);
   torsoGroup.add(armR);
 
   const armL = new THREE.Group();
-  armL.position.set(-0.22, 0.38, 0);
+  armL.position.set(-0.23, 0.40, 0);
 
-  const lSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.26, 10), matRobe);
+  const lSleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.28, 10), matRobe);
   lSleeve.rotation.z = Math.PI / 4;
-  lSleeve.position.set(-0.10, -0.06, 0.08);
+  lSleeve.position.set(-0.11, -0.06, 0.08);
   armL.add(lSleeve);
 
   const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
-  lHand.position.set(-0.16, 0.04, 0.16);
+  lHand.position.set(-0.17, 0.04, 0.16);
   armL.add(lHand);
   torsoGroup.add(armL);
 
   const headGroup = new THREE.Group();
-  headGroup.position.set(0, 0.52, 0);
+  headGroup.position.set(0, 0.54, 0);
 
   const headGeo = new THREE.SphereGeometry(0.27, 24, 20);
   const faceTex = createTueTinhFaceTexture();
@@ -4491,7 +4601,7 @@ function createAuthenticBellTower(
 
   // 12. CỤM SÓNG ÂM KIM QUANG (CONCENTRIC GOLDEN RIPPLES)
   const soundRipplesGroup = new THREE.Group();
-  soundRipplesGroup.position.set(0, 3.25, 0);
+  soundRipplesGroup.position.set(0, 2.30, 0);
   soundRipplesGroup.visible = false;
 
   for (let i = 0; i < 4; i++) {
@@ -4520,6 +4630,7 @@ function createAuthenticBellTower(
       armL,
     },
     soundRipplesGroup,
+    impactFlash,
     roofs,
   };
 }

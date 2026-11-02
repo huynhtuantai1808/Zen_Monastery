@@ -1140,13 +1140,13 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.fillRect(bx - 26, 532, 4, 34);
   ctx.fillRect(bx + 22, 532, 4, 34);
 
-  // Lan can đá xung quanh sàn thượng với trụ búp sen
+  // Lan can đá xung quanh sàn thượng với trụ búp sen (mở rộng thoáng hành lang gõ chuông phía bên phải)
   ctx.fillStyle = '#cbd5e1';
   ctx.fillRect(bx - 54, 514, 28, 12);
-  ctx.fillRect(bx + 26, 514, 28, 12);
+  ctx.fillRect(bx + 44, 514, 12, 12); // Chừa không gian rộng thoáng từ bx + 22 tới bx + 44 cho Chú Tiểu đứng gõ chuông
 
   // Trụ sen các góc lan can
-  [-54, -26, 26, 54].forEach((px) => {
+  [-54, -26, 44, 56].forEach((px) => {
     ctx.fillStyle = '#94a3b8';
     ctx.fillRect(bx + px - 2, 508, 5, 18);
     ctx.fillStyle = '#cbd5e1';
@@ -1220,9 +1220,47 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.fill();
   ctx.fillRect(bx - 1, 359, 2, 6);
 
-  // 6. ĐẠI HỒNG CHUNG BẰNG ĐỒNG (BRONZE GREAT BELL)
-  const isRinging = ripples.length > 0;
-  const bellVibX = isRinging ? Math.sin(step * 0.8) * 2.2 : 0;
+  // 6. CHU KỲ HOẠT ẢNH GÕ CHUÔNG TỰ ĐỘNG & TƯƠNG TÁC CỦA CHÚ TIỂU
+  const cycle = step % 600;
+  const isAutoPull = cycle >= 420 && cycle < 475;
+  const isAutoStrike = cycle >= 475 && cycle < 505;
+  const isAutoResonate = cycle >= 505 && cycle < 575;
+  const isManualStrike = ripples.length > 0;
+
+  const isPulling = !isManualStrike && isAutoPull;
+  const isStriking = isManualStrike || isAutoStrike;
+  const isResonating = isManualStrike || isAutoResonate;
+
+  // Độ dịch chuyển của chày gỗ
+  let malletOffset = 0;
+  let strikeLeaning = 0;
+  let isPraying = false;
+
+  if (isPulling) {
+    // Kéo lùi chày gỗ lấy đà
+    const t = (cycle - 420) / 55;
+    malletOffset = t * 14;
+    strikeLeaning = t * 5; // Ngả người ra sau
+  } else if (isStriking) {
+    // Vung chày gõ mạnh về phía quả chuông
+    if (isManualStrike) {
+      malletOffset = -12;
+      strikeLeaning = -8;
+    } else {
+      const t = (cycle - 475) / 30;
+      malletOffset = 14 - t * 26; // Lao nhanh từ +14 tới -12 (chạm núm chuông)
+      strikeLeaning = 5 - t * 13; // Rướn người tới trước
+    }
+  } else if (isResonating) {
+    // Chày gỗ nảy lại dao động nhẹ & Chú Tiểu chắp tay xá Phật
+    const t = isManualStrike ? 0.3 : (cycle - 505) / 70;
+    malletOffset = Math.sin(t * Math.PI * 4) * 4 * (1 - t);
+    strikeLeaning = -2;
+    isPraying = true;
+  }
+
+  // Độ rung của chuông khi bị đánh
+  const bellVibX = isResonating ? Math.sin(step * 0.9) * 2.5 : 0;
   const bellCx = bx - 6 + bellVibX;
 
   // Quai rồng Bồ Lao
@@ -1232,7 +1270,7 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.arc(bellCx, 442, 6, Math.PI, 0);
   ctx.stroke();
 
-  // Thân Chuông
+  // Thân Chuông Đại Hồng Chung
   ctx.fillStyle = '#b45309';
   ctx.beginPath();
   ctx.moveTo(bellCx - 14, 446);
@@ -1255,15 +1293,14 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.lineTo(bellCx + 19, 484);
   ctx.stroke();
 
-  // Núm chuông hoa sen bên phải (nơi chày gỗ gõ vào)
+  // Núm chuông hoa sen bên phải
   ctx.fillStyle = '#f59e0b';
   ctx.beginPath();
   ctx.arc(bellCx + 16, 478, 3.5, 0, Math.PI * 2);
   ctx.fill();
 
   // 7. CHÀY GỖ TREO DÂY (SUSPENDED WOODEN MALLET)
-  const strikeOffset = isRinging ? Math.sin(step * 0.5) * 8 : 0;
-  const malletX = bx + 16 + strikeOffset;
+  const malletX = bx + 16 + malletOffset;
   const malletY = 478;
 
   // Hai sợi dây treo chày
@@ -1286,26 +1323,33 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.fillRect(malletX + 5, malletY - 4.5, 2.5, 9);
   ctx.fillRect(malletX + 20, malletY - 4.5, 2.5, 9);
 
-  // 8. NPC CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG (CHIBI NOVICE MONK)
-  const monkX = bx + 36;
-  const monkY = 524;
-  const strikeLeaning = isRinging ? -4 : 0;
+  // Tia lửa tóe sáng khi chày gỗ chạm trúng núm chuông
+  if (isStriking && Math.abs(malletOffset) > 8) {
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(bellCx + 18, 478, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
-  // Chân Chú Tiểu
+  // 8. NPC CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG (CHIBI NOVICE MONK)
+  const monkX = bx + 32;
+  const monkY = 524; // Sàn bệ đá thượng vững chãi, không bị chìm hay che khuất
+
+  // Chân & Giày Chú Tiểu đứng vững vàng trên sàn
   ctx.fillStyle = '#451a03';
-  ctx.fillRect(monkX - 5, monkY - 6, 4, 6);
-  ctx.fillRect(monkX + 2, monkY - 6, 4, 6);
+  ctx.fillRect(monkX - 6, monkY - 10, 5, 10);
+  ctx.fillRect(monkX + 1, monkY - 10, 5, 10);
   ctx.fillStyle = '#1e293b';
-  ctx.fillRect(monkX - 6, monkY - 2, 5, 3);
-  ctx.fillRect(monkX + 1, monkY - 2, 5, 3);
+  ctx.fillRect(monkX - 7, monkY - 3, 6, 4);
+  ctx.fillRect(monkX, monkY - 3, 6, 4);
 
   // Thân áo tràng nâu sồng
   ctx.fillStyle = '#78350f';
   ctx.beginPath();
-  ctx.moveTo(monkX - 7 + strikeLeaning, monkY - 22);
-  ctx.lineTo(monkX + 7 + strikeLeaning, monkY - 22);
-  ctx.lineTo(monkX + 9, monkY - 6);
-  ctx.lineTo(monkX - 9, monkY - 6);
+  ctx.moveTo(monkX - 9 + strikeLeaning, monkY - 26);
+  ctx.lineTo(monkX + 9 + strikeLeaning, monkY - 26);
+  ctx.lineTo(monkX + 11, monkY - 8);
+  ctx.lineTo(monkX - 11, monkY - 8);
   ctx.closePath();
   ctx.fill();
 
@@ -1317,19 +1361,32 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.lineTo(monkX - 3 + strikeLeaning, monkY - 14);
   ctx.stroke();
 
-  // Tay phải giữ quai thừng chày gỗ
-  ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.moveTo(monkX + strikeLeaning, monkY - 17);
-  ctx.lineTo(malletX + 18, malletY + 4);
-  ctx.stroke();
-
-  // Tay trái chắp trước ngực
-  ctx.beginPath();
-  ctx.moveTo(monkX - 3 + strikeLeaning, monkY - 17);
-  ctx.lineTo(monkX - 6 + strikeLeaning, monkY - 14);
-  ctx.stroke();
+  if (isPraying) {
+    // Khi chuông ngân: Chắp hai tay trước ngực xá Phật
+    ctx.strokeStyle = '#ffedd5';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(monkX - 5 + strikeLeaning, monkY - 18);
+    ctx.lineTo(monkX - 1 + strikeLeaning, monkY - 14);
+    ctx.moveTo(monkX + 5 + strikeLeaning, monkY - 18);
+    ctx.lineTo(monkX + 1 + strikeLeaning, monkY - 14);
+    ctx.stroke();
+    // Chắp bàn tay lại
+    ctx.fillStyle = '#ffedd5';
+    ctx.beginPath();
+    ctx.arc(monkX + strikeLeaning, monkY - 14, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Khi chuẩn bị / vung chày: Hai tay nắm chặt chày gỗ
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(monkX + strikeLeaning, monkY - 17);
+    ctx.lineTo(malletX + 18, malletY + 4);
+    ctx.moveTo(monkX - 4 + strikeLeaning, monkY - 17);
+    ctx.lineTo(malletX + 12, malletY + 4);
+    ctx.stroke();
+  }
 
   // Đầu Chibi tròn trĩnh
   ctx.fillStyle = '#ffedd5';
@@ -1345,7 +1402,7 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.arc(monkX + strikeLeaning + 2, monkY - 33, 0.8, 0, Math.PI * 2);
   ctx.fill();
 
-  // Mắt Chibi cười híp mí an nhiên
+  // Mắt Chibi
   ctx.strokeStyle = '#1e1b4b';
   ctx.lineWidth = 1.2;
   ctx.beginPath();
@@ -1367,27 +1424,29 @@ function drawBellCourtyardZone(ctx: CanvasRenderingContext2D, step: number, ripp
   ctx.arc(monkX + strikeLeaning, monkY - 24, 1.8, 0.2, Math.PI - 0.2);
   ctx.stroke();
 
-  // Bảng tên NPC Chú Tiểu Tuệ Tĩnh
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-  ctx.fillRect(monkX - 34, monkY - 48, 68, 14);
-  ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+  // Bảng tên NPC Chú Tiểu Tuệ Tĩnh (hiển thị trạng thái động)
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+  const bannerW = isPraying ? 82 : 68;
+  ctx.fillRect(monkX - bannerW / 2, monkY - 48, bannerW, 14);
+  ctx.strokeStyle = isPraying ? 'rgba(234, 179, 8, 0.85)' : 'rgba(251, 191, 36, 0.7)';
   ctx.lineWidth = 1;
-  ctx.strokeRect(monkX - 34, monkY - 48, 68, 14);
+  ctx.strokeRect(monkX - bannerW / 2, monkY - 48, bannerW, 14);
   ctx.fillStyle = '#fef08a';
   ctx.font = 'bold 8px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('🔔 Chú Tiểu Tuệ Tĩnh', monkX, monkY - 38);
+  ctx.fillText(isPraying ? '🙏 A Di Đà Phật' : '🔔 Chú Tiểu Tuệ Tĩnh', monkX, monkY - 38);
 
   // 9. SÓNG ÂM THANH KIM QUANG LAN TỎA
-  if (ripples.length > 0) {
+  if (isResonating) {
     ctx.strokeStyle = '#fde047';
-    ripples.forEach((_, idx) => {
+    const rippleCount = isManualStrike ? ripples.length : 3;
+    for (let idx = 0; idx < rippleCount; idx++) {
       const r = (step * 2.5 + idx * 35) % 200;
       ctx.lineWidth = Math.max(0.5, 3.5 - r / 50);
       ctx.beginPath();
       ctx.arc(bellCx, 478, r, 0, Math.PI * 2);
       ctx.stroke();
-    });
+    }
 
     // Tia sáng hào quang (Golden light sparkles)
     ctx.fillStyle = '#fef08a';
