@@ -1563,10 +1563,24 @@ function drawWalkingCharacter(
   ctx.arc(0, -40, 2.2, 0.2 * Math.PI, 0.8 * Math.PI);
   ctx.stroke();
 
-  // 7. Hair Styles Matching Concept Art
+  // 7. Hair Styles & Accessories Matching Concept Art & Character Customization
+  const isShaved = character.hairStyle === 'shaved';
+  const isBun = character.hairStyle === 'bun';
+  const isShort = character.hairStyle === 'short' || (!isFemale && !isShaved && !isBun);
+
   ctx.fillStyle = hairColor;
-  if (isFemale) {
-    // Ponytail
+
+  if (isShaved) {
+    // 3 Chấm Giới Hương trên trán quy y
+    ctx.fillStyle = '#d97706';
+    ctx.beginPath();
+    ctx.arc(0, -51, 1.2, 0, Math.PI * 2);
+    ctx.arc(0, -48, 1.2, 0, Math.PI * 2);
+    ctx.arc(0, -45, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (isFemale || isBun) {
+    // TÓC ĐUÔI NGỰA CAO GỢN SÓNG (Ponytail / Bun)
+    // Đuôi ngựa bồng bềnh uốn lượn sang vai phải
     ctx.beginPath();
     ctx.moveTo(6, -55);
     ctx.quadraticCurveTo(18, -62, 16, -46);
@@ -1575,18 +1589,19 @@ function drawWalkingCharacter(
     ctx.closePath();
     ctx.fill();
 
-    // Scrunchie
+    // Nơ cột tóc xinh xắn
     ctx.fillStyle = '#f43f5e';
     ctx.beginPath();
     ctx.arc(8, -55, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Bangs
+    // Mũ tóc bao phủ
     ctx.fillStyle = hairColor;
     ctx.beginPath();
     ctx.arc(0, -48, 14, Math.PI * 0.85, Math.PI * 2.15);
     ctx.fill();
 
+    // Tóc mai uốn cong hai bên má
     ctx.beginPath();
     ctx.moveTo(-13, -46);
     ctx.quadraticCurveTo(-10, -36, -8, -34);
@@ -1598,6 +1613,7 @@ function drawWalkingCharacter(
     ctx.quadraticCurveTo(7, -42, 5, -48);
     ctx.fill();
 
+    // Mái bay trước trán
     ctx.beginPath();
     ctx.moveTo(-9, -52);
     ctx.quadraticCurveTo(-3, -48, 0, -50);
@@ -1606,8 +1622,8 @@ function drawWalkingCharacter(
     ctx.lineTo(-8, -58);
     ctx.closePath();
     ctx.fill();
-  } else {
-    // MALE: Spiky Hair
+  } else if (isShort) {
+    // TÓC NGẮN TỈA GAI XẾP LỚP (Layered Spiky Hair)
     ctx.beginPath();
     ctx.arc(0, -47, 14, Math.PI * 0.85, Math.PI * 2.15);
     ctx.fill();
@@ -1645,6 +1661,39 @@ function drawWalkingCharacter(
     ctx.lineTo(11, -50);
     ctx.closePath();
     ctx.fill();
+  }
+
+  // 8. Phụ kiện (Accessories)
+  if (character.accessory === 'beads') {
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.ellipse(0, -29, 6.5, 4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (character.accessory === 'hat') {
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.moveTo(-16, -58);
+    ctx.lineTo(0, -69);
+    ctx.lineTo(16, -58);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (character.accessory === 'bag') {
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fillRect(5, -24, 7, 9);
+    ctx.strokeStyle = '#172554';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(5, -24, 7, 9);
+    // Dây quai đeo
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-8, -32);
+    ctx.lineTo(6, -20);
+    ctx.stroke();
   }
 
   ctx.restore();

@@ -19,9 +19,8 @@ import {
   Sun,
   Layers,
   Sparkles,
-  Music
+  Music,
 } from 'lucide-react';
-
 interface Zen3DWorldProps {
   character: CharacterAppearance;
   level: number;
