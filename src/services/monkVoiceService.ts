@@ -3,11 +3,14 @@
 // Lấy âm sắc, phong thái thiền môn từ mẫu giongsuthay.mp3
 // Đọc CHÍNH XÁC NỘI DUNG tiếng Việt được đề ra cho từng hoạt cảnh, bài kệ, pháp thoại.
 // ============================================================================
-import incenseBowChantUrl from '../assets/audio/incense_bow_chant.mp3';
-import abbotDiscourseUrl from '../assets/audio/abbot_discourse.mp3';
-import meditationLectureUrl from '../assets/audio/meditation_lecture.mp3';
-import monkVoiceSampleUrl from '../assets/giongsuthay.mp3';
 import { soundEngine } from './audioEngine';
+
+// Đường dẫn âm thanh tĩnh phục vụ trực tiếp qua thư mục public/audio/
+// Giúp Vite / Rollup build trơn tru 100% trên cả Windows, Linux và môi trường CI/CD (không bị lỗi UNRESOLVED_IMPORT)
+export const INCENSE_BOW_CHANT_URL = '/audio/incense_bow_chant.mp3';
+export const ABBOT_DISCOURSE_URL = '/audio/abbot_discourse.mp3';
+export const MEDITATION_LECTURE_URL = '/audio/meditation_lecture.mp3';
+export const MONK_VOICE_SAMPLE_URL = '/audio/giongsuthay.mp3';
 
 interface VoiceOptions {
   onStart?: () => void;
@@ -46,7 +49,7 @@ export function resolveVoiceUrl(text?: string, gatha?: string): string {
     combined.includes('cúi đầu đảnh lễ') ||
     combined.includes('chứng minh công đức')
   ) {
-    return incenseBowChantUrl || '/audio/incense_bow_chant.mp3';
+    return INCENSE_BOW_CHANT_URL;
   }
 
   // 2. Hoạt cảnh Khai Thị / Thính Pháp cùng Sư Phụ Trụ Trì (Kệ Khai Thị)
@@ -57,7 +60,7 @@ export function resolveVoiceUrl(text?: string, gatha?: string): string {
     combined.includes('đại hùng bảo điện') ||
     combined.includes('kinh bát nhã')
   ) {
-    return abbotDiscourseUrl || '/audio/abbot_discourse.mp3';
+    return ABBOT_DISCOURSE_URL;
   }
 
   // 3. Hoạt cảnh Tọa Thiền Nghe Kinh (Kệ Thiền Tọa)
@@ -67,11 +70,11 @@ export function resolveVoiceUrl(text?: string, gatha?: string): string {
     combined.includes('chánh niệm') ||
     combined.includes('thiền tọa')
   ) {
-    return meditationLectureUrl || '/audio/meditation_lecture.mp3';
+    return MEDITATION_LECTURE_URL;
   }
 
   // 4. Mặc định fallback mẫu giọng đọc của Sư Thầy
-  return monkVoiceSampleUrl || '/audio/giongsuthay.mp3';
+  return MONK_VOICE_SAMPLE_URL;
 }
 
 /**
@@ -81,7 +84,7 @@ export function getOrCreateMonkAudio(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
 
   if (!monkAudio) {
-    monkAudio = new Audio(incenseBowChantUrl || '/audio/incense_bow_chant.mp3');
+    monkAudio = new Audio(INCENSE_BOW_CHANT_URL);
     monkAudio.preload = 'auto';
 
     monkAudio.addEventListener('play', () => {

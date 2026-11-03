@@ -27,10 +27,9 @@ dist-ssr
 *.webm
 *.mp4
 *.m4a
-*.mp3
-*.wav
-*.ogg
-public/audio/
+
+# Allow lightweight monastic voice assets (<1MB)
+!public/audio/*.mp3
 
 # Scratch & Temporary Dev Scripts
 scratch/
