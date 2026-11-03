@@ -148,21 +148,19 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -39.0, maxX: -13.0, minZ: 24.5, maxZ: 25.5, name: 'Stream South Rim' },
   { type: 'box', minX: -39.0, maxX: -38.0, minZ: 25.0, maxZ: 47.0, name: 'Stream West Wall' },
 
-  // 6. Dãy Hành Lang Cột Gỗ (Zone 6 Corridor) - Side wooden columns (center aisle open)
-  { type: 'circle', x: 15.4, z: -3.0, r: 0.45 },
-  { type: 'circle', x: 20.6, z: -3.0, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 2.5, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 2.5, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 8.0, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 8.0, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 13.5, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 13.5, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 19.0, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 19.0, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 24.5, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 24.5, r: 0.45 },
-  { type: 'circle', x: 15.4, z: 27.0, r: 0.45 },
-  { type: 'circle', x: 20.6, z: 27.0, r: 0.45 },
+  // 6. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor) - Side wooden columns (center aisle open)
+  { type: 'circle', x: 15.4, z: -1.0, r: 0.48 },
+  { type: 'circle', x: 20.6, z: -1.0, r: 0.48 },
+  { type: 'circle', x: 15.4, z: 4.5, r: 0.48 },
+  { type: 'circle', x: 20.6, z: 4.5, r: 0.48 },
+  { type: 'circle', x: 15.4, z: 10.0, r: 0.48 },
+  { type: 'circle', x: 20.6, z: 10.0, r: 0.48 },
+  { type: 'circle', x: 15.4, z: 15.5, r: 0.48 },
+  { type: 'circle', x: 20.6, z: 15.5, r: 0.48 },
+  { type: 'circle', x: 15.4, z: 21.0, r: 0.48 },
+  { type: 'circle', x: 20.6, z: 21.0, r: 0.48 },
+  { type: 'circle', x: 15.4, z: 26.5, r: 0.48 },
+  { type: 'circle', x: 20.6, z: 26.5, r: 0.48 },
 
   // 7. Đại Hùng Bảo Điện (Zone 7 Main Sanctuary)
   // Ground Level: Front retaining walls (Staircases at [-2.6, 2.6], [-10.6, -7.0], [7.0, 10.6] open)
@@ -203,10 +201,16 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -31.5, maxX: -26.2, minZ: -0.5, maxZ: 0.1, name: 'Moon Wall L' },
   { type: 'box', minX: -21.8, maxX: -16.5, minZ: -0.5, maxZ: 0.1, name: 'Moon Wall R' },
 
-  // 9. Tàng Kinh Các (Zone 9 Library) - 3 Bookshelves (aisles open)
-  { type: 'box', minX: 17.5, maxX: 30.5, minZ: -0.6, maxZ: 0.6, name: 'Library Shelf 1' },
-  { type: 'box', minX: 17.5, maxX: 30.5, minZ: 5.4, maxZ: 6.6, name: 'Library Shelf 2' },
-  { type: 'box', minX: 17.5, maxX: 30.5, minZ: 11.4, maxZ: 12.6, name: 'Library Shelf 3' },
+  // 9. Tàng Kinh Các (Zone 9 Library) - Outer walls, Bookshelves & Tea table
+  { type: 'box', minX: 35.0, maxX: 35.6, minZ: 4.2, maxZ: 21.8, name: 'Library East Wall' },
+  { type: 'box', minX: 21.5, maxX: 35.3, minZ: 4.0, maxZ: 4.6, name: 'Library North Wall' },
+  { type: 'box', minX: 21.5, maxX: 35.3, minZ: 21.4, maxZ: 22.0, name: 'Library South Wall' },
+  { type: 'box', minX: 21.4, maxX: 22.0, minZ: 4.0, maxZ: 8.5, name: 'Library West Wall N' },
+  { type: 'box', minX: 21.4, maxX: 22.0, minZ: 17.5, maxZ: 22.0, name: 'Library West Wall S' },
+  // Bookshelves inside Tàng Kinh Các (aisles open, X from 25.7 to 34.3)
+  { type: 'box', minX: 25.7, maxX: 34.3, minZ: 8.0, maxZ: 9.0, name: 'Library Shelf 1' },
+  { type: 'box', minX: 25.7, maxX: 34.3, minZ: 12.5, maxZ: 13.5, name: 'Library Shelf 2' },
+  { type: 'box', minX: 25.7, maxX: 34.3, minZ: 17.0, maxZ: 18.0, name: 'Library Shelf 3' },
 
   // 10. Sân Sau (Zone 10 Back Garden) - Ancient well, kitchen & stone arch posts
   { type: 'circle', x: 11.0, z: -46.0, r: 1.7, name: 'Ancient Well' },
@@ -304,6 +308,11 @@ export function resolveMonkCollision(
  * across all multi-tier podiums, grand staircases, indoor halls, pavilions, and bridges.
  */
 export function getTerrainFloorElevation(x: number, z: number, currentY: number = 0.42): number {
+  // 0. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor: X in [14.6, 21.4], Z in [-3.5, 30.0])
+  if (x >= 14.6 && x <= 21.4 && z >= -3.5 && z <= 30.0) {
+    return 0.58;
+  }
+
   // 1. Đại Hùng Bảo Điện (Zone 7 Main Sanctuary Complex)
   // Sanctuary complex centered at (0, -16), podium spans X in [-22.5, 22.5], Z in [-34.0, 5.5]
   if (x >= -23.5 && x <= 23.5 && z >= -34.0 && z <= 6.5) {
@@ -361,9 +370,9 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.49;
   }
 
-  // 6. Tàng Kinh Các (Zone 9 Library at 24, 6)
-  if (x >= 15.5 && x <= 32.5 && z >= -1.0 && z <= 13.0) {
-    return 0.49;
+  // 6. Tàng Kinh Các (Zone 9 Library at 28.5, 13)
+  if (x >= 21.4 && x <= 35.8 && z >= 3.5 && z <= 22.5) {
+    return 0.58;
   }
 
   // 7. Sân gạch nung Bát Tràng & Vườn Chùa (Default ground)
@@ -425,11 +434,11 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
   {
     id: 'corridor',
     name: '6. Hành Lang Cột Gỗ',
-    subtitle: 'Dãy hành lang dài nối các khu • Đèn lồng đỏ',
-    dimensions: '36 × 6 m',
+    subtitle: 'Dãy hành lang dài cao thoáng • Đèn lồng đỏ & Mái ngói men ngọc',
+    dimensions: '34 × 7 m',
     icon: '🏮',
-    desc: 'Dãy hành lang cột gỗ lim song song với vì kèo chạm trổ và hàng đèn lồng đỏ ấm áp.',
-    pos: { x: 18, y: 0.42, z: 12 },
+    desc: 'Dãy hành lang cột gỗ lim cao thoáng với hệ vì kèo chạm trổ, mái ngói lưu ly men ngọc uốn lượn và hàng đèn lồng đỏ ấm áp.',
+    pos: { x: 18, y: 0.58, z: 13 },
     actionKey: 'CORRIDOR',
   },
   {
@@ -456,10 +465,10 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     id: 'library',
     name: '9. Phòng Kinh Sách (Lưu trữ)',
     subtitle: 'Tàng Kinh Các • Kệ sách cổ & bàn trà thư pháp',
-    dimensions: '18 × 15 m',
+    dimensions: '14 × 18 m',
     icon: '📜',
     desc: 'Tàng Kinh Các lưu giữ kinh điển, giá sách chạm trần, nghiên mực và ấm trà gốm mộc mạc.',
-    pos: { x: 24, y: 0.49, z: 3.2 },
+    pos: { x: 27.5, y: 0.58, z: 13 },
     actionKey: 'LIBRARY',
   },
   {
@@ -2241,30 +2250,110 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
     scene.add(pondGroup);
 
-    // [ZONE 6: DÃY HÀNH LANG CỘT GỖ]
+    // [ZONE 6: DÃY HÀNH LANG CỘT GỖ LIM CAO THOÁNG & MÁI NGÓI MEN NGỌC UỐN LƯỢN]
     const corridorGroup = new THREE.Group();
-    corridorGroup.position.set(18, 0, 12);
-    const corrFloor = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.4, 36), matWoodLim);
-    corrFloor.position.set(0, 0.2, 0);
+    corridorGroup.position.set(18, 0, 13);
+
+    // 1. Solid Stone Foundation Podium (Bệ móng đá khối tôn cao)
+    const corrStoneBase = new THREE.Mesh(
+      new THREE.BoxGeometry(7.2, 0.45, 34.6),
+      matStoneGrey
+    );
+    corrStoneBase.position.set(0, 0.225, 0);
+    corrStoneBase.receiveShadow = true;
+    corridorGroup.add(corrStoneBase);
+
+    // Polished Lim Wood Flooring (Sàn gỗ lim nhẵn bóng)
+    const corrFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(6.6, 0.15, 34.0),
+      matWoodLim
+    );
+    corrFloor.position.set(0, 0.525, 0);
+    corrFloor.receiveShadow = true;
     corridorGroup.add(corrFloor);
 
-    for (let cz = -15; cz <= 15; cz += 5.5) {
+    // Stone Steps at South Entrance (Bậc tam cấp đá lối vào phía nam)
+    for (let st = 0; st < 2; st++) {
+      const step = new THREE.Mesh(
+        new THREE.BoxGeometry(4.2, 0.18, 1.0),
+        matStoneGrey
+      );
+      step.position.set(0, 0.12 + st * 0.16, 17.5 + st * 0.7);
+      corridorGroup.add(step);
+    }
+
+    // 2. Colonnade of Tall Lim Wood Pillars with Carved Lotus Plinths
+    const corrColZ = [-14.0, -8.5, -3.0, 2.5, 8.0, 13.5];
+    for (const cz of corrColZ) {
       for (const cx of [-2.6, 2.6]) {
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 6.2, 8), matWoodLim);
-        col.position.set(cx, 3.3, cz);
+        // Carved stone lotus plinth (Chân tảng đá chạm hoa sen)
+        const plinth = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.52, 0.62, 0.35, 12),
+          matLotusPlinth
+        );
+        plinth.position.set(cx, 0.725, cz);
+        corridorGroup.add(plinth);
+
+        // Tall Lim Wood Column (Cột gỗ lim cao 7.0m)
+        const col = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.36, 0.42, 7.0, 16),
+          matWoodLim
+        );
+        col.position.set(cx, 4.4, cz);
+        col.castShadow = true;
         corridorGroup.add(col);
       }
+
+      // Transverse Timber Tie-Beam (Xà ngang liên kết cột đôi)
+      const tieBeam = new THREE.Mesh(
+        new THREE.BoxGeometry(5.6, 0.32, 0.38),
+        matDarkTimber
+      );
+      tieBeam.position.set(0, 7.7, cz);
+      corridorGroup.add(tieBeam);
+
+      // Cantilever Bracket Consoles (Con sơn đỡ diềm mái hai bên)
+      for (const sx of [-1, 1]) {
+        const consoleArm = new THREE.Mesh(
+          new THREE.BoxGeometry(1.6, 0.24, 0.32),
+          matDarkTimber
+        );
+        consoleArm.position.set(sx * 3.3, 7.82, cz);
+        corridorGroup.add(consoleArm);
+      }
+
+      // Traditional Red Silk Hanging Lanterns
       const lantern = createStylizedSilkLantern(matLanternRed);
-      lantern.position.set(0, 5.0, cz);
+      lantern.position.set(0, 6.4, cz);
       corridorGroup.add(lantern);
 
-      const pLight = new THREE.PointLight(0xf87171, 0.75, 8);
-      pLight.position.set(0, 4.6, cz);
+      // Warm Sacred Point Light
+      const pLight = new THREE.PointLight(0xf87171, 0.85, 9);
+      pLight.position.set(0, 5.8, cz);
       nightLightsRef.current.push(pLight);
       corridorGroup.add(pLight);
     }
-    const corrRoof = createStylizedCurvedRoof(8.0, 38, matRoofTile);
-    corrRoof.position.set(0, 6.8, 0);
+
+    // Longitudinal Architrave Beams (Xà dọc chạy suốt chiều dài hành lang)
+    for (const cx of [-2.6, 2.6]) {
+      const architrave = new THREE.Mesh(
+        new THREE.BoxGeometry(0.36, 0.34, 33.5),
+        matDarkTimber
+      );
+      architrave.position.set(cx, 7.85, -0.25);
+      corridorGroup.add(architrave);
+    }
+
+    // 3. Lofty Authentic Curved Roof with Jade-Green Glazed Tiles
+    const corrRoof = createAuthenticLongCorridorRoof(
+      9.6, // width
+      34.0, // length
+      2.6, // height of roof curve
+      matJadeRoofTile,
+      matDarkTimber,
+      matGold
+    );
+    corrRoof.position.set(0, 7.9, -0.25);
     corridorGroup.add(corrRoof);
     scene.add(corridorGroup);
 
@@ -2302,20 +2391,107 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     medGroup.add(medRoof);
     scene.add(medGroup);
 
-    // [ZONE 9: PHÒNG KINH SÁCH]
+    // [ZONE 9: PHÒNG KINH SÁCH - TÀNG KINH CÁC CAO THOÁNG PHÍA ĐÔNG]
     const libGroup = new THREE.Group();
-    libGroup.position.set(24, 0, 6);
-    const libFloor = new THREE.Mesh(new THREE.BoxGeometry(17, 0.4, 14), matWoodLim);
-    libFloor.position.set(0, 0.2, 0);
+    libGroup.position.set(28.5, 0, 13.0);
+
+    // Stone podium & wood flooring matching corridor elevation
+    const libStone = new THREE.Mesh(new THREE.BoxGeometry(14.4, 0.45, 18.4), matStoneGrey);
+    libStone.position.set(0, 0.225, 0);
+    libStone.receiveShadow = true;
+    libGroup.add(libStone);
+
+    const libFloor = new THREE.Mesh(new THREE.BoxGeometry(14.0, 0.15, 18.0), matWoodLim);
+    libFloor.position.set(0, 0.525, 0);
+    libFloor.receiveShadow = true;
     libGroup.add(libFloor);
 
-    for (const bz of [-6.0, 0, 6.0]) {
-      const shelf = new THREE.Mesh(new THREE.BoxGeometry(13, 5.0, 1.1), matWoodWarm);
-      shelf.position.set(0, 2.7, bz);
-      libGroup.add(shelf);
+    // Stately Lim Wood Columns
+    const libColPositions = [
+      [-6.0, -8.0], [6.0, -8.0],
+      [-6.0, 0], [6.0, 0],
+      [-6.0, 8.0], [6.0, 8.0],
+    ];
+    libColPositions.forEach(([cx, cz]) => {
+      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.50, 0.58, 0.35, 12), matLotusPlinth);
+      plinth.position.set(cx, 0.725, cz);
+      libGroup.add(plinth);
+
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.40, 7.2, 16), matWoodLim);
+      col.position.set(cx, 4.5, cz);
+      col.castShadow = true;
+      libGroup.add(col);
+    });
+
+    // Wooden Lattice Walls on East, North, and South sides (West side open to Corridor)
+    // North Wall
+    const wallN = new THREE.Mesh(new THREE.BoxGeometry(13.6, 5.2, 0.25), matWoodWarm);
+    wallN.position.set(0, 3.2, -8.8);
+    libGroup.add(wallN);
+
+    // South Wall
+    const wallS = new THREE.Mesh(new THREE.BoxGeometry(13.6, 5.2, 0.25), matWoodWarm);
+    wallS.position.set(0, 3.2, 8.8);
+    libGroup.add(wallS);
+
+    // East Wall
+    const wallE = new THREE.Mesh(new THREE.BoxGeometry(0.25, 5.2, 17.6), matWoodWarm);
+    wallE.position.set(6.8, 3.2, 0);
+    libGroup.add(wallE);
+
+    // West Side (facing corridor): Arch portal openings with entrance pillars
+    for (const pz of [-8.0, -4.5, 4.5, 8.0]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.35, 5.5, 0.35), matDarkTimber);
+      post.position.set(-6.8, 3.3, pz);
+      libGroup.add(post);
     }
-    const libRoof = createStylizedCurvedRoof(19, 16, matRoofTile);
-    libRoof.position.set(0, 6.5, 0);
+    const westLintel = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 17.6), matDarkTimber);
+    westLintel.position.set(-6.8, 6.1, 0);
+    libGroup.add(westLintel);
+
+    // 3 Ancient Scripture Bookshelves inside Tàng Kinh Các
+    for (const bz of [-4.5, 0, 4.5]) {
+      const shelfGroup = new THREE.Group();
+      shelfGroup.position.set(1.5, 0, bz);
+
+      const shelfMesh = new THREE.Mesh(new THREE.BoxGeometry(8.5, 5.2, 1.1), matWoodWarm);
+      shelfMesh.position.set(0, 3.2, 0);
+      shelfMesh.castShadow = true;
+      shelfGroup.add(shelfMesh);
+
+      // Book/scroll slots
+      for (let sh = 0; sh < 4; sh++) {
+        const divider = new THREE.Mesh(new THREE.BoxGeometry(8.3, 0.08, 1.05), matDarkTimber);
+        divider.position.set(0, 1.4 + sh * 1.15, 0);
+        shelfGroup.add(divider);
+      }
+      libGroup.add(shelfGroup);
+    }
+
+    // Zen Calligraphy & Tea Table in Library
+    const teaTable = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.65, 1.8), matWoodWarm);
+    teaTable.position.set(-3.2, 0.925, 0);
+    libGroup.add(teaTable);
+
+    const teapot = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.25, 8), matBronze);
+    teapot.position.set(-3.2, 1.37, 0);
+    libGroup.add(teapot);
+
+    // Red silk lanterns
+    for (const lz of [-4.5, 4.5]) {
+      const lantern = createStylizedSilkLantern(matLanternRed);
+      lantern.position.set(-1.0, 6.4, lz);
+      libGroup.add(lantern);
+
+      const pLight = new THREE.PointLight(0xf59e0b, 0.8, 10);
+      pLight.position.set(-1.0, 5.8, lz);
+      nightLightsRef.current.push(pLight);
+      libGroup.add(pLight);
+    }
+
+    // Sweeping Elevated Hip Roof of Tàng Kinh Các
+    const libRoof = createJadeCurvedRoof(16.5, 20.5, 3.4, matJadeRoofTile, matGold);
+    libRoof.position.set(0, 8.2, 0);
     libraryRoofsRef.current.push(libRoof);
     libGroup.add(libRoof);
     scene.add(libGroup);
@@ -2921,7 +3097,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         soundEngine.setHallDucking(inSanctuary);
         const inBalcony = currentP.y >= 6.0 && currentP.z <= -6 && currentP.z >= -30;
         const inMeditation = Math.hypot(currentP.x - (-24), currentP.z - 6) < 8;
-        const inLibrary = Math.hypot(currentP.x - 24, currentP.z - 6) < 8.5;
+        const inLibrary = Math.hypot(currentP.x - 28.5, currentP.z - 13) < 9.5;
         const inBell = Math.hypot(currentP.x - (-26), currentP.z - (-20)) < 7;
 
         let buildingName: string | null = null;
@@ -4032,6 +4208,192 @@ function createStylizedCurvedRoof(width: number, depth: number, matTile: THREE.M
     finial.rotation.z = Math.PI / 4;
     roofGroup.add(finial);
   }
+  return roofGroup;
+}
+
+// Authentic Long Gallery / Corridor Roof with Horizontal Ridge, Sweeping Concave Eaves & Dragon Finials
+function createAuthenticLongCorridorRoof(
+  width: number,
+  length: number,
+  height: number,
+  matJadeTile: THREE.Material,
+  matDarkTimber: THREE.Material,
+  matGold: THREE.Material
+): THREE.Group {
+  const roofGroup = new THREE.Group();
+
+  const halfW = width / 2;
+  const halfL = length / 2;
+  const numZSegments = 24;
+  const numXSegments = 16;
+
+  // 1. Procedural Double-Curved Concave Roof Surface
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let iz = 0; iz <= numZSegments; iz++) {
+    const fracZ = iz / numZSegments;
+    const z = -halfL + fracZ * length;
+
+    for (let ix = 0; ix <= numXSegments; ix++) {
+      const fracX = ix / numXSegments;
+      const x = -halfW + fracX * width;
+
+      // Normalized distance from center ridge (0 at center, 1 at eaves)
+      const distFromRidge = Math.abs(x) / halfW;
+
+      // Authentic Vietnamese temple concave curve: y = height * (1 - dist^1.35)
+      let y = height * Math.pow(Math.max(0, 1.0 - distFromRidge), 1.35);
+
+      // Graceful upward flare at the 4 corner eaves
+      const cornerZ = Math.max(0, (Math.abs(z) - (halfL - 3.5)) / 3.5);
+      const cornerX = Math.max(0, (Math.abs(x) - (halfW - 2.0)) / 2.0);
+      if (cornerZ > 0 && cornerX > 0) {
+        y += Math.pow(cornerZ * cornerX, 1.6) * 0.55;
+      }
+
+      positions.push(x, y, z);
+      uvs.push(fracX * 4, fracZ * 18);
+    }
+  }
+
+  for (let iz = 0; iz < numZSegments; iz++) {
+    for (let ix = 0; ix < numXSegments; ix++) {
+      const a = iz * (numXSegments + 1) + ix;
+      const b = iz * (numXSegments + 1) + (ix + 1);
+      const c = (iz + 1) * (numXSegments + 1) + ix;
+      const d = (iz + 1) * (numXSegments + 1) + (ix + 1);
+
+      // Normals pointing upwards / outwards
+      indices.push(a, c, b);
+      indices.push(b, c, d);
+    }
+  }
+
+  const roofGeo = new THREE.BufferGeometry();
+  roofGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  roofGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  roofGeo.setIndex(indices);
+  roofGeo.computeVertexNormals();
+
+  const roofMesh = new THREE.Mesh(roofGeo, matJadeTile);
+  roofMesh.castShadow = true;
+  roofMesh.receiveShadow = true;
+  roofGroup.add(roofMesh);
+
+  // Underside rafter ceiling panel (Trần rui mè gỗ lim nhìn từ dưới lên)
+  const ceiling = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.88, 0.08, length * 0.98),
+    matDarkTimber
+  );
+  ceiling.position.set(0, -0.04, 0);
+  roofGroup.add(ceiling);
+
+  // 2. Horizontal Ridge Beam with Jade Glazed Capping & Gold Inlay
+  const ridgeLen = length * 0.98;
+  const ridgeCyl = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.24, 0.24, ridgeLen, 8),
+    matJadeTile
+  );
+  ridgeCyl.rotation.x = Math.PI / 2;
+  ridgeCyl.position.set(0, height + 0.12, 0);
+  roofGroup.add(ridgeCyl);
+
+  const ridgeGold = new THREE.Mesh(
+    new THREE.BoxGeometry(0.12, 0.20, ridgeLen),
+    matGold
+  );
+  ridgeGold.position.set(0, height + 0.28, 0);
+  roofGroup.add(ridgeGold);
+
+  // Dragon-Head Finials (Kìm Nóc Ngậm Bờ Nóc) at both ends of the ridge
+  for (const rz of [-halfL * 0.96, halfL * 0.96]) {
+    const finialGroup = new THREE.Group();
+    finialGroup.position.set(0, height + 0.35, rz);
+
+    const headArc = new THREE.Mesh(
+      new THREE.TorusGeometry(0.65, 0.18, 8, 16, Math.PI * 0.75),
+      matGold
+    );
+    headArc.rotation.y = rz > 0 ? Math.PI / 2 : -Math.PI / 2;
+    finialGroup.add(headArc);
+
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.65, 6), matGold);
+    horn.position.set(0, 0.55, rz > 0 ? -0.25 : 0.25);
+    horn.rotation.x = rz > 0 ? -Math.PI / 5 : Math.PI / 5;
+    finialGroup.add(horn);
+
+    roofGroup.add(finialGroup);
+  }
+
+  // 3. Eave Border Trim (Diềm Mái Ngói Trích Thủy)
+  for (const ex of [-halfW, halfW]) {
+    const eaveTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.22, length),
+      matDarkTimber
+    );
+    eaveTrim.position.set(ex, -0.05, 0);
+    roofGroup.add(eaveTrim);
+  }
+
+  // 4. 4 Upturned Dragon Corner Eaves (Đầu Đao Cong Vút Mạ Vàng)
+  for (const cx of [-halfW, halfW]) {
+    for (const cz of [-halfL, halfL]) {
+      const eaveArc = new THREE.Mesh(
+        new THREE.TorusGeometry(1.0, 0.22, 8, 16, Math.PI * 0.75),
+        matJadeTile
+      );
+      eaveArc.position.set(cx, 0.38, cz);
+      eaveArc.rotation.z = cx < 0 ? Math.PI / 3.4 : -Math.PI / 3.4;
+      eaveArc.rotation.y = cz < 0 ? -Math.PI / 4 : Math.PI / 4;
+      roofGroup.add(eaveArc);
+
+      const eaveTip = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.75, 6), matGold);
+      eaveTip.position.set(
+        cx + (cx < 0 ? -0.5 : 0.5),
+        1.0,
+        cz + (cz < 0 ? -0.5 : 0.5)
+      );
+      eaveTip.rotation.z = cx < 0 ? -Math.PI / 4 : Math.PI / 4;
+      roofGroup.add(eaveTip);
+    }
+  }
+
+  // 5. Gable End Pediment Trusses (Đầu Hồi Bít Đốc & Vì Kẻ Gỗ Lim)
+  for (const gz of [-halfL, halfL]) {
+    const pediment = new THREE.Group();
+    pediment.position.set(0, 0, gz);
+
+    const tieBeam = new THREE.Mesh(
+      new THREE.BoxGeometry(width * 0.94, 0.34, 0.4),
+      matDarkTimber
+    );
+    tieBeam.position.set(0, -0.15, 0);
+    pediment.add(tieBeam);
+
+    const kingPost = new THREE.Mesh(
+      new THREE.BoxGeometry(0.38, height - 0.2, 0.38),
+      matDarkTimber
+    );
+    kingPost.position.set(0, height / 2 - 0.1, 0);
+    pediment.add(kingPost);
+
+    for (const side of [-1, 1]) {
+      const rafterLen = Math.hypot(halfW * 0.9, height);
+      const rafter = new THREE.Mesh(
+        new THREE.BoxGeometry(0.24, 0.3, rafterLen),
+        matDarkTimber
+      );
+      rafter.position.set(side * halfW * 0.45, height * 0.45, 0);
+      rafter.rotation.y = Math.PI / 2;
+      rafter.rotation.x = side * Math.atan2(height, halfW * 0.9);
+      pediment.add(rafter);
+    }
+
+    roofGroup.add(pediment);
+  }
+
   return roofGroup;
 }
 
