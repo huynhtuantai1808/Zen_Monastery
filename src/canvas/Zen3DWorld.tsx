@@ -696,50 +696,21 @@ function createStylizedJadeRoofTexture(): THREE.CanvasTexture {
 
 function createStylizedAmberWoodTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
-  c.width = 512;
-  c.height = 512;
+  c.width = 256;
+  c.height = 256;
   const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(0, 0, 256, 256);
 
-  // Nền màu vàng đồng cổ kính quý phái (Antique Bronze Gold base gradient)
-  const grad = ctx.createLinearGradient(0, 0, 512, 512);
-  grad.addColorStop(0, '#cfa046');
-  grad.addColorStop(0.35, '#b98b35');
-  grad.addColorStop(0.7, '#9e7126');
-  grad.addColorStop(1, '#825816');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 512);
-
-  // Thớ vân chải kim loại đồng vàng mịn màng & dải chỉ vàng đồng thếp cổ kính
-  for (let y = 0; y < 512; y += 12) {
-    ctx.fillStyle = y % 24 === 0 ? 'rgba(95, 62, 14, 0.42)' : 'rgba(235, 195, 85, 0.48)';
-    ctx.fillRect(0, y, 512, 5);
-    if (y % 48 === 0) {
-      ctx.fillStyle = 'rgba(255, 235, 140, 0.65)';
-      ctx.fillRect(0, y + 2, 512, 2.5);
+  // Warm sandalwood grain ribbons
+  for (let y = 0; y < 256; y += 10) {
+    ctx.fillStyle = y % 20 === 0 ? '#92400e' : '#d97706';
+    ctx.fillRect(0, y, 256, 5);
+    if (y % 40 === 0) {
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(0, y + 2, 256, 2);
     }
   }
-
-  // Khung pa-nô chỉ viền đồng thếp vàng truyền thống
-  for (let x = 0; x < 512; x += 64) {
-    ctx.fillStyle = 'rgba(75, 48, 10, 0.35)';
-    ctx.fillRect(x, 0, 3, 512);
-    ctx.fillStyle = 'rgba(245, 210, 110, 0.45)';
-    ctx.fillRect(x + 3, 0, 2, 512);
-  }
-
-  // Vết xước chải vi mô tạo độ óng ánh kim loại đồng vàng cổ (Brushed metallic luster)
-  for (let i = 0; i < 3500; i++) {
-    const rx = Math.random() * 512;
-    const ry = Math.random() * 512;
-    const len = 10 + Math.random() * 32;
-    ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(255, 240, 160, 0.15)' : 'rgba(65, 38, 10, 0.18)';
-    ctx.lineWidth = 0.8 + Math.random() * 1.2;
-    ctx.beginPath();
-    ctx.moveTo(rx, ry);
-    ctx.lineTo(rx + len, ry);
-    ctx.stroke();
-  }
-
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
@@ -1764,7 +1735,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     const texJadeRoof = createStylizedJadeRoofTexture();
     texJadeRoof.repeat.set(3, 4);
     const texAmberWood = createStylizedAmberWoodTexture();
-    texAmberWood.repeat.set(3, 3);
+    texAmberWood.repeat.set(2, 4);
     const texLotusPlinth = createStylizedLotusPlinthTexture();
     texLotusPlinth.repeat.set(4, 2);
 
@@ -1772,13 +1743,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     const matWoodLim = new THREE.MeshStandardMaterial({ map: texWood, roughness: 0.65 });
     const matWoodWarm = new THREE.MeshStandardMaterial({ map: texWood, color: 0xb45309, roughness: 0.65 });
     const matDarkTimber = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.7 });
-    // Tường màu Vàng Đồng (Sacred Antique Bronze Gold Wall tone)
-    const matAmberWood = new THREE.MeshStandardMaterial({
-      map: texAmberWood,
-      color: 0xd4a552, // Sắc vàng đồng ấm áp, uy nghiêm và đồng điệu với tượng Phật
-      roughness: 0.38, // Satin sheen của bề mặt đồng vàng
-      metalness: 0.50, // Ánh kim vàng đồng cao cấp
-    });
+    const matAmberWood = new THREE.MeshStandardMaterial({ map: texAmberWood, roughness: 0.55 });
     const matLotusPlinth = new THREE.MeshStandardMaterial({ map: texLotusPlinth, roughness: 0.65 });
 
     // Signature Jade Green Glazed Ceramic Tile with Specular Sheen (Ngói lưu ly men ngọc)
@@ -4741,22 +4706,6 @@ function createAuthenticDaiHungBaoDien(
   wallBack.position.set(0, bodyH / 2, -bodyD / 2);
   hallBodyGroup.add(wallBack);
 
-  // Ốp khung viền hoàng gia và bức phông chạm vàng đồng sau tượng Phật
-  const backdropPanel = new THREE.Mesh(new THREE.BoxGeometry(14.0, bodyH - 1.2, 0.15), matAmberWood);
-  backdropPanel.position.set(0, bodyH / 2, -bodyD / 2 + 0.28);
-  hallBodyGroup.add(backdropPanel);
-
-  const backdropGoldTrim = new THREE.Mesh(new THREE.BoxGeometry(14.3, bodyH - 0.9, 0.08), matGold);
-  backdropGoldTrim.position.set(0, bodyH / 2, -bodyD / 2 + 0.22);
-  hallBodyGroup.add(backdropGoldTrim);
-
-  // Các dải nẹp chỉ vàng đồng chia gian tường hậu cung uy nghiêm
-  for (let px = -12.0; px <= 12.0; px += 4.0) {
-    const pilasterTrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, bodyH, 0.12), matGold);
-    pilasterTrim.position.set(px, bodyH / 2, -bodyD / 2 + 0.30);
-    hallBodyGroup.add(pilasterTrim);
-  }
-
   const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(0.5, bodyH, bodyD), matAmberWood);
   wallLeft.position.set(-bodyW / 2, bodyH / 2, 0);
   hallBodyGroup.add(wallLeft);
@@ -6625,11 +6574,10 @@ function createAuthenticDaiHungBaoDien(
   };
 
   // -------------------------------------------------------------
-  // BỐ TRÍ ĐẠI TƯỢNG PHẬT TỔ NHƯ LAI TẠI TRUNG TÂM (ĐƠN TÔN UY NGHIÊM)
-  // - Bỏ 2 tượng hai bên để không gian Chánh Điện khoáng đạt, thanh tịnh
-  // - Tăng kích thước tượng chính giữa lên quy mô đại Phật uy nghi (targetH = 8.0m)
+  // BỐ TRÍ TƯỢNG PHẬT TỔ NHƯ LAI TẠI TRUNG TÂM (KÍCH THƯỚC CHUẨN BAN ĐẦU)
+  // - Phật Tổ Như Lai chính giữa: Uy nghi, tỉ lệ chuẩn 100% bản vẽ Blender 3D (targetH = 5.2m)
   // -------------------------------------------------------------
-  const buddhaCenter = createPhatToNhuLaiStatue(0, -0.5, 2.15);
+  const buddhaCenter = createPhatToNhuLaiStatue(0, -0.5, 1.35);
   buddhaCenter.position.set(0, 0.84, -0.5);
   altarGroup.add(buddhaCenter);
 
@@ -6642,7 +6590,7 @@ function createAuthenticDaiHungBaoDien(
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
 
-      const targetH = 8.0; // Đại tượng Phật trung tâm uy nghiêm cao 8m
+      const targetH = 5.2; // Kích thước chuẩn ban đầu 5.2m
       const s = targetH / (size.y || 1);
       realModel.scale.setScalar(s);
       realModel.position.set(-center.x * s, -box.min.y * s + 0.84, -center.z * s - 0.5);
@@ -6667,32 +6615,32 @@ function createAuthenticDaiHungBaoDien(
 
   // === ÁNH SÁNG TRỰC TIẾP CHIẾU LÊN BAN THỜ & TƯỢNG PHẬT (SHRINE SPOTLIGHTS) ===
   // SpotLight từ phía trên chính giữa tượng Phật Tổ Như Lai
-  const shrineSpot = new THREE.SpotLight(0xfff8e1, 5.5, 26, Math.PI / 4, 0.42, 1.2);
-  shrineSpot.position.set(0, 14.5, 3.5);
-  shrineSpot.target.position.set(0, 5.8, -7.0);
+  const shrineSpot = new THREE.SpotLight(0xfff8e1, 4.5, 22, Math.PI / 5, 0.38, 1.2);
+  shrineSpot.position.set(0, 14, 3.5);
+  shrineSpot.target.position.set(0, 5.0, -7.5);
   nightLightsRef.current.push(shrineSpot as unknown as THREE.PointLight);
   mainHall.add(shrineSpot);
   mainHall.add(shrineSpot.target);
 
-  // SpotLight phụ chiếu nghiêng từ bên trái tập trung vào tượng Phật chính
-  const shrineSpotL = new THREE.SpotLight(0xfef3c7, 3.8, 22, Math.PI / 5, 0.45, 1.4);
-  shrineSpotL.position.set(-6, 12.5, 3);
-  shrineSpotL.target.position.set(-0.8, 5.8, -7.0);
+  // SpotLight phụ chiếu nghiêng từ bên trái
+  const shrineSpotL = new THREE.SpotLight(0xfef3c7, 2.8, 18, Math.PI / 6, 0.42, 1.4);
+  shrineSpotL.position.set(-5, 11, 2);
+  shrineSpotL.target.position.set(-1.0, 4.5, -7.5);
   nightLightsRef.current.push(shrineSpotL as unknown as THREE.PointLight);
   mainHall.add(shrineSpotL);
   mainHall.add(shrineSpotL.target);
 
-  // SpotLight phụ chiếu nghiêng từ bên phải tập trung vào tượng Phật chính
-  const shrineSpotR = new THREE.SpotLight(0xfef3c7, 3.8, 22, Math.PI / 5, 0.45, 1.4);
-  shrineSpotR.position.set(6, 12.5, 3);
-  shrineSpotR.target.position.set(0.8, 5.8, -7.0);
+  // SpotLight phụ chiếu nghiêng từ bên phải
+  const shrineSpotR = new THREE.SpotLight(0xfef3c7, 2.8, 18, Math.PI / 6, 0.42, 1.4);
+  shrineSpotR.position.set(5, 11, 2);
+  shrineSpotR.target.position.set(1.0, 4.5, -7.5);
   nightLightsRef.current.push(shrineSpotR as unknown as THREE.PointLight);
   mainHall.add(shrineSpotR);
   mainHall.add(shrineSpotR.target);
 
   // Ánh hào quang vàng ấm tỏa từ sau tượng trung tâm
-  const buddhaGlowBack = new THREE.PointLight(0xfbbf24, 4.5, 14);
-  buddhaGlowBack.position.set(0, 6.8, -7.8);
+  const buddhaGlowBack = new THREE.PointLight(0xfbbf24, 3.5, 10);
+  buddhaGlowBack.position.set(0, 5.5, -8.0);
   nightLightsRef.current.push(buddhaGlowBack);
   mainHall.add(buddhaGlowBack);
 
