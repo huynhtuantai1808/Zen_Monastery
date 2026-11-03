@@ -17,6 +17,7 @@ import { useGameStore } from './store/gameStore';
 import { CharacterCreationModal } from './components/CharacterCreationModal';
 import { TopHeaderHUD } from './components/TopHeaderHUD';
 import { GraphicsSettingsModal } from './components/GraphicsSettingsModal';
+import { Buddha3DViewerModal } from './components/Buddha3DViewerModal';
 import { SweepingModal } from './components/SweepingModal';
 import { TeaHouseModal } from './components/TeaHouseModal';
 import { DharmaEveningModal } from './components/DharmaEveningModal';
@@ -86,6 +87,7 @@ export default function App() {
   // Chế độ thế giới: 3D / 2D / Tĩnh
   const [worldMode, setWorldMode] = useState<'3D' | 'OPEN_WORLD' | 'FOCUS'>('3D');
   const [openWorldActivity, setOpenWorldActivity] = useState<'NONE' | 'SWEEP' | 'TEA' | 'DHARMA'>('NONE');
+  const [showBuddhaViewer, setShowBuddhaViewer] = useState<boolean>(false);
 
   // Khởi tạo audio & BGM listeners
   useEffect(() => {
@@ -229,6 +231,7 @@ export default function App() {
         onOpenQuestModal={() => setShowQuestModal(true)}
         onOpenJournalModal={() => setShowJournalModal(true)}
         onOpenGraphicsModal={() => setShowGraphicsModal(true)}
+        onOpenBuddhaViewer={() => setShowBuddhaViewer(true)}
         onToggleWorldMode={() => {
           setWorldMode((prev) => (prev === '3D' ? 'OPEN_WORLD' : prev === 'OPEN_WORLD' ? 'FOCUS' : '3D'));
           soundEngine.playWoodenFish();
@@ -402,6 +405,7 @@ export default function App() {
             onOpenWoodChopping={() => setActiveQuestModal('CHOP_WOOD')}
             onOpenWaterCarrying={() => setActiveQuestModal('CARRY_WATER')}
             onOpenAltarCleaning={() => setActiveQuestModal('CLEAN_ALTAR')}
+            onOpenBuddhaViewer={() => setShowBuddhaViewer(true)}
             onOpenCharity={() => setActiveQuestModal('CHARITY')}
             onOpenCalligraphy={() => setActiveQuestModal('CALLIGRAPHY')}
             onAddMerit={(amount, x, y, label) => addMerit(amount, x, y, label)}
@@ -430,6 +434,7 @@ export default function App() {
             onOpenWoodChopping={() => setActiveQuestModal('CHOP_WOOD')}
             onOpenWaterCarrying={() => setActiveQuestModal('CARRY_WATER')}
             onOpenAltarCleaning={() => setActiveQuestModal('CLEAN_ALTAR')}
+            onOpenBuddhaViewer={() => setShowBuddhaViewer(true)}
             onOpenCharity={() => setActiveQuestModal('CHARITY')}
             onOpenCharModal={() => setShowCharModal(true)}
             onAddMerit={(amount, x, y, label) => addMerit(amount, x, y, label)}
@@ -637,6 +642,14 @@ export default function App() {
       <GraphicsSettingsModal
         isOpen={showGraphicsModal}
         onClose={() => setShowGraphicsModal(false)}
+      />
+
+      {/* =========================================================
+          5. STUDIO 3D TƯỢNG PHẬT TỔ NHƯ LAI (2K PBR BLENDER DUAL-VIEWPORT)
+          ========================================================= */}
+      <Buddha3DViewerModal
+        isOpen={showBuddhaViewer}
+        onClose={() => setShowBuddhaViewer(false)}
       />
 
       {/* Floating text messages */}

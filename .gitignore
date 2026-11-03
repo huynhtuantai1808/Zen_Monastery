@@ -28,8 +28,9 @@ dist-ssr
 *.mp4
 *.m4a
 
-# Allow lightweight monastic voice assets (<1MB)
+# Allow lightweight monastic voice assets & 3D models
 !public/audio/*.mp3
+!public/models/**
 
 # Scratch & Temporary Dev Scripts
 scratch/

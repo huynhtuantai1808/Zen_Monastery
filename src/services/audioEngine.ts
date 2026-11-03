@@ -20,10 +20,12 @@ class ZenAudioEngine {
   private bgmListeners: Array<(isPlaying: boolean, volume: number) => void> = [];
   private hasRegisteredGesture: boolean = false;
 
-  // Audio ducking for sacred bells
+  // Audio ducking for sacred bells & Sanctuary Hall
   private duckTimer: number | null = null;
   private isDucking: boolean = false;
+  private isHallDucked: boolean = false;
   private fadeInterval: number | null = null;
+  private woodenFishTimer: number | null = null;
 
   public initContext() {
     if (!this.ctx && typeof window !== 'undefined') {
@@ -50,7 +52,8 @@ class ZenAudioEngine {
       if (this.isMuted) {
         this.bgmAudio.volume = 0;
       } else {
-        this.bgmAudio.volume = this.isDucking ? Math.max(0.03, this.bgmVolume * 0.22) : this.bgmVolume;
+        const duckRate = this.isDucking ? (this.isHallDucked ? 0.08 : 0.22) : (this.isHallDucked ? 0.20 : 1.0);
+        this.bgmAudio.volume = Math.max(0.02, this.bgmVolume * duckRate);
       }
     }
     this.notifyBgmListeners();
@@ -214,11 +217,8 @@ class ZenAudioEngine {
   public setBGMVolume(volume: number) {
     this.bgmVolume = Math.max(0, Math.min(1, volume));
     if (this.bgmAudio && !this.isMuted) {
-      if (this.isDucking) {
-        this.bgmAudio.volume = Math.max(0.03, this.bgmVolume * 0.22);
-      } else {
-        this.bgmAudio.volume = this.bgmVolume;
-      }
+      const duckRate = this.isDucking ? (this.isHallDucked ? 0.08 : 0.22) : (this.isHallDucked ? 0.20 : 1.0);
+      this.bgmAudio.volume = Math.max(0.02, this.bgmVolume * duckRate);
     }
     this.notifyBgmListeners();
   }
@@ -288,22 +288,74 @@ class ZenAudioEngine {
 
     this.isDucking = true;
 
-    // Giảm âm lượng nhạc nền xuống còn ~22% mức âm lượng bình thường
-    const duckedVol = Math.max(0.03, this.bgmVolume * 0.22);
+    // Giảm âm lượng nhạc nền xuống còn ~22% (hoặc ~8% nếu đang ở trong Chánh Điện)
+    const duckRate = this.isHallDucked ? 0.08 : 0.22;
+    const duckedVol = Math.max(0.02, this.bgmVolume * duckRate);
 
     // Lướt êm dịu xuống trong 600ms
     this.fadeAudioVolume(duckedVol, 600);
 
-    // Chờ tiếng chuông ngân vang xong thì từ từ phục hồi âm lượng bình thường
+    // Chờ tiếng chuông ngân vang xong thì từ từ phục hồi âm lượng theo bối cảnh
     if (typeof window !== 'undefined') {
       const holdTimeMs = Math.max(800, (durationSeconds - 2.5) * 1000);
       this.duckTimer = window.setTimeout(() => {
         this.isDucking = false;
-        // Trượt êm đềm trở về âm lượng bgmVolume gốc trong 2.5 giây
-        this.fadeAudioVolume(this.bgmVolume, 2500, () => {
+        // Trở về mức âm lượng phù hợp (20% nếu trong Chánh Điện, 100% nếu ngoài sân)
+        const targetVol = this.isHallDucked ? Math.max(0.02, this.bgmVolume * 0.20) : this.bgmVolume;
+        this.fadeAudioVolume(targetVol, 2500, () => {
           this.duckTimer = null;
         });
       }, holdTimeMs);
+    }
+  }
+
+  /**
+   * Tự động giảm âm lượng BGM xuống còn 20% khi bước vào Sảnh Chánh Điện (Sanctuary Hall)
+   * Giữ không gian trang nghiêm, thanh tịnh để lắng nghe lời giảng pháp và tiếng mỏ.
+   * Khi bước ra ngoài sân chùa, âm lượng từ từ tăng dần trở lại 100% mức bình thường.
+   */
+  public setHallDucking(inside: boolean) {
+    if (this.isHallDucked === inside) return;
+    this.isHallDucked = inside;
+
+    if (!this.bgmAudio || this.isMuted || !this.isBgmPlaying) return;
+
+    if (inside) {
+      // Khi bước vào Chánh Điện: giảm âm lượng xuống 20%
+      const targetDuckRate = this.isDucking ? 0.08 : 0.20;
+      const targetVol = Math.max(0.02, this.bgmVolume * targetDuckRate);
+      this.fadeAudioVolume(targetVol, 800);
+    } else {
+      // Khi bước ra ngoài sân: phục hồi về 100% (nếu chuông không đang gõ)
+      if (!this.isDucking) {
+        this.fadeAudioVolume(this.bgmVolume, 1200);
+      }
+    }
+  }
+
+  public getIsHallDucked(): boolean {
+    return this.isHallDucked;
+  }
+
+  /**
+   * Phát tiếng gõ mỏ nhịp nhàng đều đặn theo chu kỳ (Wooden Fish Rhythm)
+   * Tái hiện nghi thức tụng kinh, niệm Phật và tọa thiền chánh niệm nơi cửa Phật
+   */
+  public startWoodenFishRhythm(intervalMs = 2200): () => void {
+    this.stopWoodenFishRhythm();
+    this.playWoodenFish();
+    if (typeof window !== 'undefined') {
+      this.woodenFishTimer = window.setInterval(() => {
+        this.playWoodenFish();
+      }, intervalMs);
+    }
+    return () => this.stopWoodenFishRhythm();
+  }
+
+  public stopWoodenFishRhythm() {
+    if (this.woodenFishTimer !== null && typeof window !== 'undefined') {
+      window.clearInterval(this.woodenFishTimer);
+      this.woodenFishTimer = null;
     }
   }
 

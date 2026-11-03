@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
@@ -34,6 +35,7 @@ interface Zen3DWorldProps {
   onOpenWoodChopping: () => void;
   onOpenWaterCarrying: () => void;
   onOpenAltarCleaning: () => void;
+  onOpenBuddhaViewer?: () => void;
   onOpenCharity: () => void;
   onOpenCalligraphy?: () => void;
   onAddMerit: (amount: number, x: number, y: number, label?: string) => void;
@@ -511,6 +513,39 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     actionKey: 'NIGHT',
   },
 ];
+
+// ==========================================
+// BỒ ĐOÀN THIỀN TỌA TẠI ĐẠI HÙNG BẢO ĐIỆN (SANCTUARY CUSHIONS)
+// 12 bồ đoàn nhung đỏ xếp ngăn nắp hai bên lối đi thảm đỏ
+// ==========================================
+export const SANCTUARY_CUSHIONS: Array<{ x: number; y: number; z: number }> = [
+  // Hàng chính giữa sát lối đi thảm đỏ & chân cột (cushionRows: 4.6 -> Z = -11.4; cushionCols: 2.5, -2.5)
+  { x: 2.5, y: 3.38, z: -11.4 },  // Bồ đoàn mẫu trong hình ảnh (bên phải thảm đỏ, cạnh chân cột)
+  { x: -2.5, y: 3.38, z: -11.4 }, // Bồ đoàn đối xứng bên trái thảm đỏ
+  { x: 2.5, y: 3.38, z: -13.4 },  // Hàng trên gần bục Phật Tổ
+  { x: -2.5, y: 3.38, z: -13.4 },
+  { x: 2.5, y: 3.38, z: -9.4 },   // Hàng dưới gần cửa ra vào
+  { x: -2.5, y: 3.38, z: -9.4 },
+  { x: 4.6, y: 3.38, z: -11.4 },  // Dãy ngoài bên phải
+  { x: -4.6, y: 3.38, z: -11.4 }, // Dãy ngoài bên trái
+  { x: 4.6, y: 3.38, z: -13.4 },
+  { x: -4.6, y: 3.38, z: -13.4 },
+  { x: 4.6, y: 3.38, z: -9.4 },
+  { x: -4.6, y: 3.38, z: -9.4 },
+];
+
+export function getTargetMeditationCushion(playerX: number, playerZ: number): { x: number; y: number; z: number } {
+  let closest = SANCTUARY_CUSHIONS[0];
+  let minD = Infinity;
+  for (const c of SANCTUARY_CUSHIONS) {
+    const d = Math.hypot(c.x - playerX, c.z - playerZ);
+    if (d < minD) {
+      minD = d;
+      closest = c;
+    }
+  }
+  return closest;
+}
 
 // ==========================================
 // STYLIZED TOON / HAND-PAINTED TEXTURE GENERATORS
@@ -1012,6 +1047,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   onOpenWoodChopping,
   onOpenWaterCarrying,
   onOpenAltarCleaning,
+  onOpenBuddhaViewer,
   onOpenCharity,
   onAddMerit,
   spendStamina,
@@ -1065,6 +1101,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     onOpenWoodChopping,
     onOpenWaterCarrying,
     onOpenAltarCleaning,
+    onOpenBuddhaViewer,
     onOpenCharity,
     onAddMerit,
     spendStamina,
@@ -1079,6 +1116,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     onOpenWoodChopping,
     onOpenWaterCarrying,
     onOpenAltarCleaning,
+    onOpenBuddhaViewer,
     onOpenCharity,
     onAddMerit,
     spendStamina,
@@ -1235,25 +1273,48 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     onAddMerit(40, 50, 35, '🙏 Thính Pháp Với Sư Phụ Trụ Trì');
   }, [onAddMerit]);
 
-  const handleSitMeditationLecture = useCallback(() => {
+  // KHÓA LỄ THÍNH PHÁP & TỌA THIỀN CHÁNH NIỆM THEO TIẾNG MỎ SƯ THẦY
+  const handleStartDharmaChantSession = useCallback(() => {
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
-    soundEngine.playWoodenFish();
+
+    // 1. Chuyển nhân vật ngồi ngay ngắn trên bồ đoàn thiền tọa màu đỏ
+    const targetCushion = getTargetMeditationCushion(playerPosRef.current.x, playerPosRef.current.z);
+    playerPosRef.current.x = targetCushion.x;
+    playerPosRef.current.y = targetCushion.y; // 3.38m
+    playerPosRef.current.z = targetCushion.z;
+    targetPosRef.current = null;
+    isWalkingStateRef.current = false;
+
+    if (monkGroupRef.current) {
+      monkGroupRef.current.position.set(targetCushion.x, targetCushion.y, targetCushion.z);
+      monkGroupRef.current.rotation.set(0, Math.PI, 0); // Trang nghiêm hướng mặt về bàn thờ Phật Tổ
+    }
+
     setMonkPose('SIT_EDGE');
     monkPoseRef.current = 'SIT_EDGE';
-    // Đảm bảo nhân vật ngồi ngay ngắn trên mặt sàn Chánh Điện (Y = 3.30m), tuyệt đối không bị chìm
-    const currentP = playerPosRef.current;
-    currentP.y = getTerrainFloorElevation(currentP.x, currentP.z, currentP.y);
-    targetPosRef.current = null;
-    onAddMerit(50, 50, 35, '🧘 Tọa Thiền Nghe Kinh Tại Chánh Điện');
+
+    // 2. Bắt đầu chuỗi gõ mỏ nhịp nhàng đều đặn của Sư Thầy (Wooden Fish Rhythm)
+    soundEngine.startWoodenFishRhythm(2200);
+
+    // 3. Khởi tạo nội dung khóa lễ thính pháp & bài thiền tịnh
+    const dharmaText = 'A Di Đà Phật! Thở vào tâm tĩnh lặng, thở ra miệng mỉm cười. Khi con an trú trong giây phút hiện tại, ngọn đèn chánh niệm sẽ soi tỏ mọi ngóc ngách u tối của tâm hồn. Hãy ngồi thẳng lưng trên bồ đoàn, buông xả vạn duyên trần thế, theo từng nhịp mỏ thanh tịnh mà nhiếp tâm thiền định an lạc.';
+    const dharmaGatha = '🪷 Kệ Khóa Lễ Thiền Định:\n"Tiếng mỏ nhịp nhàng xua vọng niệm\nLời kinh trầm ấm lắng trần ai\nNgồi trên bồ đoàn tâm thanh tịnh\nBát-nhã hoa khai rạng ánh mai."';
+
     setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '🧘',
-      role: 'Thuyết Pháp Khai Thị',
-      text: 'Thở vào tâm tĩnh lặng, thở ra miệng mỉm cười. Khi con an trú trong giây phút hiện tại, ngọn đèn chánh niệm sẽ soi tỏ mọi ngóc ngách u tối của tâm hồn. Hãy giữ lưng thẳng, tâm buông thư và cảm nhận sự an lạc vô biên nơi chốn thiền môn.',
-      gatha: '🪷 Kệ Thiền Tọa:\n"Thở vào tĩnh lặng thân tâm\nThở ra mỉm miệng nụ cười an nhiên\nAn trú trong phút hiện tiền\nBao nhiêu phiền não tan biến tức thời."',
+      role: 'Khóa Lễ Thính Pháp & Thiền Tọa',
+      text: dharmaText,
+      gatha: dharmaGatha,
     });
+
+    onAddMerit(60, 50, 40, '📜 Tham Dự Khóa Lễ Thính Pháp & Thiền Tọa');
   }, [onAddMerit]);
+
+  const handleSitMeditationLecture = useCallback(() => {
+    handleStartDharmaChantSession();
+  }, [handleStartDharmaChantSession]);
 
   // HOẠT ẢNH DÂNG HƯƠNG & VÁI LẠY TAM BẢO (3 BÁI KÍNH CẨN)
   const handleTriggerIncenseBow = useCallback(() => {
@@ -1348,6 +1409,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       };
     } else {
       stopAbbotVoice();
+      soundEngine.stopWoodenFishRhythm();
       setIsAbbotVoiceActive(false);
       setAbbotVoiceProgress(0);
     }
@@ -1355,6 +1417,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
   const handleCloseAbbotDialogue = useCallback(() => {
     stopAbbotVoice();
+    soundEngine.stopWoodenFishRhythm();
     setIsAbbotVoiceActive(false);
     setAbbotVoiceProgress(0);
     setAbbotDialogue(null);
@@ -2467,6 +2530,12 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
         targetPosRef.current = { x: resolved.x, y: floorY, z: resolved.z };
         stuckCountRef.current = 0;
+        if (monkPoseRef.current !== 'STAND') {
+          monkPoseRef.current = 'STAND';
+          setMonkPose('STAND');
+          soundEngine.stopWoodenFishRhythm();
+          stopAbbotVoice();
+        }
         if (destinationMarkerRef.current) {
           destinationMarkerRef.current.position.set(resolved.x, floorY + 0.08, resolved.z);
           destinationMarkerRef.current.visible = true;
@@ -2549,6 +2618,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           if (monkPoseRef.current !== 'STAND') {
             monkPoseRef.current = 'STAND';
             setMonkPose('STAND');
+            soundEngine.stopWoodenFishRhythm();
+            stopAbbotVoice();
           }
           isCurrentlyWalking = true;
           isWalkingStateRef.current = true;
@@ -2713,8 +2784,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           } else {
             // Tọa thiền kiết già tại Sảnh Chính Điện / Phòng Thiền: Hướng về phía trước bàn thờ Phật
             monkGroupRef.current.rotation.set(0, Math.PI, 0);
-            // Chuẩn xác mặt sàn Y = 3.30m, chống chìm tuyệt đối 100%
-            currentP.y = targetFloorY;
+            // Nếu ngồi trên bồ đoàn thiền tọa: nâng độ cao lên 3.38m để ngồi chính xác trên mặt đệm nhung đỏ
+            const isNearCushion = SANCTUARY_CUSHIONS.some(
+              (c) => Math.hypot(c.x - currentP.x, c.z - currentP.z) < 0.95
+            );
+            currentP.y = isNearCushion ? 3.38 : targetFloorY;
           }
         } else {
           monkGroupRef.current.rotation.x = 0;
@@ -2805,9 +2879,12 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
             } else if (zKey === 'SANCTUARY') {
               actionsList.push({ title: 'Bạch Sư Phụ Trụ Trì', action: handleTalkToAbbot, icon: '🙏' });
+              actionsList.push({ title: 'Khóa Lễ Thính Pháp', action: handleStartDharmaChantSession, icon: '📜' });
               actionsList.push({ title: 'Tọa Thiền Nghe Pháp', action: handleSitMeditationLecture, icon: '🧘' });
               actionsList.push({ title: 'Thắp Nhang Trầm Cầu An', action: handleLightIncenseSanctuary, icon: '🕯️' });
-              actionsList.push({ title: 'Khóa Lễ Thính Pháp', action: p.onOpenDharma, icon: '📜' });
+              if (p.onOpenBuddhaViewer) {
+                actionsList.push({ title: 'Chiêm Bái & Tinh Chỉnh Tượng Phật 3D', action: p.onOpenBuddhaViewer, icon: '🪷' });
+              }
               actionsList.push({ title: 'Lau Chùi Bàn Thờ Phật', action: p.onOpenAltarCleaning, icon: '✨' });
               if (monkPoseRef.current !== 'STAND') {
                 actionsList.push({
@@ -2815,6 +2892,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
                   action: () => {
                     setMonkPose('STAND');
                     monkPoseRef.current = 'STAND';
+                    soundEngine.stopWoodenFishRhythm();
+                    stopAbbotVoice();
                   },
                   icon: '🚶'
                 });
@@ -2838,6 +2917,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
         // Indoor Building Detection
         const inSanctuary = currentP.z <= -4 && currentP.z >= -32 && Math.abs(currentP.x) <= 17 && currentP.y < 6.0;
+        // Khi bước vào Chánh Điện: giảm âm lượng nhạc nền BGM còn 20%, bước ra ngoài tự phục hồi 100%
+        soundEngine.setHallDucking(inSanctuary);
         const inBalcony = currentP.y >= 6.0 && currentP.z <= -6 && currentP.z >= -30;
         const inMeditation = Math.hypot(currentP.x - (-24), currentP.z - 6) < 8;
         const inLibrary = Math.hypot(currentP.x - 24, currentP.z - 6) < 8.5;
@@ -3638,25 +3719,34 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
             <div className="flex flex-wrap items-center justify-end gap-2">
               <button
-                onClick={handleSitMeditationLecture}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-amber-300/50"
-              >
-                <span>🧘</span>
-                <span>Tọa Thiền Cùng Sư Phụ</span>
-              </button>
-              <button
-                onClick={onOpenDharma}
+                onClick={handleStartDharmaChantSession}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-700 hover:from-red-500 hover:to-amber-600 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-red-400/50"
               >
                 <span>📜</span>
                 <span>Khóa Lễ Thính Pháp</span>
               </button>
-              <button
-                onClick={handleCloseAbbotDialogue}
-                className="px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs transition cursor-pointer"
-              >
-                A Di Đà Phật 🙏
-              </button>
+              {monkPoseRef.current !== 'STAND' ? (
+                <button
+                  onClick={() => {
+                    handleCloseAbbotDialogue();
+                    setMonkPose('STAND');
+                    monkPoseRef.current = 'STAND';
+                    soundEngine.stopWoodenFishRhythm();
+                    stopAbbotVoice();
+                  }}
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-amber-200 font-bold text-xs transition cursor-pointer border border-amber-400/30 flex items-center gap-1.5"
+                >
+                  <span>🚶</span>
+                  <span>Đứng Dậy Xả Thiền</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCloseAbbotDialogue}
+                  className="px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs transition cursor-pointer"
+                >
+                  A Di Đà Phật 🙏
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -6129,6 +6219,35 @@ function createAuthenticDaiHungBaoDien(
   const buddhaCenter = createPhatToNhuLaiStatue(0, -0.5, 1.35);
   buddhaCenter.position.set(0, 0.84, -0.5);
   altarGroup.add(buddhaCenter);
+
+  // Tải mô hình 3D thực tế /models/buddha/scene.gltf đặt tại trung tâm Chánh Điện
+  try {
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load('/models/buddha/scene.gltf', (gltf) => {
+      const realModel = gltf.scene;
+      const box = new THREE.Box3().setFromObject(realModel);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      const targetH = 5.2;
+      const s = targetH / (size.y || 1);
+      realModel.scale.setScalar(s);
+      realModel.position.set(-center.x * s, -box.min.y * s + 0.84, -center.z * s - 0.5);
+      realModel.rotation.y = 0;
+
+      realModel.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+
+      altarGroup.remove(buddhaCenter);
+      altarGroup.add(realModel);
+    });
+  } catch (err) {
+    console.warn('Sử dụng tượng Phật thủ công mặc định:', err);
+  }
 
   const hoVeLeft = createHoVeBaoPhapStatue(-2.8, -0.2, true, 1.05);
   hoVeLeft.position.set(-2.8, 0.84, -0.2);

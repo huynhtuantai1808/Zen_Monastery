@@ -18,6 +18,7 @@ interface ZenOpenWorldProps {
   onOpenWoodChopping: () => void;
   onOpenWaterCarrying: () => void;
   onOpenAltarCleaning: () => void;
+  onOpenBuddhaViewer?: () => void;
   onOpenCharity: () => void;
   onOpenCharModal: () => void;
   onAddMerit: (amount: number, x: number, y: number, label?: string) => void;
@@ -81,6 +82,7 @@ export const ZenOpenWorld: React.FC<ZenOpenWorldProps> = ({
   onOpenWoodChopping,
   onOpenWaterCarrying,
   onOpenAltarCleaning,
+  onOpenBuddhaViewer: _onOpenBuddhaViewer,
   onOpenCharity,
   onOpenCharModal: _onOpenCharModal,
   onAddMerit,
