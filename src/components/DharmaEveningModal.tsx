@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Award, ChevronRight, X } from 'lucide-react';
+import { Sparkles, Award, ChevronRight, X, Volume2, Pause } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ZenCharacterSprite } from './ZenCharacterSprite';
 import { BUDDHIST_DHARMA_SESSIONS } from '../data/buddhistDharma';
 import { soundEngine } from '../services/audioEngine';
+import { speakAbbotVoice, stopAbbotVoice } from '../services/monkVoiceService';
 import type { BuddhistDharmaSession, DharmaOption } from '../types/game';
 
 const INITIAL_THOUGHT_BUBBLES = [
@@ -41,6 +42,15 @@ export const DharmaEveningModal: React.FC<DharmaEveningModalProps> = ({
   const [breathProgress, setBreathProgress] = useState<number>(0);
   const [dharmaIndex, setDharmaIndex] = useState<number>(0);
   const [dharmaResult, setDharmaResult] = useState<DharmaOption | null>(null);
+  const [isMonkVoicePlaying, setIsMonkVoicePlaying] = useState<boolean>(false);
+
+  // Dừng giọng đọc khi đóng modal
+  useEffect(() => {
+    return () => {
+      stopAbbotVoice();
+      setIsMonkVoicePlaying(false);
+    };
+  }, [isOpen]);
 
   // Breathing effect timer
   useEffect(() => {
@@ -190,15 +200,51 @@ export const DharmaEveningModal: React.FC<DharmaEveningModalProps> = ({
                   {currentDharmaSession.title}
                 </h3>
               </div>
-              <button
-                onClick={() => {
-                  setDharmaResult(null);
-                  setDharmaIndex((prev) => (prev + 1) % BUDDHIST_DHARMA_SESSIONS.length);
-                }}
-                className="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 font-serif cursor-pointer"
-              >
-                Đổi bài kinh khác
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (isMonkVoicePlaying) {
+                      stopAbbotVoice();
+                      setIsMonkVoicePlaying(false);
+                    } else {
+                      setIsMonkVoicePlaying(true);
+                      speakAbbotVoice(currentDharmaSession.story, undefined, {
+                        onStart: () => setIsMonkVoicePlaying(true),
+                        onEnd: () => setIsMonkVoicePlaying(false),
+                      });
+                    }
+                  }}
+                  className={`text-xs px-3 py-1 rounded-lg border font-serif cursor-pointer flex items-center gap-1.5 transition ${
+                    isMonkVoicePlaying
+                      ? 'bg-red-950/80 border-red-500/50 text-amber-200'
+                      : 'bg-amber-600/20 border-amber-400/40 text-amber-200 hover:bg-amber-600/30'
+                  }`}
+                  title="Nghe giọng đọc thiền môn của Sư Thầy"
+                >
+                  {isMonkVoicePlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Tạm Dừng</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Nghe Giọng Thầy</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    stopAbbotVoice();
+                    setIsMonkVoicePlaying(false);
+                    setDharmaResult(null);
+                    setDharmaIndex((prev) => (prev + 1) % BUDDHIST_DHARMA_SESSIONS.length);
+                  }}
+                  className="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 font-serif cursor-pointer"
+                >
+                  Đổi bài kinh khác
+                </button>
+              </div>
             </div>
 
             {/* Nhân vật cư sĩ lắng tâm thính pháp */}

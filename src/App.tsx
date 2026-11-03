@@ -30,6 +30,7 @@ import { CalligraphyModal } from './components/CalligraphyModal';
 import { ZenQuestModal } from './components/ZenQuestModal';
 import { ZEN_QUESTS, type ZenQuestItem } from './data/zenQuests';
 import { soundEngine } from './services/audioEngine';
+import { preloadMonkVoiceAudio, cancelLegacySpeechSynthesis } from './services/monkVoiceService';
 
 interface FloatingText {
   id: number;
@@ -88,6 +89,8 @@ export default function App() {
 
   // Khởi tạo audio & BGM listeners
   useEffect(() => {
+    cancelLegacySpeechSynthesis();
+    preloadMonkVoiceAudio();
     soundEngine.registerAutoplayOnFirstGesture();
     soundEngine.playBGM();
 

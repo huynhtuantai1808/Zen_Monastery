@@ -1882,27 +1882,49 @@ function drawSanctuaryZone(ctx: CanvasRenderingContext2D, step: number) {
     ctx.fill();
   };
 
-  // 2. Tượng Hộ Vệ Bên Trái (Tôn Giả A Nan / Quán Thế Âm Bồ Tát nâng cành hoa sen)
+  // 2. Tượng Hộ Vệ Bên Trái (Bồ Tát Quán Thế Âm nâng cành hoa sen cúng dường)
   const drawHoVeLeft2D = (bx: number, by: number, scale: number) => {
-    // Hào quang tròn
-    ctx.fillStyle = 'rgba(254, 240, 138, 0.8)';
+    // Song Viên Quang Bối (Double-Circle Aureole)
+    // Thân quang dưới
+    ctx.fillStyle = 'rgba(216, 158, 58, 0.40)';
     ctx.beginPath();
-    ctx.arc(bx, by - 4, 16 * scale, 0, Math.PI * 2);
+    ctx.arc(bx, by + 1 * scale, 17 * scale, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 1.5 * scale;
     ctx.stroke();
 
-    // Đài sen
-    ctx.fillStyle = '#b45309';
+    // Viên quang đầu trên
+    ctx.fillStyle = 'rgba(254, 240, 138, 0.85)';
     ctx.beginPath();
-    ctx.ellipse(bx, by + 12 * scale, 13 * scale, 5 * scale, 0, 0, Math.PI * 2);
+    ctx.arc(bx, by - 8 * scale, 13 * scale, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.4 * scale;
+    ctx.stroke();
+
+    // Đài sen 2 tầng cánh
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.ellipse(bx, by + 13 * scale, 15 * scale, 5 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b45309';
+    for (let p = -3; p <= 3; p++) {
+      ctx.beginPath();
+      ctx.arc(bx + p * 3.5 * scale, by + 11 * scale, 2.4 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#f59e0b';
+    for (let p = -3; p <= 3; p++) {
+      ctx.beginPath();
+      ctx.arc(bx + p * 3.2 * scale, by + 9 * scale, 2.6 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Thân tượng và dải lụa thiên y
     ctx.fillStyle = '#eab308';
     ctx.beginPath();
-    ctx.ellipse(bx, by + 5 * scale, 9 * scale, 8 * scale, 0, 0, Math.PI * 2);
+    ctx.ellipse(bx, by + 5 * scale, 9 * scale, 7.5 * scale, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Dải lụa thiên y bay qua vai
@@ -1912,85 +1934,110 @@ function drawSanctuaryZone(ctx: CanvasRenderingContext2D, step: number) {
     ctx.arc(bx, by + 2 * scale, 11 * scale, Math.PI * 0.8, Math.PI * 2.2);
     ctx.stroke();
 
-    // Đầu và Mũ Miện Bồ Tát ngũ phật dát vàng
+    // Đầu và Bảo Miện Bồ Tát dát vàng
     ctx.fillStyle = '#facc15';
     ctx.beginPath();
-    ctx.arc(bx, by - 3 * scale, 6.5 * scale, 0, Math.PI * 2);
+    ctx.arc(bx, by - 4 * scale, 6.2 * scale, 0, Math.PI * 2);
     ctx.fill();
 
     // Mũ miện 5 đỉnh nhọn
     ctx.fillStyle = '#f59e0b';
     for (let c = -2; c <= 2; c++) {
-      ctx.fillRect(bx + c * 2.2 * scale - 0.8 * scale, by - 11 * scale, 1.6 * scale, 3 * scale);
+      ctx.fillRect(bx + c * 2.2 * scale - 0.8 * scale, by - 12 * scale, 1.6 * scale, 3.5 * scale);
     }
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(bx, by - 10.5 * scale, 1 * scale, 0, Math.PI * 2);
+    ctx.fill();
 
     // Cành hoa sen mạ vàng trên tay
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 1.2 * scale;
     ctx.beginPath();
-    ctx.moveTo(bx, by + 6 * scale);
-    ctx.lineTo(bx + 4 * scale, by - 1 * scale);
+    ctx.moveTo(bx, by + 5 * scale);
+    ctx.lineTo(bx + 4.5 * scale, by - 1 * scale);
     ctx.stroke();
     ctx.fillStyle = '#f43f5e';
     ctx.beginPath();
-    ctx.arc(bx + 4.5 * scale, by - 2 * scale, 2.2 * scale, 0, Math.PI * 2);
+    ctx.arc(bx + 5 * scale, by - 2 * scale, 2.5 * scale, 0, Math.PI * 2);
     ctx.fill();
   };
 
-  // 3. Tượng Hộ Vệ Bên Phải (Tôn Giả Ca Diếp / Hộ Pháp cầm Tích Trượng)
+  // 3. Tượng Hộ Vệ Bên Phải (Bồ Tát Đại Thế Chí cầm Tích Trượng)
   const drawHoVeRight2D = (bx: number, by: number, scale: number) => {
-    // Hào quang tròn
-    ctx.fillStyle = 'rgba(254, 240, 138, 0.8)';
+    // Song Viên Quang Bối
+    ctx.fillStyle = 'rgba(216, 158, 58, 0.40)';
     ctx.beginPath();
-    ctx.arc(bx, by - 4, 16 * scale, 0, Math.PI * 2);
+    ctx.arc(bx, by + 1 * scale, 17 * scale, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 1.5 * scale;
     ctx.stroke();
 
-    // Đài sen
-    ctx.fillStyle = '#b45309';
+    ctx.fillStyle = 'rgba(254, 240, 138, 0.85)';
     ctx.beginPath();
-    ctx.ellipse(bx, by + 12 * scale, 13 * scale, 5 * scale, 0, 0, Math.PI * 2);
+    ctx.arc(bx, by - 8 * scale, 13 * scale, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.4 * scale;
+    ctx.stroke();
+
+    // Đài sen 2 tầng cánh
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.ellipse(bx, by + 13 * scale, 15 * scale, 5 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b45309';
+    for (let p = -3; p <= 3; p++) {
+      ctx.beginPath();
+      ctx.arc(bx + p * 3.5 * scale, by + 11 * scale, 2.4 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#f59e0b';
+    for (let p = -3; p <= 3; p++) {
+      ctx.beginPath();
+      ctx.arc(bx + p * 3.2 * scale, by + 9 * scale, 2.6 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Thân tượng uy nghi
     ctx.fillStyle = '#eab308';
     ctx.beginPath();
-    ctx.ellipse(bx, by + 5 * scale, 10 * scale, 8 * scale, 0, 0, Math.PI * 2);
+    ctx.ellipse(bx, by + 5 * scale, 9.5 * scale, 7.5 * scale, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Đầu và Mũ Miện Hộ Pháp
+    // Đầu và Bảo Miện Bồ Tát
     ctx.fillStyle = '#facc15';
     ctx.beginPath();
-    ctx.arc(bx, by - 3 * scale, 6.5 * scale, 0, Math.PI * 2);
+    ctx.arc(bx, by - 4 * scale, 6.2 * scale, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#f59e0b';
+    for (let c = -2; c <= 2; c++) {
+      ctx.fillRect(bx + c * 2.2 * scale - 0.8 * scale, by - 12 * scale, 1.6 * scale, 3.5 * scale);
+    }
+    ctx.fillStyle = '#06b6d4';
     ctx.beginPath();
-    ctx.moveTo(bx - 4 * scale, by - 8 * scale);
-    ctx.lineTo(bx + 4 * scale, by - 8 * scale);
-    ctx.lineTo(bx, by - 13 * scale);
-    ctx.closePath();
+    ctx.arc(bx, by - 10.5 * scale, 1.2 * scale, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tích Trượng mạ vàng cao vút
+    // Tích Trượng mạ vàng cao vút 6 vòng khoen
     ctx.strokeStyle = '#d97706';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.6 * scale;
     ctx.beginPath();
-    ctx.moveTo(bx + 8 * scale, by + 12 * scale);
-    ctx.lineTo(bx + 8 * scale, by - 14 * scale);
+    ctx.moveTo(bx + 7.5 * scale, by + 12 * scale);
+    ctx.lineTo(bx + 7.5 * scale, by - 15 * scale);
     ctx.stroke();
-    // Đầu tích trượng với 4 vòng khuyên
+
     ctx.fillStyle = '#fef08a';
     ctx.beginPath();
-    ctx.arc(bx + 8 * scale, by - 15 * scale, 2.5 * scale, 0, Math.PI * 2);
+    ctx.arc(bx + 7.5 * scale, by - 16 * scale, 2.6 * scale, 0, Math.PI * 2);
     ctx.fill();
   };
 
-  // Vẽ 3 pho tượng: Phật Tổ Như Lai chính giữa, 2 Hộ Vệ hai bên
+  // Vẽ 3 pho tượng Tam Thế Phật: Phật Tổ Như Lai chính giữa, 2 Bồ Tát hai bên kề cận
   drawPhatToNhuLai2D(sx, 418, 1.15);
-  drawHoVeLeft2D(sx - 44, 422, 0.92);
-  drawHoVeRight2D(sx + 44, 422, 0.92);
+  drawHoVeLeft2D(sx - 30, 421, 0.95);
+  drawHoVeRight2D(sx + 30, 421, 0.95);
 
   // Bàn thờ án gian gỗ hương chạm rồng thếp vàng
   ctx.fillStyle = '#78350f';

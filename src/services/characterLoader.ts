@@ -8,7 +8,9 @@ export interface ChibiCharacterRig {
     walk: THREE.AnimationAction;
     idle: THREE.AnimationAction;
     sit: THREE.AnimationAction;
+    incenseBow: THREE.AnimationAction;
   };
+  incenseBundle?: THREE.Group;
 }
 
 export type RealisticCharacterRig = ChibiCharacterRig;
@@ -710,6 +712,48 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   rightHand.position.set(0, -0.14, 0);
   rightForearm.add(rightHand);
 
+  // BÓ 3 NÉN NHANG TRẦM CÚNG PHẬT (INCENSE STICKS BUNDLE)
+  const incenseBundle = new THREE.Group();
+  incenseBundle.name = 'IncenseBundle';
+  incenseBundle.visible = false; // Mặc định ẩn, bật khi thắp nhang vái lạy
+
+  const stickMat = new THREE.MeshStandardMaterial({
+    color: 0x8b4513, // Thân nhang trầm nâu vàng
+    roughness: 0.7,
+  });
+  const footMat = new THREE.MeshStandardMaterial({
+    color: 0xba1c1c, // Chân nhang đỏ son
+    roughness: 0.4,
+  });
+  const emberMat = new THREE.MeshBasicMaterial({
+    color: 0xff4500, // Đầu nhang đỏ cam rực sáng
+  });
+
+  for (let s = -1; s <= 1; s++) {
+    const stickGroup = new THREE.Group();
+    // Thân nhang trầm
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.20, 6), stickMat);
+    body.position.y = 0.10;
+    stickGroup.add(body);
+    // Chân nhang đỏ
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.0032, 0.0032, 0.06, 6), footMat);
+    foot.position.y = -0.03;
+    stickGroup.add(foot);
+    // Tàn nhang đỏ rực ở chóp
+    const ember = new THREE.Mesh(new THREE.SphereGeometry(0.006, 6, 6), emberMat);
+    ember.position.y = 0.202;
+    stickGroup.add(ember);
+
+    stickGroup.position.set(s * 0.012, 0, 0);
+    stickGroup.rotation.z = s * 0.08;
+    incenseBundle.add(stickGroup);
+  }
+
+  // Tọa độ cầm nhang hướng lên trên
+  incenseBundle.position.set(-0.02, 0.04, 0.06);
+  incenseBundle.rotation.x = Math.PI / 2 + 0.35;
+  rightHand.add(incenseBundle);
+
   if (!isFemale) {
     // NAM: Vòng chuỗi hạt ôm cổ tay phải
     const wristBeadsR = new THREE.Group();
@@ -1065,11 +1109,99 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   ];
   const sitClip = new THREE.AnimationClip('sit', sitDur, sitTracks);
 
+  // D. INCENSE BOW CLIP (Thắp nhang dâng ngang mày & 3 lần cúi mình vái lạy trang nghiêm)
+  const incenseDur = 4.8;
+  const incenseTimes = [0, 0.6, 1.2, 1.7, 2.2, 2.7, 3.2, 3.7, 4.2, 4.8];
+
+  const incenseTracks: THREE.KeyframeTrack[] = [
+    // Thân mình cúi 3 bái thành kính
+    new THREE.QuaternionKeyframeTrack('Torso.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      0.02, 0, 0, 0.999,
+      0.04, 0, 0, 0.999,
+      0.28, 0, 0, 0.960, // Vái lần 1 (~33 độ)
+      0.04, 0, 0, 0.999,
+      0.31, 0, 0, 0.951, // Vái lần 2 (~36 độ)
+      0.04, 0, 0, 0.999,
+      0.33, 0, 0, 0.944, // Vái lần 3 (~38 độ)
+      0.08, 0, 0, 0.997,
+      0, 0, 0, 1,
+    ]),
+    // Đầu cúi theo thân mình
+    new THREE.QuaternionKeyframeTrack('Head.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      0.05, 0, 0, 0.998,
+      0.08, 0, 0, 0.997,
+      0.22, 0, 0, 0.975, // Cúi đầu bái 1
+      0.05, 0, 0, 0.998,
+      0.24, 0, 0, 0.970, // Cúi đầu bái 2
+      0.05, 0, 0, 0.998,
+      0.26, 0, 0, 0.966, // Cúi đầu bái 3
+      0.05, 0, 0, 0.998,
+      0, 0, 0, 1,
+    ]),
+    // Hai tay nâng nhang dâng ngang mày rồi giữ trang nghiêm trong các nhịp vái
+    new THREE.QuaternionKeyframeTrack('LeftArm.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      -0.28, 0.22, 0.13, 0.92,
+      -0.42, 0.18, 0.18, 0.87, // Nâng hương ngang mày
+      -0.40, 0.18, 0.18, 0.88,
+      -0.42, 0.18, 0.18, 0.87,
+      -0.40, 0.18, 0.18, 0.88,
+      -0.42, 0.18, 0.18, 0.87,
+      -0.40, 0.18, 0.18, 0.88,
+      -0.28, 0.22, 0.13, 0.92, // Hạ về trước ngực chắp tay
+      0, 0, 0, 1,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightArm.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      -0.28, -0.22, -0.13, 0.92,
+      -0.42, -0.18, -0.18, 0.87, // Nâng hương ngang mày
+      -0.40, -0.18, -0.18, 0.88,
+      -0.42, -0.18, -0.18, 0.87,
+      -0.40, -0.18, -0.18, 0.88,
+      -0.42, -0.18, -0.18, 0.87,
+      -0.40, -0.18, -0.18, 0.88,
+      -0.28, -0.22, -0.13, 0.92, // Hạ về trước ngực chắp tay
+      0, 0, 0, 1,
+    ]),
+    new THREE.QuaternionKeyframeTrack('LeftForearm.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      0.35, 0.02, 0.24, 0.90,
+      0.48, 0.05, 0.28, 0.83,
+      0.46, 0.05, 0.28, 0.84,
+      0.48, 0.05, 0.28, 0.83,
+      0.46, 0.05, 0.28, 0.84,
+      0.48, 0.05, 0.28, 0.83,
+      0.46, 0.05, 0.28, 0.84,
+      0.35, 0.02, 0.24, 0.90,
+      0, 0, 0, 1,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightForearm.quaternion', incenseTimes, [
+      0, 0, 0, 1,
+      0.35, -0.02, -0.24, 0.90,
+      0.48, -0.05, -0.28, 0.83,
+      0.46, -0.05, -0.28, 0.84,
+      0.48, -0.05, -0.28, 0.83,
+      0.46, -0.05, -0.28, 0.84,
+      0.48, -0.05, -0.28, 0.83,
+      0.46, -0.05, -0.28, 0.84,
+      0.35, -0.02, -0.24, 0.90,
+      0, 0, 0, 1,
+    ]),
+  ];
+
+  const incenseBowClip = new THREE.AnimationClip('incenseBow', incenseDur, incenseTracks);
+
   // Mixer
   const mixer = new THREE.AnimationMixer(model);
   const walkAction = mixer.clipAction(walkClip);
   const idleAction = mixer.clipAction(idleClip);
   const sitAction = mixer.clipAction(sitClip);
+  const incenseBowAction = mixer.clipAction(incenseBowClip);
+
+  incenseBowAction.loop = THREE.LoopOnce;
+  incenseBowAction.clampWhenFinished = true;
 
   walkAction.loop = THREE.LoopRepeat;
   idleAction.loop = THREE.LoopRepeat;
@@ -1089,7 +1221,9 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
       walk: walkAction,
       idle: idleAction,
       sit: sitAction,
+      incenseBow: incenseBowAction,
     },
+    incenseBundle,
   };
 }
 
