@@ -57,7 +57,6 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
   onOpenCharModal,
   onOpenQuestModal,
   onOpenJournalModal,
-  onOpenBuddhaViewer,
   onOpenGraphicsModal,
   onToggleWorldMode,
   onToggleSound,
@@ -329,17 +328,7 @@ export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
             <span>Nhiệm Vụ</span>
           </button>
 
-          {/* Nút Studio 3D Tượng Phật Tổ Như Lai (2K PBR) */}
-          {onOpenBuddhaViewer && (
-            <button
-              onClick={onOpenBuddhaViewer}
-              title="Studio 3D Tượng Phật Tổ Như Lai (Blender Dual-Viewport 2K PBR)"
-              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-serif font-black text-xs flex items-center gap-1 sm:gap-1.5 transition shadow-lg cursor-pointer border border-amber-300/60 shrink-0 active:scale-95"
-            >
-              <span>🪷</span>
-              <span className="hidden md:inline">Tượng Phật 3D</span>
-            </button>
-          )}
+
 
           {/* Nút Menu Drawer cho Mobile */}
           <button
