@@ -139,7 +139,14 @@ export default function BuddhaModel({ className, style }: BuddhaModelProps = {})
             ? object.material
             : [object.material];
 
-          materials.forEach((material) => material.dispose());
+          materials.forEach((material) => {
+            const m = material as THREE.MeshStandardMaterial;
+            if (m.map) m.map.dispose();
+            if (m.normalMap) m.normalMap.dispose();
+            if (m.roughnessMap) m.roughnessMap.dispose();
+            if (m.metalnessMap) m.metalnessMap.dispose();
+            material.dispose();
+          });
         }
       });
 

@@ -34,4 +34,5 @@ dist-ssr
 
 # Scratch & Temporary Dev Scripts
 scratch/
+backup_*/
 
