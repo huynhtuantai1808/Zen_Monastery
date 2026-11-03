@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import BuddhaModel from './BuddhaModel';
 import {
   Eye,
   EyeOff,
@@ -40,18 +41,18 @@ interface MaterialPreset {
 }
 
 const MATERIAL_PRESETS: MaterialPreset[] = [
+  { name: 'Gốc 2K PBR', metalness: 0.75, roughness: 0.35, color: '#ffffff', isOriginalPBR: true },
   { name: 'Đồng Cổ', metalness: 0.78, roughness: 0.34, color: '#b48a4e' },
   { name: 'Thếp Vàng', metalness: 0.92, roughness: 0.22, color: '#ffd700' },
   { name: 'Ngọc Bích', metalness: 0.15, roughness: 0.28, color: '#2e7d32' },
-  { name: 'Gốc 2K PBR', metalness: 0.75, roughness: 0.35, color: '#ffffff', isOriginalPBR: true },
 ];
 
 export const Buddha3DViewerModal: React.FC<Buddha3DViewerModalProps> = ({ isOpen, onClose }) => {
   const leftViewportRef = useRef<HTMLDivElement>(null);
   const rightViewportRef = useRef<HTMLDivElement>(null);
 
-  const [activeWorkspace, setActiveWorkspace] = useState<string>('Layout');
-  const [selectedPreset, setSelectedPreset] = useState<string>('Đồng Cổ');
+  const [activeWorkspace, setActiveWorkspace] = useState<string>('Chiêm Bái (BuddhaModel)');
+  const [selectedPreset, setSelectedPreset] = useState<string>('Gốc 2K PBR');
   const [metalness, setMetalness] = useState<number>(0.78);
   const [roughness, setRoughness] = useState<number>(0.34);
   const [wireframeOpacity, setWireframeOpacity] = useState<number>(0.55);
@@ -207,18 +208,32 @@ export const Buddha3DViewerModal: React.FC<Buddha3DViewerModalProps> = ({ isOpen
 
           const modelRoot = gltf.scene;
 
-          // Compute bounding box and normalize center/scale
+          // Compute bounding box and center model as in BuddhaModel
           const box = new THREE.Box3().setFromObject(modelRoot);
           const size = box.getSize(new THREE.Vector3());
           const center = box.getCenter(new THREE.Vector3());
 
-          // Standardize height ~3.6m to look magnificent
-          const targetH = 3.6;
-          const scaleFactor = targetH / (size.y || 1);
+          modelRoot.position.sub(center);
+          rightScene.add(modelRoot);
 
-          modelRoot.scale.setScalar(scaleFactor);
-          // Set base at Y = 0 and center X, Z
-          modelRoot.position.set(-center.x * scaleFactor, -box.min.y * scaleFactor, -center.z * scaleFactor);
+          // Automatically fit camera as in BuddhaModel
+          const maxSize = Math.max(size.x, size.y, size.z);
+          const distance = maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(45) / 2));
+
+          rightCamera.position.set(distance * 1.2, distance * 0.7, distance * 1.5);
+          rightCamera.near = Math.max(maxSize / 1000, 0.01);
+          rightCamera.far = Math.max(maxSize * 100, 1000);
+          rightCamera.updateProjectionMatrix();
+
+          leftCamera.position.copy(rightCamera.position);
+          leftCamera.near = rightCamera.near;
+          leftCamera.far = rightCamera.far;
+          leftCamera.updateProjectionMatrix();
+
+          rightControls.target.set(0, 0, 0);
+          rightControls.update();
+          leftControls.target.set(0, 0, 0);
+          leftControls.update();
 
           // Categorize submeshes into Body, Lotus_Throne, Aureola
           const partMap: Record<PartName, THREE.Mesh[]> = {
@@ -253,11 +268,9 @@ export const Buddha3DViewerModal: React.FC<Buddha3DViewerModalProps> = ({ isOpen
             }
           });
 
-          // Add to right scene
-          rightScene.add(modelRoot);
-
           // 4. Create Left Model (Wireframe & Clay Clone)
           const leftModel = modelRoot.clone(true);
+          leftModel.position.copy(modelRoot.position);
           const leftWireMaterials: THREE.MeshBasicMaterial[] = [];
 
           leftModel.traverse((child) => {
@@ -474,26 +487,170 @@ export const Buddha3DViewerModal: React.FC<Buddha3DViewerModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   const workspaces = [
-    'Layout',
-    'Modeling',
-    'Sculpting',
-    'UV Editing',
-    'Texture Paint',
-    'Shading',
-    'Animation',
-    'Rendering',
-    'Compositing',
+    'Chiêm Bái (BuddhaModel)',
+    'Dual Viewport (Blender Studio)',
+    'Solid & Wireframe',
+    'Shading & PBR',
   ];
 
-  const codeSnippet = `import React from 'react';
-import { useGLTF } from '@react-three/drei';
+  const codeSnippet = `import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-export function BuddhaStatue(props) {
-  const { scene } = useGLTF('/models/buddha/scene.gltf');
-  return <primitive object={scene} {...props} />;
-}
+export default function BuddhaModel() {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-useGLTF.preload('/models/buddha/scene.gltf');`;
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x171717);
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      2000
+    );
+
+    camera.position.set(5, 4, 8);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+    });
+
+    renderer.setSize(
+      container.clientWidth,
+      container.clientHeight
+    );
+
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+
+    // Lighting
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+
+    const light = new THREE.DirectionalLight(0xffffff, 3);
+    light.position.set(5, 10, 7);
+    scene.add(light);
+
+    // Controls
+    const controls = new OrbitControls(
+      camera,
+      renderer.domElement
+    );
+
+    controls.enableDamping = true;
+
+    // Load GLTF / GLB
+    const loader = new GLTFLoader();
+
+    loader.load(
+      "/models/buddha/scene.gltf",
+      (gltf) => {
+        const model = gltf.scene;
+
+        // Center model
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+
+        model.position.sub(center);
+        scene.add(model);
+
+        // Automatically fit camera
+        const maxSize = Math.max(size.x, size.y, size.z);
+        const distance =
+          maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(45) / 2));
+
+        camera.position.set(
+          distance * 1.2,
+          distance * 0.7,
+          distance * 1.5
+        );
+
+        camera.near = Math.max(maxSize / 1000, 0.01);
+        camera.far = Math.max(maxSize * 100, 1000);
+        camera.updateProjectionMatrix();
+
+        controls.target.set(0, 0, 0);
+        controls.update();
+      },
+      undefined,
+      (error) => {
+        console.error("Cannot load Buddha model:", error);
+      }
+    );
+
+    // Animation
+    let animationId = 0;
+
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Responsive
+    const resizeObserver = new ResizeObserver(() => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      if (!width || !height) return;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+
+    resizeObserver.observe(container);
+
+    // Cleanup
+    return () => {
+      cancelAnimationFrame(animationId);
+      resizeObserver.disconnect();
+      controls.dispose();
+      renderer.dispose();
+
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+
+          const materials = Array.isArray(object.material)
+            ? object.material
+            : [object.material];
+
+          materials.forEach((material) => material.dispose());
+        }
+      });
+
+      if (renderer.domElement.parentNode === container) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height: "600px",
+        overflow: "hidden",
+        borderRadius: "12px",
+      }}
+    />
+  );
+}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-1.5 sm:p-3 select-none">
@@ -580,8 +737,23 @@ useGLTF.preload('/models/buddha/scene.gltf');`;
             2. MAIN DUAL VIEWPORT WORKSPACE & RIGHT CONTROL PANEL
         ==================================================================== */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
-          {/* Dual 3D Viewport Container */}
-          <div className="flex-1 flex flex-col md:flex-row border-r border-[#333333] relative overflow-hidden">
+          {activeWorkspace === 'Chiêm Bái (BuddhaModel)' ? (
+            <div className="flex-1 w-full h-full relative overflow-hidden bg-[#171717]">
+              <div className="absolute top-2 left-3 z-10 flex flex-col gap-0.5 text-[11px] text-[#9e9e9e] pointer-events-none drop-shadow">
+                <span className="text-white font-medium flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Tượng Phật Tổ Như Lai 3D (Source: /models/buddha/scene.gltf)</span>
+                </span>
+                <span className="text-[10px] text-amber-300 font-mono">
+                  Auto Camera Framing • OrbitControls • 2K PBR Textures Gốc
+                </span>
+              </div>
+              <BuddhaModel style={{ width: '100%', height: '100%', borderRadius: '0px' }} />
+            </div>
+          ) : (
+            <>
+              {/* Dual 3D Viewport Container */}
+              <div className="flex-1 flex flex-col md:flex-row border-r border-[#333333] relative overflow-hidden">
             {/* Loading Indicator */}
             {isLoading && (
               <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm gap-3">
@@ -878,6 +1050,8 @@ useGLTF.preload('/models/buddha/scene.gltf');`;
               </div>
             </div>
           </aside>
+            </>
+          )}
         </div>
       </div>
 
