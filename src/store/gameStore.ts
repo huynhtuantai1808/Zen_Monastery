@@ -200,8 +200,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   clickStreak: 0,
   activeModal: null,
 
-  // Graphics setting default to HIGH with optimized PCF shadows
-  graphicsQuality: 'HIGH',
+  // Graphics setting default to LOW for smooth, lag-free experience on all devices
+  graphicsQuality: 'LOW',
   setGraphicsQuality: (quality: GraphicsQuality) => {
     set({ graphicsQuality: quality });
     get().saveToStorage();

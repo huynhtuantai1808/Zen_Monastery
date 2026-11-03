@@ -36,7 +36,6 @@ interface Zen3DWorldProps {
   onOpenWoodChopping: () => void;
   onOpenWaterCarrying: () => void;
   onOpenAltarCleaning: () => void;
-  onOpenBuddhaViewer?: () => void;
   onOpenCharity: () => void;
   onOpenCalligraphy?: () => void;
   onAddMerit: (amount: number, x: number, y: number, label?: string) => void;
@@ -1057,7 +1056,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   onOpenWoodChopping,
   onOpenWaterCarrying,
   onOpenAltarCleaning,
-  onOpenBuddhaViewer,
   onOpenCharity,
   onAddMerit,
   spendStamina,
@@ -1111,7 +1109,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     onOpenWoodChopping,
     onOpenWaterCarrying,
     onOpenAltarCleaning,
-    onOpenBuddhaViewer,
     onOpenCharity,
     onAddMerit,
     spendStamina,
@@ -1126,7 +1123,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     onOpenWoodChopping,
     onOpenWaterCarrying,
     onOpenAltarCleaning,
-    onOpenBuddhaViewer,
     onOpenCharity,
     onAddMerit,
     spendStamina,
@@ -1978,11 +1974,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     sunLight.shadow.mapSize.width = shadowMapDim;
     sunLight.shadow.mapSize.height = shadowMapDim;
     sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 300;
-    sunLight.shadow.camera.left = -80;
-    sunLight.shadow.camera.right = 80;
-    sunLight.shadow.camera.top = 80;
-    sunLight.shadow.camera.bottom = -80;
+    sunLight.shadow.camera.far = 260;
+    sunLight.shadow.camera.left = -65;
+    sunLight.shadow.camera.right = 65;
+    sunLight.shadow.camera.top = 65;
+    sunLight.shadow.camera.bottom = -65;
     sunLight.shadow.bias = -0.0004;
     scene.add(sunLight);
     sunLightRef.current = sunLight;
@@ -3222,6 +3218,60 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     // ==========================================
     // 60+ FPS SMOOTH ANIMATION & MOVEMENT LOOP
     // ==========================================
+    // Pre-cache all roof materials to eliminate per-frame recursive scene graph traversals
+    const collectRoofMaterials = (roofs: THREE.Group[]) => {
+      const mats: THREE.MeshStandardMaterial[] = [];
+      roofs.forEach((roof) => {
+        roof.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const m = (child as THREE.Mesh).material;
+            if (Array.isArray(m)) {
+              m.forEach((subM) => {
+                if (subM && !mats.includes(subM as THREE.MeshStandardMaterial)) {
+                  mats.push(subM as THREE.MeshStandardMaterial);
+                }
+              });
+            } else if (m && !mats.includes(m as THREE.MeshStandardMaterial)) {
+              mats.push(m as THREE.MeshStandardMaterial);
+            }
+          }
+        });
+      });
+      return mats;
+    };
+
+    const sanctuaryRoofMats = collectRoofMaterials(sanctuaryRoofsRef.current);
+    const meditationRoofMats = collectRoofMaterials(meditationRoofsRef.current);
+    const libraryRoofMats = collectRoofMaterials(libraryRoofsRef.current);
+    const bellRoofMats = collectRoofMaterials(bellRoofsRef.current);
+
+    let sanctuaryRoofOpacity = 1.0;
+    let meditationRoofOpacity = 1.0;
+    let libraryRoofOpacity = 1.0;
+    let bellRoofOpacity = 1.0;
+
+    const updateRoofOpacity = (mats: THREE.MeshStandardMaterial[], cur: number, target: number) => {
+      if (Math.abs(cur - target) < 0.005) {
+        if (target === 1.0 && cur !== 1.0) {
+          for (let i = 0; i < mats.length; i++) {
+            mats[i].opacity = 1.0;
+            mats[i].transparent = false;
+            mats[i].depthWrite = true;
+          }
+          return 1.0;
+        }
+        return cur;
+      }
+      const next = cur + (target - cur) * 0.18;
+      const trans = next < 0.995;
+      for (let i = 0; i < mats.length; i++) {
+        mats[i].transparent = trans;
+        mats[i].opacity = next;
+        mats[i].depthWrite = !trans;
+      }
+      return next;
+    };
+
     let stepCount = 0;
     const clock = new THREE.Clock();
 
@@ -3230,12 +3280,12 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       const delta = Math.min(clock.getDelta(), 0.05);
       const moveDist = 3.6 * delta; // Grounded natural walking speed
 
-      // Floating spirit particles hover
-      if (spiritParticlesRef.current) {
+      // Floating spirit particles hover (throttled to every 2 frames for GPU efficiency)
+      if (spiritParticlesRef.current && stepCount % 2 === 0) {
         const sArr = spiritParticlesRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 0; i < 100; i++) {
-          sArr[i * 3 + 1] += Math.sin(stepCount * 0.03 + i) * 0.015;
-          sArr[i * 3] += Math.cos(stepCount * 0.02 + i) * 0.012;
+          sArr[i * 3 + 1] += Math.sin(stepCount * 0.03 + i) * 0.030;
+          sArr[i * 3] += Math.cos(stepCount * 0.02 + i) * 0.024;
         }
         spiritParticlesRef.current.geometry.attributes.position.needsUpdate = true;
       }
@@ -3571,47 +3621,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           setCurrentBuilding(buildingName);
         }
 
-        // Smooth roof fading when inside buildings
-        sanctuaryRoofsRef.current.forEach((roof) => {
-          const targetOpacity = inSanctuary ? 0.08 : 1.0;
-          roof.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-              mat.transparent = true;
-              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
-            }
-          });
-        });
-        meditationRoofsRef.current.forEach((roof) => {
-          const targetOpacity = inMeditation ? 0.08 : 1.0;
-          roof.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-              mat.transparent = true;
-              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
-            }
-          });
-        });
-        libraryRoofsRef.current.forEach((roof) => {
-          const targetOpacity = inLibrary ? 0.08 : 1.0;
-          roof.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-              mat.transparent = true;
-              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
-            }
-          });
-        });
-        bellRoofsRef.current.forEach((roof) => {
-          const targetOpacity = inBell ? 0.08 : 1.0;
-          roof.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-              mat.transparent = true;
-              mat.opacity += (targetOpacity - mat.opacity) * 0.15;
-            }
-          });
-        });
+        // Fast optimized roof fading (0 traversal overhead)
+        sanctuaryRoofOpacity = updateRoofOpacity(sanctuaryRoofMats, sanctuaryRoofOpacity, inSanctuary ? 0.08 : 1.0);
+        meditationRoofOpacity = updateRoofOpacity(meditationRoofMats, meditationRoofOpacity, inMeditation ? 0.08 : 1.0);
+        libraryRoofOpacity = updateRoofOpacity(libraryRoofMats, libraryRoofOpacity, inLibrary ? 0.08 : 1.0);
+        bellRoofOpacity = updateRoofOpacity(bellRoofMats, bellRoofOpacity, inBell ? 0.08 : 1.0);
 
         // ==========================================
         // PANORAMIC 3RD-PERSON CAMERA INTERPOLATION (CAN LOOK UP & AROUND)
@@ -3935,33 +3949,36 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         lantern.mesh.rotation.y += 0.005;
       });
 
-      // Swimming Koi Fish: bơi lội sinh động, khi rải mồi cả đàn 16 con quẫy đuôi tụ về mép cầu ăn
-      const isFeeding = koiFeedingTimerRef.current > 0;
-      if (isFeeding) {
-        koiFeedingTimerRef.current--;
-      }
-
-      koiFishListRef.current.forEach((koi, idx) => {
-        koi.angle += koi.speed * (isFeeding ? 1.6 : 1.0);
-
-        // Khi rải mồi: đàn cá bơi gom về gần chân cầu đá (bán kính ~ 3.2m)
-        let currentRadius = koi.radius;
+      // Swimming Koi Fish: distance-culled (only compute when within 85m of pond center (-26, 34))
+      const distToPond = Math.hypot(playerPosRef.current.x - (-26), playerPosRef.current.z - 34);
+      if (distToPond < 85) {
+        const isFeeding = koiFeedingTimerRef.current > 0;
         if (isFeeding) {
-          currentRadius = 3.2 + (idx % 4) * 0.75;
+          koiFeedingTimerRef.current--;
         }
 
-        koi.mesh.position.x = Math.cos(koi.angle) * currentRadius;
-        koi.mesh.position.z = Math.sin(koi.angle) * currentRadius;
-        koi.mesh.rotation.y = -koi.angle + Math.PI / 2;
-        // Độ cao ngập tự nhiên dưới mặt hồ sen xanh biếc
-        koi.mesh.position.y = (isFeeding ? 0.49 : 0.46) + Math.sin(stepCount * (isFeeding ? 0.12 : 0.04) + koi.angle * 2 + idx) * 0.035;
+        koiFishListRef.current.forEach((koi, idx) => {
+          koi.angle += koi.speed * (isFeeding ? 1.6 : 1.0);
 
-        // Vẫy đuôi cá chân thực theo từng nhịp bơi
-        const tailG = koi.mesh.userData.tailMesh as THREE.Group | undefined;
-        if (tailG) {
-          tailG.rotation.y = Math.sin(stepCount * (isFeeding ? 0.32 : 0.16) + idx * 1.4) * (isFeeding ? 0.65 : 0.42);
-        }
-      });
+          // Khi rải mồi: đàn cá bơi gom về gần chân cầu đá (bán kính ~ 3.2m)
+          let currentRadius = koi.radius;
+          if (isFeeding) {
+            currentRadius = 3.2 + (idx % 4) * 0.75;
+          }
+
+          koi.mesh.position.x = Math.cos(koi.angle) * currentRadius;
+          koi.mesh.position.z = Math.sin(koi.angle) * currentRadius;
+          koi.mesh.rotation.y = -koi.angle + Math.PI / 2;
+          // Độ cao ngập tự nhiên dưới mặt hồ sen xanh biếc
+          koi.mesh.position.y = (isFeeding ? 0.49 : 0.46) + Math.sin(stepCount * (isFeeding ? 0.12 : 0.04) + koi.angle * 2 + idx) * 0.035;
+
+          // Vẫy đuôi cá chân thực theo từng nhịp bơi
+          const tailG = koi.mesh.userData.tailMesh as THREE.Group | undefined;
+          if (tailG) {
+            tailG.rotation.y = Math.sin(stepCount * (isFeeding ? 0.32 : 0.16) + idx * 1.4) * (isFeeding ? 0.65 : 0.42);
+          }
+        });
+      }
 
       // Bamboo Leaves Sway
       bambooLeavesRef.current.forEach((bG, idx) => {
@@ -3973,13 +3990,13 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         fanBladesRef.current.rotation.z += 0.28;
       }
 
-      // Incense Smoke
-      if (smokeParticlesRef.current) {
+      // Incense Smoke (throttled to every 2 frames for GPU buffer optimization)
+      if (smokeParticlesRef.current && stepCount % 2 === 0) {
         const posAttr = smokeParticlesRef.current.geometry.attributes.position;
         const arr = posAttr.array as Float32Array;
         for (let s = 0; s < 70; s++) {
-          arr[s * 3 + 1] += 0.04;
-          arr[s * 3] += Math.sin(stepCount * 0.04 + s) * 0.012;
+          arr[s * 3 + 1] += 0.08;
+          arr[s * 3] += Math.sin(stepCount * 0.04 + s) * 0.024;
           if (arr[s * 3 + 1] > 16) {
             arr[s * 3 + 1] = 3.5;
             arr[s * 3] = (Math.random() - 0.5) * 1.4;
@@ -6959,42 +6976,6 @@ function createAuthenticDaiHungBaoDien(
   const buddhaCenter = createPhatToNhuLaiStatue(0, -0.5, 1.35);
   buddhaCenter.position.set(0, 0.84, -0.5);
   altarGroup.add(buddhaCenter);
-
-  // Tùy chọn nạp mô hình 3D thực tế /models/buddha/scene.gltf (nếu có sẵn và đã tải xong)
-  try {
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load(
-      '/models/buddha/scene.gltf',
-      (gltf) => {
-        const realModel = gltf.scene;
-        const box = new THREE.Box3().setFromObject(realModel);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-
-        const targetH = 5.2;
-        const s = targetH / (size.y || 1);
-        realModel.scale.setScalar(s);
-        realModel.position.set(-center.x * s, -box.min.y * s + 0.84, -center.z * s - 0.5);
-        realModel.rotation.y = Math.PI; // Xoay 180 độ hướng mặt về phía trước
-
-        realModel.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        altarGroup.remove(buddhaCenter);
-        altarGroup.add(realModel);
-      },
-      undefined,
-      (err) => {
-        console.warn('Duy trì tôn tượng Phật thủ công mặc định:', err);
-      }
-    );
-  } catch (err) {
-    console.warn('Sử dụng tôn tượng Phật nguy nga mặc định:', err);
-  }
 
   // === ÁNH SÁNG TRỰC TIẾP CHIẾU LÊN BAN THỜ & TƯỢNG PHẬT (SHRINE SPOTLIGHTS) ===
   // SpotLight từ phía trên chính giữa tượng Phật Tổ Như Lai

@@ -42,7 +42,6 @@ interface TopHeaderHUDProps {
   onRingBell: () => void;
   onDrinkTea: () => void;
   onToggleMobileDrawer: () => void;
-  onOpenBuddhaViewer?: () => void;
 }
 
 export const TopHeaderHUD: React.FC<TopHeaderHUDProps> = ({
