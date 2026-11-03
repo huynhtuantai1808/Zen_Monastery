@@ -1,30 +1,13 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
 import { loadChibiCharacter } from '../services/characterLoader';
-import { speakAbbotVoice, stopAbbotVoice, preloadMonkVoiceAudio } from '../services/monkVoiceService';
-import {
-  Play,
-  Pause,
-  Eye,
-  Footprints,
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  MapPin,
-  RotateCcw,
-  Moon,
-  Sun,
-  Layers,
-  Sparkles,
-  Music,
-  Volume2,
-  X,
-} from 'lucide-react';
+import { preloadMonkVoiceAudio, stopAbbotVoice } from '../services/monkVoiceService';
+import { useZenBridge, zenWorldBridge } from './bridge/zenWorldBridge';
+import { Zen3DOverlays } from './Zen3DOverlays';
 interface Zen3DWorldProps {
   character: CharacterAppearance;
   level: number;
@@ -1046,7 +1029,7 @@ function createIncenseSignTexture(): THREE.CanvasTexture {
 
 
 
-export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
+const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   character,
   timePhase,
   isRaining,
@@ -1062,21 +1045,14 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 }) => {
   const graphicsQuality = useGameStore((state) => state.graphicsQuality);
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const [isTourPlaying, setIsTourPlaying] = useState<boolean>(false);
-  const [currentZone, setCurrentZone] = useState<TempleZoneInfo>(TEMPLE_ZONES[0]);
-  const [zoneBanner, setZoneBanner] = useState<TempleZoneInfo | null>(null);
-  const [nearInteractions, setNearInteractions] = useState<{ title: string; action: () => void; icon: string }[]>([]);
-  const [currentBuilding, setCurrentBuilding] = useState<string | null>(null);
   const [isNightMode, setIsNightMode] = useState<boolean>(timePhase === 'EVENING');
 
-  // Camera Mode: 'THIRD_PERSON' (Panoramic) vs 'ISOMETRIC' (Top-down) vs 'ON_RAINY_DAYS' (Aesthetic overhead deck & stream)
-  const [cameraMode, setCameraMode] = useState<'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS'>('THIRD_PERSON');
+  // Camera Mode: 'THIRD_PERSON' (Panoramic) vs 'ISOMETRIC' (Top-down) vs 'ON_RAINY_DAYS'
   const cameraModeRef = useRef<'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS'>('THIRD_PERSON');
 
   // Character Relaxation Pose on the deck: 'STAND' | 'LIE_DOWN' | 'SIT_EDGE'
-  const [monkPose, setMonkPose] = useState<'STAND' | 'LIE_DOWN' | 'SIT_EDGE' | 'INCENSE_BOW'>('STAND');
   const monkPoseRef = useRef<'STAND' | 'LIE_DOWN' | 'SIT_EDGE' | 'INCENSE_BOW'>('STAND');
-  const [isIncenseBowing, setIsIncenseBowing] = useState<boolean>(false);
+  const isIncenseBowingRef = useRef<boolean>(false);
   const chibiIncenseBundleRef = useRef<THREE.Group | null>(null);
   const fanBladesRef = useRef<THREE.Group | null>(null);
 
@@ -1174,7 +1150,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const bellRingingTimerRef = useRef<number>(0);
   const bellAnimFrameRef = useRef<number>(0);
   const isAutoBellActiveRef = useRef<boolean>(true);
-  const [isAutoBellActive, setIsAutoBellActive] = useState<boolean>(true);
   const chayGoRef = useRef<THREE.Group | null>(null);
   const impactFlashRef = useRef<THREE.Mesh | null>(null);
   const bellNpcMonkRef = useRef<{
@@ -1185,15 +1160,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     armL: THREE.Group;
   } | null>(null);
   const soundRipplesGroupRef = useRef<THREE.Group | null>(null);
-
-  // Dialogue Modal State for Chú Tiểu Tuệ Tĩnh (Bell Tower Guardian NPC)
-  const [bellNpcDialogue, setBellNpcDialogue] = useState<{
-    speaker: string;
-    avatar: string;
-    role: string;
-    text: string;
-    gatha?: string;
-  } | null>(null);
 
   // Abbot NPC (Hòa Thượng Trụ Trì Chùa Sơn Tự - Thuyết Giảng Phật Pháp)
   const abbotNpcRef = useRef<{
@@ -1206,17 +1172,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     beads: THREE.Group;
   } | null>(null);
   const incenseSmokeParticlesRef = useRef<THREE.Mesh[]>([]);
-  const [abbotDialogue, setAbbotDialogue] = useState<{
-    speaker: string;
-    avatar: string;
-    role: string;
-    text: string;
-    gatha?: string;
-    dharmaTopic?: string;
-  } | null>(null);
-  const [isAbbotVoiceActive, setIsAbbotVoiceActive] = useState<boolean>(false);
-  const [abbotVoiceProgress, setAbbotVoiceProgress] = useState<number>(0);
-  const [abbotVoiceDuration, setAbbotVoiceDuration] = useState<{ current: string; total: string }>({ current: '00:00', total: '00:00' });
 
   const smokeParticlesRef = useRef<THREE.Points | null>(null);
   const spiritParticlesRef = useRef<THREE.Points | null>(null);
@@ -1224,14 +1179,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const pondGroupRef = useRef<THREE.Group | null>(null);
   const userLanternsRef = useRef<{ mesh: THREE.Group; speed: number }[]>([]);
   const koiFeedingTimerRef = useRef<number>(0);
-
-  // States for Lotus Pond Interactive Backend Features
-  const [isFloatingLanternModalOpen, setIsFloatingLanternModalOpen] = useState<boolean>(false);
-  const [selectedLanternType, setSelectedLanternType] = useState<string>('pink');
-  const [customWishText, setCustomWishText] = useState<string>('Nguyện cầu cha mẹ bình an, gia đạo thái hòa, vạn sự cát tường');
-  const [isLotusMeditationActive, setIsLotusMeditationActive] = useState<boolean>(false);
-  const [meditationBreaths, setMeditationBreaths] = useState<number>(0);
-  const [meditationBreathPhase, setMeditationBreathPhase] = useState<'IN' | 'HOLD' | 'OUT' | 'REST'>('IN');
   const bambooLeavesRef = useRef<THREE.Group[]>([]);
   const destinationMarkerRef = useRef<THREE.Group | null>(null);
   const nightLightsRef = useRef<THREE.PointLight[]>([]);
@@ -1243,43 +1190,40 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   const handleRingBell = useCallback(() => {
     soundEngine.playDistantEchoBell(1, 0.85);
     bellRingingTimerRef.current = 240;
-    // Fast-forward animation directly to strike anticipation
     bellAnimFrameRef.current = 480;
-    setBellNpcDialogue({
+    useZenBridge.getState().setBellNpcDialogue({
       speaker: 'Chú Tiểu Tuệ Tĩnh',
       avatar: '🔔',
       role: 'Thủ Hộ Lầu Chuông',
       text: 'Tiếng Đại Hồng Chung đã ngân vang ba cõi! Chú Tiểu đang thỉnh chuông tiêu trừ phiền não, mang lại an lạc vô lượng cho thí chủ và muôn loài khắp mười phương.',
       gatha: '🔔 Kệ Thỉnh Chuông:\n"Nguyện tiếng chuông này vang pháp giới\nThiết vi u ám tất giai văn\nVăn trần thanh tịnh chứng viên thông\nNhất thiết chúng sanh thành Chánh giác."',
     });
-    onAddMerit(35, 50, 40, '🔔 Đại Hồng Chung Ngân Vang Đỉnh Núi');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(35, 50, 40, '🔔 Đại Hồng Chung Ngân Vang Đỉnh Núi');
+  }, []);
 
   const toggleAutoBell = useCallback(() => {
-    setIsAutoBellActive((prev) => {
-      const next = !prev;
-      isAutoBellActiveRef.current = next;
-      return next;
-    });
+    const next = !useZenBridge.getState().isAutoBellActive;
+    isAutoBellActiveRef.current = next;
+    useZenBridge.getState().setIsAutoBellActive(next);
   }, []);
 
   const handleTalkToMonk = useCallback(() => {
     soundEngine.playWoodenFish();
-    setBellNpcDialogue({
+    useZenBridge.getState().setBellNpcDialogue({
       speaker: 'Chú Tiểu Tuệ Tĩnh',
       avatar: '👦🏻',
       role: 'Thủ Hộ Lầu Chuông',
       text: 'A Di Đà Phật! Bần đạo là Chú Tiểu Tuệ Tĩnh, phụ trách giữ gìn lầu chuông và thỉnh chuông sớm tối. Thí chủ lên chốn non thiêng này xin hãy buông xả muộn phiền nơi trần thế, lắng lòng theo từng nhịp chuông thanh tịnh nhé!',
       gatha: '🔔 Kệ Thỉnh Chuông:\n"Hồng chung sơ khấu, bảo kệ cao tuyên,\nThượng triệt thiên đường, hạ thông địa phủ..."',
     });
-    onAddMerit(20, 50, 40, '🙏 Đàm Đạo Thiền Môn với Chú Tiểu');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(20, 50, 40, '🙏 Đàm Đạo Thiền Môn với Chú Tiểu');
+  }, []);
 
   const handleTalkToAbbot = useCallback(() => {
     preloadMonkVoiceAudio();
     soundEngine.playWoodenFish();
     soundEngine.playSingingBowl();
-    setAbbotDialogue({
+    useZenBridge.getState().setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '📿',
       role: 'Sư Phụ Trụ Trì Chùa Sơn Tự',
@@ -1287,38 +1231,35 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       gatha: '📜 Kệ Khai Thị:\n"Tâm tịnh ắt cõi Phật tịnh\nTùy kỳ tâm tịnh tắc Phật độ tịnh\nMột niệm giác ngộ trừ muôn nghiệp\nBát nhã quang minh chiếu vạn phương."',
       dharmaTopic: 'Kinh Bát Nhã & Thiền Đốn Ngộ',
     });
-    onAddMerit(40, 50, 35, '🙏 Thính Pháp Với Sư Phụ Trụ Trì');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(40, 50, 35, '🙏 Thính Pháp Với Sư Phụ Trụ Trì');
+  }, []);
 
   // KHÓA LỄ THÍNH PHÁP & TỌA THIỀN CHÁNH NIỆM THEO TIẾNG MỎ SƯ THẦY
   const handleStartDharmaChantSession = useCallback(() => {
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-    // 1. Chuyển nhân vật ngồi ngay ngắn trên bồ đoàn thiền tọa màu đỏ
     const targetCushion = getTargetMeditationCushion(playerPosRef.current.x, playerPosRef.current.z);
     playerPosRef.current.x = targetCushion.x;
-    playerPosRef.current.y = targetCushion.y; // 3.38m
+    playerPosRef.current.y = targetCushion.y;
     playerPosRef.current.z = targetCushion.z;
     targetPosRef.current = null;
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
       monkGroupRef.current.position.set(targetCushion.x, targetCushion.y, targetCushion.z);
-      monkGroupRef.current.rotation.set(0, Math.PI, 0); // Trang nghiêm hướng mặt về bàn thờ Phật Tổ
+      monkGroupRef.current.rotation.set(0, Math.PI, 0);
     }
 
-    setMonkPose('SIT_EDGE');
+    useZenBridge.getState().setMonkPose('SIT_EDGE');
     monkPoseRef.current = 'SIT_EDGE';
 
-    // 2. Bắt đầu chuỗi gõ mỏ nhịp nhàng đều đặn của Sư Thầy (Wooden Fish Rhythm)
     soundEngine.startWoodenFishRhythm(2200);
 
-    // 3. Khởi tạo nội dung khóa lễ thính pháp & bài thiền tịnh
     const dharmaText = 'A Di Đà Phật! Thở vào tâm tĩnh lặng, thở ra miệng mỉm cười. Khi con an trú trong giây phút hiện tại, ngọn đèn chánh niệm sẽ soi tỏ mọi ngóc ngách u tối của tâm hồn. Hãy ngồi thẳng lưng trên bồ đoàn, buông xả vạn duyên trần thế, theo từng nhịp mỏ thanh tịnh mà nhiếp tâm thiền định an lạc.';
     const dharmaGatha = '🪷 Kệ Khóa Lễ Thiền Định:\n"Tiếng mỏ nhịp nhàng xua vọng niệm\nLời kinh trầm ấm lắng trần ai\nNgồi trên bồ đoàn tâm thanh tịnh\nBát-nhã hoa khai rạng ánh mai."';
 
-    setAbbotDialogue({
+    useZenBridge.getState().setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '🧘',
       role: 'Khóa Lễ Thính Pháp & Thiền Tọa',
@@ -1326,8 +1267,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       gatha: dharmaGatha,
     });
 
-    onAddMerit(60, 50, 40, '📜 Tham Dự Khóa Lễ Thính Pháp & Thiền Tọa');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(60, 50, 40, '📜 Tham Dự Khóa Lễ Thính Pháp & Thiền Tọa');
+  }, []);
 
   const handleSitMeditationLecture = useCallback(() => {
     handleStartDharmaChantSession();
@@ -1335,22 +1276,20 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
   // HOẠT ẢNH DÂNG HƯƠNG & VÁI LẠY TAM BẢO (3 BÁI KÍNH CẨN)
   const handleTriggerIncenseBow = useCallback(() => {
-    if (isIncenseBowing) return;
+    if (isIncenseBowingRef.current) return;
     preloadMonkVoiceAudio();
-    setIsIncenseBowing(true);
+    isIncenseBowingRef.current = true;
     monkPoseRef.current = 'INCENSE_BOW';
-    setMonkPose('INCENSE_BOW');
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
+    useZenBridge.getState().setIsIncenseBowing(true);
 
-    // Hiện 3 nén nhang trầm với đốm lửa tàn nhang rực sáng trên tay
     if (chibiIncenseBundleRef.current) {
       chibiIncenseBundleRef.current.visible = true;
     }
 
-    // Dừng bước chân tức thì để trang nghiêm hành lễ
     targetPosRef.current = null;
     isWalkingStateRef.current = false;
 
-    // Hướng mặt nhân vật về phía bàn thờ Phật Tổ
     if (monkGroupRef.current) {
       const curX = monkGroupRef.current.position.x;
       const curZ = monkGroupRef.current.position.z;
@@ -1358,27 +1297,25 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       monkGroupRef.current.rotation.set(0, angle, 0);
     }
 
-    // Tiếng chuông bát khai lễ dâng hương
     soundEngine.playSingingBowl();
 
-    // 3 nhịp chuông mõ trang nghiêm theo 3 lần vái lạy (1.7s, 2.7s, 3.7s)
     setTimeout(() => soundEngine.playWoodenFish(), 1700);
     setTimeout(() => soundEngine.playWoodenFish(), 2700);
     setTimeout(() => soundEngine.playWoodenFish(), 3700);
 
-    // Hoàn tất nghi lễ dâng hương & hồi hướng công đức
     setTimeout(() => {
       if (chibiIncenseBundleRef.current) {
         chibiIncenseBundleRef.current.visible = false;
       }
       monkPoseRef.current = 'STAND';
-      setMonkPose('STAND');
-      setIsIncenseBowing(false);
+      useZenBridge.getState().setMonkPose('STAND');
+      isIncenseBowingRef.current = false;
+      useZenBridge.getState().setIsIncenseBowing(false);
 
       soundEngine.playSingingBowl();
-      onAddMerit(50, 50, 40, '🕯️ Thắp Nhang & Vái Lạy Tam Bảo');
+      propsRef.current.onAddMerit(50, 50, 40, '🕯️ Thắp Nhang & Vái Lạy Tam Bảo');
 
-      setAbbotDialogue({
+      useZenBridge.getState().setAbbotDialogue({
         speaker: 'Hòa Thượng Thích Trí Tuệ',
         avatar: '🕯️',
         role: 'Chứng Minh Công Đức',
@@ -1386,60 +1323,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         gatha: '🕯️ Kệ Dâng Hương:\n"Nguyện đem lòng thành kính\nGửi theo làn mây hương\nPhảng phất khắp mười phương\nCúng dường ngôi Tam Bảo."',
       });
     }, 4800);
-  }, [isIncenseBowing, onAddMerit]);
+  }, []);
 
   const handleLightIncenseSanctuary = useCallback(() => {
     handleTriggerIncenseBow();
   }, [handleTriggerIncenseBow]);
-
-  // Tự động cất giọng đọc trầm ấm từ bi của Hòa Thượng khi có khai thị / kệ dâng hương (giongsuthay.mp3)
-  useEffect(() => {
-    const formatAudioTime = (sec: number) => {
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
-      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-    };
-
-    if (abbotDialogue) {
-      setIsAbbotVoiceActive(true);
-      setAbbotVoiceProgress(0);
-      const cancel = speakAbbotVoice(abbotDialogue.text, abbotDialogue.gatha, {
-        onStart: () => setIsAbbotVoiceActive(true),
-        onEnd: () => {
-          setIsAbbotVoiceActive(false);
-          setAbbotVoiceProgress(0);
-        },
-        onTimeUpdate: (cur, dur) => {
-          if (dur > 0) {
-            setAbbotVoiceProgress(Math.min(100, (cur / dur) * 100));
-            setAbbotVoiceDuration({
-              current: formatAudioTime(cur),
-              total: formatAudioTime(dur),
-            });
-          }
-        },
-      });
-      return () => {
-        cancel();
-        setIsAbbotVoiceActive(false);
-        setAbbotVoiceProgress(0);
-      };
-    } else {
-      stopAbbotVoice();
-      soundEngine.stopWoodenFishRhythm();
-      setIsAbbotVoiceActive(false);
-      setAbbotVoiceProgress(0);
-    }
-  }, [abbotDialogue]);
-
-  const handleCloseAbbotDialogue = useCallback(() => {
-    stopAbbotVoice();
-    soundEngine.stopWoodenFishRhythm();
-    setIsAbbotVoiceActive(false);
-    setAbbotVoiceProgress(0);
-    setAbbotDialogue(null);
-  }, []);
-
 
   // =========================================================================
   // BACKEND LOGIC: 7 CHỨC NĂNG HÀNH LỄ & TƯƠNG TÁC TẠI CHÙA MỘT CỘT & HỒ SEN
@@ -1450,7 +1338,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-    // Bước lên cầu đá hướng mặt về đài sen Chùa Một Cột
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 27.5;
     targetPosRef.current = null;
@@ -1458,18 +1345,16 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
     if (monkGroupRef.current) {
       monkGroupRef.current.position.set(-26.0, 0.89, 27.5);
-      monkGroupRef.current.rotation.set(0, 0, 0); // Hướng mặt về phía Chùa Một Cột
+      monkGroupRef.current.rotation.set(0, 0, 0);
     }
 
-    setMonkPose('INCENSE_BOW');
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
 
-    // Tiếng chuông bát & mõ cầu nguyện
     setTimeout(() => soundEngine.playWoodenFish(), 1400);
     setTimeout(() => soundEngine.playWoodenFish(), 2800);
 
-    // Kệ khai thị tán thán Liên Hoa Đài
-    setAbbotDialogue({
+    useZenBridge.getState().setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '🪷',
       role: 'Khai Thị Chiêm Bái Chùa Một Cột',
@@ -1477,18 +1362,18 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       gatha: '🪷 Kệ Tán Thán Liên Hoa Đài:\n"Một cột vươn cao ngát sắc sen\nĐài thiêng trầm mặc cõi lòng thanh\nThành tâm đảnh lễ ngời Phật tánh\nPhước lạc viên dung vạn thuở an."',
     });
 
-    onAddMerit(50, 50, 40, '🪷 Chiêm Bái Chùa Một Cột');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(50, 50, 40, '🪷 Chiêm Bái Chùa Một Cột');
+  }, []);
 
   // 2. DÂNG HƯƠNG CẦU AN TẠI HỒ SEN
   const handleDangHuongHoSen = useCallback(() => {
-    if (isIncenseBowing) return;
+    if (isIncenseBowingRef.current) return;
     preloadMonkVoiceAudio();
-    setIsIncenseBowing(true);
-    setMonkPose('INCENSE_BOW');
+    isIncenseBowingRef.current = true;
+    useZenBridge.getState().setIsIncenseBowing(true);
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
 
-    // Bước đến trước đại lư hương đá đầu cầu
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 23.0;
     targetPosRef.current = null;
@@ -1512,14 +1397,15 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       if (chibiIncenseBundleRef.current) {
         chibiIncenseBundleRef.current.visible = false;
       }
-      setIsIncenseBowing(false);
-      setMonkPose('STAND');
+      isIncenseBowingRef.current = false;
+      useZenBridge.getState().setIsIncenseBowing(false);
+      useZenBridge.getState().setMonkPose('STAND');
       monkPoseRef.current = 'STAND';
 
       soundEngine.playSingingBowl();
-      onAddMerit(40, 50, 40, '🪔 Dâng Hương Cầu An Hồ Sen');
+      propsRef.current.onAddMerit(40, 50, 40, '🪔 Dâng Hương Cầu An Hồ Sen');
 
-      setAbbotDialogue({
+      useZenBridge.getState().setAbbotDialogue({
         speaker: 'Hòa Thượng Thích Trí Tuệ',
         avatar: '🪔',
         role: 'Chứng Minh Dâng Hương Cầu An',
@@ -1527,30 +1413,26 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         gatha: '🪔 Kệ Dâng Hương Cầu An:\n"Khói hương quyện tỏa cõi trời mây\nLòng thành kính gửi đức Từ Bi\nCầu an phước lộc tràn muôn lối\nTâm tĩnh an nhiên dứt não phi."',
       });
     }, 4600);
-  }, [isIncenseBowing, onAddMerit]);
+  }, []);
 
   // 3. THẢ HOA ĐĂNG CẦU NGUYỆN (MỞ MODAL CHỌN ƯỚC NGUYỆN & THẢ ĐÈN 3D XUỐNG HỒ)
   const handleOpenFloatingLanternModal = useCallback(() => {
-    setIsFloatingLanternModalOpen(true);
+    useZenBridge.getState().setLanternModalOpen(true);
     soundEngine.playSingingBowl();
   }, []);
 
-  const handleConfirmReleaseLantern = useCallback(() => {
-    setIsFloatingLanternModalOpen(false);
-    if (!spendStamina(5)) return;
+  const create3DFloatingLantern = useCallback((customWishText: string, selectedLanternType: string) => {
+    if (!propsRef.current.spendStamina(5)) return;
 
-    // Nhân vật cúi nhẹ thả đèn bên mép cầu đá
-    setMonkPose('INCENSE_BOW');
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
     setTimeout(() => {
-      setMonkPose('STAND');
+      useZenBridge.getState().setMonkPose('STAND');
       monkPoseRef.current = 'STAND';
     }, 2500);
 
-    // TẠO HOA ĐĂNG 3D THẬT THẢ NỔI XUỐNG HỒ SEN
     if (pondGroupRef.current) {
       const lanternG = new THREE.Group();
-      // Vị trí thả từ mép cầu đá: local z = -9.2
       lanternG.position.set((Math.random() - 0.5) * 1.5, 0.56, -9.2);
 
       const lanternColors: Record<string, number> = {
@@ -1567,7 +1449,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       );
       lanternG.add(baseDisc);
 
-      // Cánh sen bao quanh
       const matPetal = new THREE.MeshStandardMaterial({ color: petalCol, side: THREE.DoubleSide });
       for (let p = 0; p < 8; p++) {
         const pa = (p / 8) * Math.PI * 2;
@@ -1578,7 +1459,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         lanternG.add(petal);
       }
 
-      // Ngọn nến lung linh phát sáng
       const candle = new THREE.Mesh(
         new THREE.CylinderGeometry(0.04, 0.04, 0.15, 8),
         new THREE.MeshStandardMaterial({ color: 0xffedd5 })
@@ -1599,23 +1479,22 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     }
 
     soundEngine.playSingingBowl();
-    onAddMerit(45, 50, 40, '🏮 Thả Hoa Đăng Cầu Nguyện Thành Tâm');
+    propsRef.current.onAddMerit(45, 50, 40, '🏮 Thả Hoa Đăng Cầu Nguyện Thành Tâm');
 
-    setAbbotDialogue({
+    useZenBridge.getState().setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '🏮',
       role: 'Chứng Minh Hoa Đăng',
       text: `Ngọn đèn hoa đăng chở theo tâm nguyện: "${customWishText}" đã trôi bồng bềnh trên mặt hồ sen hướng về đài sen Chùa Một Cột. Chư Phật gia hộ cho ước nguyện thiện lành của con sớm ngày viên thành!`,
       gatha: '🏮 Kệ Thả Hoa Đăng:\n"Đèn trôi lấp lánh giữa hồ sen\nThắp sáng tâm từ rạng cõi thiêng\nNguyện ước bình an muôn lối rạng\nPhước đức duyên lành vạn kiếp yên."',
     });
-  }, [selectedLanternType, customWishText, spendStamina, onAddMerit]);
+  }, []);
 
   // 4. TỌA THIỀN BÊN HỒ SEN (MỞ BỘ HƯỚNG DẪN HƠI THỞ CHÁNH NIỆM)
   const handleToaThienHoSen = useCallback(() => {
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-    // Ngồi thiền kiết già trên bờ hồ ngắm Chùa Một Cột
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 23.5;
     targetPosRef.current = null;
@@ -1626,41 +1505,38 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       monkGroupRef.current.rotation.set(0, 0, 0);
     }
 
-    setMonkPose('SIT_EDGE');
+    useZenBridge.getState().setMonkPose('SIT_EDGE');
     monkPoseRef.current = 'SIT_EDGE';
-    setIsLotusMeditationActive(true);
-    setMeditationBreaths(0);
+    useZenBridge.getState().setLotusMeditation(true, 'IN', 0);
 
     soundEngine.startWoodenFishRhythm(2400);
-    onAddMerit(30, 50, 40, '🧘 Tọa Thiền Tĩnh Tâm Bên Đầm Sen');
-  }, [onAddMerit]);
+    propsRef.current.onAddMerit(30, 50, 40, '🧘 Tọa Thiền Tĩnh Tâm Bên Đầm Sen');
+  }, []);
 
   // 5. RẢI MỒI ĐÀN CÁ KOI (ĐÀN CÁ 16 CON BƠI TỤ VỀ ĐỚP MỒI SỐNG ĐỘNG)
   const handleFeedKoiFish = useCallback(() => {
-    if (!spendStamina(5)) return;
+    if (!propsRef.current.spendStamina(5)) return;
     soundEngine.playWoodenFish();
 
-    // Kích hoạt đàn cá 16 con tụ về mép cầu ăn mồi trong 8 giây (480 frames)
     koiFeedingTimerRef.current = 480;
 
-    // Nhân vật vung tay gieo duyên rải mồi
-    setMonkPose('INCENSE_BOW');
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
     setTimeout(() => {
-      setMonkPose('STAND');
+      useZenBridge.getState().setMonkPose('STAND');
       monkPoseRef.current = 'STAND';
     }, 2000);
 
-    onAddMerit(35, 50, 40, '🐟 Rải Mồi & Nuôi Dưỡng Đàn Cá Koi');
+    propsRef.current.onAddMerit(35, 50, 40, '🐟 Rải Mồi & Nuôi Dưỡng Đàn Cá Koi');
 
-    setAbbotDialogue({
+    useZenBridge.getState().setAbbotDialogue({
       speaker: 'Hòa Thượng Thích Trí Tuệ',
       avatar: '🐟',
       role: 'Phóng Sinh & Bố Thí Thức Ăn',
       text: 'Bố thí thức ăn cho muôn loài là hạnh lành nuôi dưỡng lòng từ bi. Thấy đàn cá thảnh thơi tung tăng bơi lội dưới làn nước sen ngọc, lòng người cũng tự nhiên nhẹ nhõm, tiêu trừ phiền muộn.',
       gatha: '🐟 Kệ Phóng Sinh:\n"Thả mồi nuôi dưỡng chúng sanh\nTâm từ trải rộng đất lành nở hoa\nCá bơi thảnh thơi bến đà\nLòng người thanh thản an hòa muôn phương."',
     });
-  }, [spendStamina, onAddMerit]);
+  }, []);
 
   // 6. HIÊN TRÀ THƯỞNG SEN
   const handleHienTraThuongSen = useCallback(() => {
@@ -1672,9 +1548,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
   // 7. ĐỨNG DẬY BƯỚC ĐI (PHỤC HỒI TỰ DO DI CHUYỂN)
   const handleDungDayBuocDi = useCallback(() => {
-    setMonkPose('STAND');
+    useZenBridge.getState().setMonkPose('STAND');
     monkPoseRef.current = 'STAND';
-    setIsLotusMeditationActive(false);
+    useZenBridge.getState().setLotusMeditation(false);
     soundEngine.stopWoodenFishRhythm();
     if (chibiIncenseBundleRef.current) {
       chibiIncenseBundleRef.current.visible = false;
@@ -1683,36 +1559,6 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       monkGroupRef.current.rotation.set(0, 0, 0);
     }
   }, []);
-
-  useEffect(() => {
-    isTourPlayingRef.current = isTourPlaying;
-  }, [isTourPlaying]);
-
-  useEffect(() => {
-    cameraModeRef.current = cameraMode;
-  }, [cameraMode]);
-
-  // Vòng lặp hơi thở chánh niệm khi tọa thiền bên hồ sen (4s hít vào - 2s giữ - 6s thở ra - 2s buông thư)
-  useEffect(() => {
-    if (!isLotusMeditationActive) return;
-    const interval = setInterval(() => {
-      setMeditationBreathPhase((prev) => {
-        if (prev === 'IN') return 'HOLD';
-        if (prev === 'HOLD') return 'OUT';
-        if (prev === 'OUT') return 'REST';
-        setMeditationBreaths((b) => {
-          const nextB = b + 1;
-          if (nextB % 2 === 0) {
-            onAddMerit(20, 50, 40, '🧘 Hơi Thở Chánh Niệm Bên Đầm Sen');
-          }
-          return nextB;
-        });
-        return 'IN';
-      });
-    }, 3200);
-
-    return () => clearInterval(interval);
-  }, [isLotusMeditationActive, onAddMerit]);
 
   // Tải / Tải lại mô hình 3D Chibi khi diện mạo thay đổi
   useEffect(() => {
@@ -1761,33 +1607,51 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     character.name,
   ]);
 
-  // Toggle Camera Mode: 3rd-Person Eye-Level vs On Rainy Days Top-Down vs Isometric
-  const toggleCameraMode = () => {
-    setCameraMode((prev) => {
-      let next: 'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS' = 'THIRD_PERSON';
-      if (prev === 'THIRD_PERSON') {
-        next = 'ON_RAINY_DAYS';
-      } else if (prev === 'ON_RAINY_DAYS') {
-        next = 'ISOMETRIC';
-        cameraPitchRef.current = 0.86;
-        cameraDistRef.current = 24.0;
-        cameraYawRef.current = Math.PI * 0.78;
-      } else {
-        next = 'THIRD_PERSON';
-        cameraPitchRef.current = -0.12;
-        cameraDistRef.current = 6.5;
-        cameraYawRef.current = 0;
-      }
-      cameraModeRef.current = next;
-      return next;
-    });
+  // Camera Mode Switcher (Syncs with bridge store)
+  const toggleCameraMode = (mode?: 'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS') => {
+    let next: 'ISOMETRIC' | 'THIRD_PERSON' | 'ON_RAINY_DAYS' = 'THIRD_PERSON';
+    if (mode) {
+      next = mode;
+    } else {
+      const cur = cameraModeRef.current;
+      if (cur === 'THIRD_PERSON') next = 'ON_RAINY_DAYS';
+      else if (cur === 'ON_RAINY_DAYS') next = 'ISOMETRIC';
+      else next = 'THIRD_PERSON';
+    }
+    cameraModeRef.current = next;
+    useZenBridge.getState().setCameraMode(next);
+    if (next === 'ON_RAINY_DAYS') {
+      cameraDistRef.current = 14.0;
+      cameraPitchRef.current = 0.55;
+      cameraYawRef.current = Math.PI * 0.25;
+    } else if (next === 'THIRD_PERSON') {
+      cameraPitchRef.current = -0.12;
+      cameraDistRef.current = 6.5;
+      cameraYawRef.current = 0;
+    } else {
+      cameraPitchRef.current = 0.86;
+      cameraDistRef.current = 24.0;
+      cameraYawRef.current = Math.PI * 0.78;
+    }
+  };
+
+  const handleSetMonkPose = (pose: 'STAND' | 'LIE_DOWN' | 'SIT_EDGE' | 'INCENSE_BOW') => {
+    monkPoseRef.current = pose;
+    useZenBridge.getState().setMonkPose(pose);
+    if (pose === 'LIE_DOWN') {
+      playerPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
+      targetPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
+    } else if (pose === 'SIT_EDGE') {
+      playerPosRef.current = { x: -26.0, y: 0.89, z: 23.5 };
+      targetPosRef.current = { x: -26.0, y: 0.89, z: 23.5 };
+    }
   };
 
   // Navigate character to a specific zone (Silent on click)
   const navigateToZone = (zone: TempleZoneInfo) => {
     const floorY = getTerrainFloorElevation(zone.pos.x, zone.pos.z, zone.pos.y ?? 0.42);
     targetPosRef.current = { x: zone.pos.x, y: floorY, z: zone.pos.z };
-    setIsTourPlaying(false);
+    useZenBridge.getState().setIsTourPlaying(false);
     isTourPlayingRef.current = false;
 
     if (zone.actionKey === 'NIGHT') {
@@ -1804,14 +1668,15 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   };
 
   const toggleTour = () => {
-    if (isTourPlaying) {
-      setIsTourPlaying(false);
+    const isPlaying = useZenBridge.getState().isTourPlaying;
+    if (isPlaying) {
+      useZenBridge.getState().setIsTourPlaying(false);
       isTourPlayingRef.current = false;
     } else {
-      setIsTourPlaying(true);
-      isTourPlayingRef.current = true;
       const nextIdx = (tourIndexRef.current + 1) % TEMPLE_ZONES.length;
       tourIndexRef.current = nextIdx;
+      useZenBridge.getState().setIsTourPlaying(true, nextIdx);
+      isTourPlayingRef.current = true;
       const nextZone = TEMPLE_ZONES[nextIdx];
       const floorY = getTerrainFloorElevation(nextZone.pos.x, nextZone.pos.z, nextZone.pos.y ?? 0.42);
       targetPosRef.current = { x: nextZone.pos.x, y: floorY, z: nextZone.pos.z };
@@ -1827,7 +1692,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
     targetPosRef.current = { x: 0, y: 0.42, z: 66 };
     tourIndexRef.current = 0;
     tourWaitRef.current = 0;
-    setIsTourPlaying(false);
+    useZenBridge.getState().setIsTourPlaying(false, 0);
     isTourPlayingRef.current = false;
     if (cameraModeRef.current === 'THIRD_PERSON') {
       cameraPitchRef.current = -0.12;
@@ -1926,6 +1791,39 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
+
+    // Register WebGL command bus on bridge
+    const unregisterBridge = zenWorldBridge.registerCommands({
+      navigateToZone,
+      setCameraMode: toggleCameraMode,
+      setMonkPose: handleSetMonkPose,
+      toggleTour,
+      restartFromGate,
+      triggerIncenseBow: handleTriggerIncenseBow,
+      ringBell: handleRingBell,
+      talkToMonk: handleTalkToMonk,
+      talkToAbbot: handleTalkToAbbot,
+      startDharmaSession: handleStartDharmaChantSession,
+      startSitMeditationLecture: handleSitMeditationLecture,
+      feedKoiFish: handleFeedKoiFish,
+      releaseLantern: create3DFloatingLantern,
+      toggleAutoBell,
+      setMovementDirection: (dir, pressed) => {
+        if (pressed) handleDirectionStart(dir);
+        else handleDirectionEnd(dir);
+      },
+      tiltCameraUp: () => {
+        cameraPitchRef.current = Math.min(Math.PI / 2.2, cameraPitchRef.current + 0.15);
+      },
+      setDayNight: (isNight) => setIsNightMode(isNight),
+      setGraphicsQuality: (quality) => {
+        if (rendererRef.current) {
+          const isHigh = quality === 'HIGH';
+          rendererRef.current.shadowMap.enabled = isHigh;
+          rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, isHigh ? 1.25 : 1.0));
+        }
+      },
+    });
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
@@ -3170,7 +3068,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         stuckCountRef.current = 0;
         if (monkPoseRef.current !== 'STAND') {
           monkPoseRef.current = 'STAND';
-          setMonkPose('STAND');
+          useZenBridge.getState().setMonkPose('STAND');
           soundEngine.stopWoodenFishRhythm();
           stopAbbotVoice();
         }
@@ -3309,7 +3207,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         if (isManualMoving) {
           if (monkPoseRef.current !== 'STAND') {
             monkPoseRef.current = 'STAND';
-            setMonkPose('STAND');
+            useZenBridge.getState().setMonkPose('STAND');
             soundEngine.stopWoodenFishRhythm();
             stopAbbotVoice();
           }
@@ -3505,8 +3403,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
           const zoneObj: TempleZoneInfo = closestZone;
           if (zoneObj.id !== currentZoneIdRef.current) {
             currentZoneIdRef.current = zoneObj.id;
-            setCurrentZone(zoneObj);
-            setZoneBanner(zoneObj);
+            useZenBridge.getState().setCurrentZone(zoneObj);
+            useZenBridge.getState().setZoneBanner(zoneObj);
 
             const actionsList: { title: string; action: () => void; icon: string }[] = [];
             const zKey = zoneObj.actionKey;
@@ -3559,9 +3457,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Thỉnh Đại Hồng Chung', action: handleRingBell, icon: '🔔' });
               actionsList.push({ title: 'Đàm Đạo với Chú Tiểu', action: handleTalkToMonk, icon: '🙏' });
               actionsList.push({
-                title: isAutoBellActive ? 'Tắt Gõ Chuông Tự Động' : 'Bật Gõ Chuông Tự Động',
+                title: isAutoBellActiveRef.current ? 'Tắt Gõ Chuông Tự Động' : 'Bật Gõ Chuông Tự Động',
                 action: toggleAutoBell,
-                icon: isAutoBellActive ? '⏸️' : '▶️'
+                icon: isAutoBellActiveRef.current ? '⏸️' : '▶️'
               });
             } else if (zKey === 'CORRIDOR') {
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
@@ -3575,8 +3473,8 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
                 actionsList.push({
                   title: 'Đứng Dậy Bước Đi',
                   action: () => {
-                    setMonkPose('STAND');
                     monkPoseRef.current = 'STAND';
+                    useZenBridge.getState().setMonkPose('STAND');
                     soundEngine.stopWoodenFishRhythm();
                     stopAbbotVoice();
                   },
@@ -3593,11 +3491,11 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
             } else if (zKey === 'BALCONY') {
               actionsList.push({ title: 'Ngắm Cảnh Mây Núi Lầu Cao', action: () => p.onAddMerit(20, 50, 40, 'An Nhiên Vọng Cảnh'), icon: '🪟' });
             }
-            setNearInteractions(actionsList);
+            useZenBridge.getState().setNearInteractions(actionsList);
           }
         } else if (currentZoneIdRef.current !== '') {
           currentZoneIdRef.current = '';
-          setNearInteractions([]);
+          useZenBridge.getState().setNearInteractions([]);
         }
 
         // Indoor Building Detection
@@ -3618,7 +3516,7 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
 
         if (buildingName !== currentBuildingStateRef.current) {
           currentBuildingStateRef.current = buildingName;
-          setCurrentBuilding(buildingName);
+          useZenBridge.getState().setCurrentBuilding(buildingName);
         }
 
         // Fast optimized roof fading (0 traversal overhead)
@@ -4061,8 +3959,9 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
       });
       scene.clear();
       renderer.dispose();
+      unregisterBridge();
     };
-  }, [handleFeedKoiFish, handleRingBell, handleTalkToMonk, toggleAutoBell, graphicsQuality]);
+  }, []);
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-stone-950 font-sans">
@@ -4072,748 +3971,19 @@ export const Zen3DWorld: React.FC<Zen3DWorldProps> = ({
         className="w-full h-full block cursor-crosshair active:cursor-grabbing"
       />
 
-      {/* "ON RAINY DAYS" WATERCOLOR ANIME TITLE BADGE (MATCHING REFERENCE ARTWORK) */}
-      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
-        <div className="absolute top-5 left-6 z-30 pointer-events-auto select-none animate-fadeIn flex flex-col">
-          <span className="font-serif text-2xl sm:text-3xl font-light tracking-wide text-white/95 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] flex items-center gap-2">
-            <span>On Rainy Days</span>
-          </span>
-          <span className="text-[11px] sm:text-xs font-serif text-emerald-200/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)] tracking-wider">
-            Hiên Chiếu Tatami Ven Suối Ngọc · Thanh Tịnh Mùa Hạ
-          </span>
-          <button
-            onClick={() => soundEngine.toggleBGM()}
-            className="mt-1.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-400/60 backdrop-blur-md text-[11px] text-emerald-200 shadow-xl transition cursor-pointer self-start"
-            title="Bật/Tắt nhạc nền On Rainy Days"
-          >
-            <Music className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Nhạc thư giãn · On Rainy Days</span>
-          </button>
-        </div>
-      )}
-
-      {/* KOMOREBI FOLIAGE CANOPY OVERLAY (Lush translucent green leaves framing the scene) */}
-      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
-        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-          {/* Top-left leafy branch */}
-          <svg className="absolute -top-3 -left-3 w-48 sm:w-72 h-36 sm:h-56 opacity-85 transition-transform duration-1000 ease-in-out" viewBox="0 0 200 150" fill="none">
-            <path d="M-10,0 Q60,30 110,80 Q130,100 160,110" stroke="#14532d" strokeWidth="3" fill="none" opacity="0.6" />
-            <ellipse cx="40" cy="25" rx="22" ry="12" fill="#22c55e" opacity="0.75" transform="rotate(25 40 25)" />
-            <ellipse cx="65" cy="35" rx="24" ry="13" fill="#4ade80" opacity="0.85" transform="rotate(40 65 35)" />
-            <ellipse cx="90" cy="55" rx="20" ry="11" fill="#16a34a" opacity="0.8" transform="rotate(50 90 55)" />
-            <ellipse cx="115" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.85" transform="rotate(30 115 75)" />
-            <ellipse cx="138" cy="95" rx="16" ry="9" fill="#22c55e" opacity="0.75" transform="rotate(65 138 95)" />
-            <ellipse cx="30" cy="45" rx="18" ry="10" fill="#15803d" opacity="0.7" transform="rotate(10 30 45)" />
-            <ellipse cx="70" cy="65" rx="22" ry="11" fill="#4ade80" opacity="0.8" transform="rotate(-15 70 65)" />
-          </svg>
-
-          {/* Top-right leafy canopy */}
-          <svg className="absolute -top-3 -right-3 w-56 sm:w-80 h-40 sm:h-64 opacity-90 transition-transform duration-1000 ease-in-out" viewBox="0 0 220 160" fill="none">
-            <path d="M230,-10 Q160,40 100,70 Q60,90 20,105" stroke="#14532d" strokeWidth="3.5" fill="none" opacity="0.6" />
-            <ellipse cx="180" cy="30" rx="26" ry="14" fill="#22c55e" opacity="0.85" transform="rotate(-30 180 30)" />
-            <ellipse cx="145" cy="48" rx="24" ry="13" fill="#4ade80" opacity="0.9" transform="rotate(-45 145 48)" />
-            <ellipse cx="110" cy="68" rx="22" ry="12" fill="#86efac" opacity="0.85" transform="rotate(-20 110 68)" />
-            <ellipse cx="75" cy="88" rx="19" ry="10" fill="#16a34a" opacity="0.8" transform="rotate(-55 75 88)" />
-            <ellipse cx="45" cy="100" rx="16" ry="9" fill="#4ade80" opacity="0.85" transform="rotate(-10 45 100)" />
-            <ellipse cx="160" cy="70" rx="20" ry="11" fill="#15803d" opacity="0.75" transform="rotate(25 160 70)" />
-            <ellipse cx="120" cy="95" rx="18" ry="10" fill="#22c55e" opacity="0.8" transform="rotate(-35 120 95)" />
-          </svg>
-
-          {/* Bottom-right leafy cluster */}
-          <svg className="absolute -bottom-3 -right-3 w-48 sm:w-64 h-36 sm:h-52 opacity-85" viewBox="0 0 180 140" fill="none">
-            <ellipse cx="150" cy="110" rx="28" ry="15" fill="#16a34a" opacity="0.8" transform="rotate(15 150 110)" />
-            <ellipse cx="120" cy="95" rx="24" ry="13" fill="#22c55e" opacity="0.85" transform="rotate(-25 120 95)" />
-            <ellipse cx="95" cy="115" rx="20" ry="11" fill="#4ade80" opacity="0.9" transform="rotate(35 95 115)" />
-            <ellipse cx="140" cy="75" rx="18" ry="10" fill="#86efac" opacity="0.8" transform="rotate(-10 140 75)" />
-          </svg>
-        </div>
-      )}
-
-      {/* ON RAINY DAYS INTERACTIVE POSE CONTROLLER */}
-      {(cameraMode === 'ON_RAINY_DAYS' || currentZone.id === 'pond') && (
-        <div className="absolute top-18 sm:top-20 right-3 sm:right-6 z-30 pointer-events-auto flex items-center gap-1.5 bg-stone-900/92 backdrop-blur-md p-1.5 rounded-2xl border border-emerald-500/40 shadow-2xl">
-          <span className="text-[11px] font-serif text-emerald-300 px-2 font-bold hidden md:inline">Tư thế:</span>
-          <button
-            onClick={() => {
-              setMonkPose('LIE_DOWN');
-              monkPoseRef.current = 'LIE_DOWN';
-              playerPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
-              targetPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
-            }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'LIE_DOWN' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-              }`}
-            title="Nằm thảnh thơi dang rộng tay trên chiếu tatami như nhân vật trong tranh"
-          >
-            <span>🛌 Nằm dang tay</span>
-          </button>
-          <button
-            onClick={() => {
-              setMonkPose('SIT_EDGE');
-              monkPoseRef.current = 'SIT_EDGE';
-              playerPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
-              targetPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
-            }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'SIT_EDGE' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-              }`}
-            title="Ngồi ven hiên gỗ thả chân ngâm dòng suối trong vắt ngắm đàn cá bơi lội"
-          >
-            <span>🌊 Ngồi thả chân</span>
-          </button>
-          <button
-            onClick={() => {
-              setMonkPose('STAND');
-              monkPoseRef.current = 'STAND';
-            }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1 cursor-pointer ${monkPose === 'STAND' ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-300 hover:bg-stone-800'
-              }`}
-            title="Đứng dậy bước đi dạo quanh khuôn viên chùa"
-          >
-            <span>🚶 Đứng</span>
-          </button>
-        </div>
-      )}
-
-      {/* INDOOR SANCTUARY / ROOM BADGE */}
-      {currentBuilding && (
-        <div className="absolute top-18 sm:top-20 right-4 sm:right-6 z-30 pointer-events-none animate-fadeIn">
-          <div className="px-3.5 py-1.5 rounded-full bg-amber-950/90 border border-amber-400/60 text-amber-200 text-xs font-serif font-bold shadow-2xl flex items-center gap-2 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>{currentBuilding}</span>
-          </div>
-        </div>
-      )}
-
-      {/* TOP BANNER: CURRENT TEMPLE ZONE NOTIFICATION (ANIME STYLE) */}
-      {zoneBanner && (
-        <div className="absolute top-18 sm:top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto animate-fadeIn max-w-[92vw]">
-          <div className="anime-glass-panel border-2 border-pink-400/60 px-4 py-2 sm:px-6 sm:py-2.5 rounded-[24px] shadow-[0_12px_36px_rgba(244,114,182,0.35)] flex items-center gap-3">
-            <span className="text-2xl sm:text-3xl shrink-0 p-1.5 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-400/40">
-              {zoneBanner.icon}
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-pink-400 shrink-0" />
-                <span className="font-heading font-black text-white text-sm sm:text-base drop-shadow">
-                  {zoneBanner.name}
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-200 border border-pink-400/30 text-[10px] font-mono font-bold">
-                  {zoneBanner.dimensions}
-                </span>
-              </div>
-              <div className="text-[11px] sm:text-xs text-purple-200/90 font-sans font-medium line-clamp-1">
-                {zoneBanner.subtitle}
-              </div>
-            </div>
-            <button
-              onClick={() => setZoneBanner(null)}
-              className="text-purple-300 hover:text-white ml-2 text-xs p-1 cursor-pointer font-bold"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* DIALOGUE MODAL: CHÚ TIỂU TUỆ TĨNH THỈNH CHUÔNG */}
-      {bellNpcDialogue && (
-        <div className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-40 pointer-events-auto max-w-[94vw] sm:max-w-md w-full animate-fadeIn">
-          <div className="anime-glass-panel border-2 border-amber-400/50 p-4 sm:p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.7)] backdrop-blur-xl relative">
-            <button
-              onClick={() => setBellNpcDialogue(null)}
-              className="absolute top-3 right-3 text-amber-200 hover:text-white text-xs p-1.5 rounded-full hover:bg-white/10 transition cursor-pointer font-bold"
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-3 mb-2.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center text-2xl shadow-lg border border-amber-300/60 ring-2 ring-amber-400/30 shrink-0">
-                {bellNpcDialogue.avatar}
-              </div>
-              <div>
-                <div className="font-heading font-black text-sm sm:text-base text-amber-200 flex items-center gap-1.5">
-                  <span>{bellNpcDialogue.speaker}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 font-normal">
-                    {bellNpcDialogue.role}
-                  </span>
-                </div>
-                <div className="text-[11px] text-amber-100/70 font-sans">
-                  Tháp Chuông Chùa Sơn Tự
-                </div>
-              </div>
-            </div>
-
-            <div className="text-xs sm:text-sm text-stone-100 font-serif leading-relaxed mb-3 whitespace-pre-line bg-black/30 p-3 rounded-2xl border border-amber-500/20">
-              {bellNpcDialogue.text}
-            </div>
-
-            {bellNpcDialogue.gatha && (
-              <div className="text-[11px] sm:text-xs text-amber-300/90 font-serif italic text-center p-2.5 rounded-xl bg-amber-950/40 border border-amber-400/30 mb-3 whitespace-pre-line leading-relaxed shadow-inner">
-                {bellNpcDialogue.gatha}
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={handleRingBell}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-amber-300/50"
-              >
-                <span>🔔</span>
-                <span>Thỉnh Chuông Lại</span>
-              </button>
-              <button
-                onClick={() => setBellNpcDialogue(null)}
-                className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-200 hover:text-white font-heading text-xs transition cursor-pointer border border-amber-400/30"
-              >
-                Tâm An Lạc 🙏
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DIALOGUE MODAL: HÒA THƯỢNG TRỤ TRÌ THUYẾT PHÁP (ÁO CÀ SA ĐỎ, RÂU BẠC DÀI) */}
-      {abbotDialogue && (
-        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-40 pointer-events-auto max-w-[94vw] sm:max-w-lg w-full animate-fadeIn">
-          <div className="anime-glass-panel border-2 border-red-500/50 p-4 sm:p-6 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl relative bg-stone-950/90">
-            <button
-              onClick={handleCloseAbbotDialogue}
-              className="absolute top-3 right-3 text-amber-200 hover:text-white text-xs p-1.5 rounded-full hover:bg-white/10 transition cursor-pointer font-bold"
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-3.5 mb-3">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-amber-600 to-yellow-600 flex items-center justify-center text-3xl shadow-xl border-2 border-amber-300/80 ring-2 ring-red-500/40 shrink-0">
-                {abbotDialogue.avatar}
-              </div>
-              <div>
-                <div className="font-heading font-black text-sm sm:text-base text-amber-200 flex items-center gap-2">
-                  <span>{abbotDialogue.speaker}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-600/30 text-amber-300 border border-amber-400/50 font-normal">
-                    {abbotDialogue.role}
-                  </span>
-                </div>
-                <div className="text-[11px] text-amber-100/70 font-serif">
-                  Đại Hùng Bảo Điện • Tòa Thuyết Pháp
-                </div>
-              </div>
-            </div>
-
-            {/* THANH ĐIỀU KHIỂN & HIỂN THỊ SÓNG ÂM GIỌNG ĐỌC SƯ THẦY (BẢN THU ÂM GIONGSUTHAY.MP3) */}
-            <div className="flex flex-col gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-stone-900/90 to-amber-950/80 border border-amber-500/40 mb-3 text-xs shadow-inner">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  {isAbbotVoiceActive ? (
-                    <>
-                      <div className="flex items-end gap-1 h-4">
-                        <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] h-3" />
-                        <span className="w-1 bg-yellow-300 rounded-full animate-[bounce_0.8s_ease-in-out_infinite] h-4" />
-                        <span className="w-1 bg-amber-300 rounded-full animate-[bounce_0.5s_ease-in-out_infinite] h-2.5" />
-                        <span className="w-1 bg-yellow-400 rounded-full animate-[bounce_0.7s_ease-in-out_infinite] h-3.5" />
-                      </div>
-                      <span className="text-amber-200 font-bold text-[11px] tracking-wide animate-pulse">
-                        Sư Thầy đang tụng kệ truyền cảm...
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-amber-300/80 text-[11px] flex items-center gap-1.5 font-serif">
-                      <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Giọng đọc thiền môn của Sư Thầy</span>
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {abbotVoiceDuration.total !== '00:00' && (
-                    <span className="text-[10px] font-mono text-amber-200/80">
-                      {abbotVoiceDuration.current} / {abbotVoiceDuration.total}
-                    </span>
-                  )}
-                  {isAbbotVoiceActive ? (
-                    <button
-                      onClick={() => {
-                        stopAbbotVoice();
-                        setIsAbbotVoiceActive(false);
-                        setAbbotVoiceProgress(0);
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-red-950/80 hover:bg-red-900 text-amber-200 hover:text-white text-[11px] font-bold border border-red-500/40 flex items-center gap-1 cursor-pointer transition shadow-sm active:scale-95"
-                      title="Tạm dừng giọng đọc"
-                    >
-                      <Pause className="w-3 h-3" />
-                      <span>Tạm Dừng</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        if (abbotDialogue) {
-                          const formatAudioTime = (sec: number) => {
-                            const m = Math.floor(sec / 60);
-                            const s = Math.floor(sec % 60);
-                            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-                          };
-                          setIsAbbotVoiceActive(true);
-                          speakAbbotVoice(abbotDialogue.text, abbotDialogue.gatha, {
-                            onStart: () => setIsAbbotVoiceActive(true),
-                            onEnd: () => {
-                              setIsAbbotVoiceActive(false);
-                              setAbbotVoiceProgress(0);
-                            },
-                            onTimeUpdate: (cur, dur) => {
-                              if (dur > 0) {
-                                setAbbotVoiceProgress(Math.min(100, (cur / dur) * 100));
-                                setAbbotVoiceDuration({
-                                  current: formatAudioTime(cur),
-                                  total: formatAudioTime(dur),
-                                });
-                              }
-                            },
-                          });
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 text-[11px] font-black border border-amber-300/60 flex items-center gap-1 cursor-pointer transition shadow-sm hover:scale-105 active:scale-95"
-                      title="Bấm để nghe giọng đọc truyền cảm của Sư Thầy"
-                    >
-                      <Volume2 className="w-3 h-3 text-stone-950" />
-                      <span>Nghe Giọng Thầy</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* THANH TIẾN TRÌNH AUDIO ÁNH KIM SANG TRỌNG */}
-              <div className="w-full h-1 bg-stone-800 rounded-full overflow-hidden border border-amber-400/20">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 transition-all duration-200"
-                  style={{ width: `${abbotVoiceProgress}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="text-xs sm:text-sm text-stone-100 font-serif leading-relaxed mb-3 whitespace-pre-line bg-black/40 p-3.5 rounded-2xl border border-red-500/20">
-              {abbotDialogue.text}
-            </div>
-
-            {abbotDialogue.gatha && (
-              <div className="text-[11px] sm:text-xs text-amber-200/95 font-serif italic text-center p-3 rounded-xl bg-red-950/50 border border-amber-400/40 mb-4 whitespace-pre-line leading-relaxed shadow-inner">
-                {abbotDialogue.gatha}
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <button
-                onClick={handleStartDharmaChantSession}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-700 hover:from-red-500 hover:to-amber-600 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-red-400/50"
-              >
-                <span>📜</span>
-                <span>Khóa Lễ Thính Pháp</span>
-              </button>
-              {monkPoseRef.current !== 'STAND' ? (
-                <button
-                  onClick={() => {
-                    handleCloseAbbotDialogue();
-                    setMonkPose('STAND');
-                    monkPoseRef.current = 'STAND';
-                    soundEngine.stopWoodenFishRhythm();
-                    stopAbbotVoice();
-                  }}
-                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-amber-200 font-bold text-xs transition cursor-pointer border border-amber-400/30 flex items-center gap-1.5"
-                >
-                  <span>🚶</span>
-                  <span>Đứng Dậy Xả Thiền</span>
-                </button>
-              ) : (
-                <button
-                  onClick={handleCloseAbbotDialogue}
-                  className="px-4 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs transition cursor-pointer"
-                >
-                  A Di Đà Phật 🙏
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FLOATING ACTION BUTTONS WHEN IN ZONE (ANIME GLOWING PROMPTS) */}
-      {nearInteractions.length > 0 && (
-        <div className="absolute bottom-26 sm:bottom-22 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex flex-wrap items-center justify-center gap-2 max-w-[90vw]">
-          {nearInteractions.map((act, i) => (
-            <button
-              key={i}
-              onClick={act.action}
-              className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-heading font-black text-xs sm:text-sm shadow-[0_8px_25px_rgba(244,114,182,0.5)] flex items-center gap-2.5 active:scale-95 transition cursor-pointer border border-white/50 animate-bounce"
-            >
-              <span className="text-lg sm:text-xl">{act.icon}</span>
-              <span>{act.title}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* TOP-LEFT CONTROLLER BAR (ANIME GLASS STYLE) */}
-      <div className="absolute top-18 sm:top-20 left-3 sm:left-6 z-30 pointer-events-auto flex items-center gap-2">
-        <button
-          onClick={toggleTour}
-          className={`px-3.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-2 transition-all cursor-pointer border ${isTourPlaying
-            ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-300 ring-2 ring-pink-400/50 shadow-[0_0_18px_rgba(244,114,182,0.5)]'
-            : 'anime-glass-panel hover:bg-white/10 text-pink-200 border-pink-400/40 backdrop-blur-md'
-            }`}
-          title="Tự động dẫn nhân vật vãn cảnh qua 14 danh thắng chùa"
-        >
-          {isTourPlaying ? <Pause className="w-4 h-4 text-white fill-current" /> : <Play className="w-4 h-4 text-pink-400 fill-current" />}
-          <span>{isTourPlaying ? 'Tạm Dừng Vãn Cảnh' : '14 Cảnh Sơn Tự'}</span>
-          {isTourPlaying && (
-            <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-mono">
-              {tourIndexRef.current + 1}/14
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={restartFromGate}
-          title="Bắt đầu lại bước chân từ Cổng Chùa Tam Quan"
-          className="p-2.5 rounded-2xl anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-pink-300 border border-pink-400/30 backdrop-blur-md shadow-xl transition cursor-pointer"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-
-        {/* Panoramic 3rd-Person vs Isometric Mode Switcher */}
-        <button
-          onClick={toggleCameraMode}
-          className="px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-white border-pink-400/30"
-          title="Chuyển đổi góc nhìn: Toàn Cảnh / On Rainy Days / Trên Cao"
-        >
-          <Layers className="w-3.5 h-3.5 text-pink-400" />
-          <span>{cameraMode === 'THIRD_PERSON' ? '👁️ Toàn Cảnh' : cameraMode === 'ON_RAINY_DAYS' ? '🌧️ On Rainy Days' : '📐 Trên Cao'}</span>
-        </button>
-
-        {/* Dedicated "On Rainy Days" Aesthetic View Switcher */}
-        <button
-          onClick={() => {
-            if (cameraMode === 'ON_RAINY_DAYS') {
-              setCameraMode('THIRD_PERSON');
-              cameraModeRef.current = 'THIRD_PERSON';
-              cameraPitchRef.current = -0.12;
-              cameraDistRef.current = 6.5;
-            } else {
-              playerPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
-              targetPosRef.current = { x: -27.2, y: 0.89, z: 38.5 };
-              setCameraMode('ON_RAINY_DAYS');
-              cameraModeRef.current = 'ON_RAINY_DAYS';
-              setMonkPose('SIT_EDGE');
-              monkPoseRef.current = 'SIT_EDGE';
-              const pondZone = TEMPLE_ZONES.find((z) => z.id === 'pond') || TEMPLE_ZONES[4];
-              setCurrentZone(pondZone);
-              setZoneBanner(pondZone);
-            }
-          }}
-          className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${cameraMode === 'ON_RAINY_DAYS'
-            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 ring-2 ring-emerald-400/50 shadow-[0_0_16px_rgba(52,211,153,0.5)]'
-            : 'anime-glass-panel hover:bg-white/10 text-emerald-300 border-emerald-500/40'
-            }`}
-          title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days'"
-        >
-          <span>🌸 On Rainy Days</span>
-        </button>
-
-        {/* Quick Pitch Tilt Button */}
-        <button
-          onClick={() => {
-            cameraPitchRef.current = cameraPitchRef.current < -0.3 ? -0.08 : -0.62;
-          }}
-          className="px-2.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border anime-glass-panel hover:bg-white/10 text-purple-200 hover:text-white border-pink-400/30"
-          title="Bấm để ngước nhìn lên cao hoặc nhìn ngang"
-        >
-          <span>✨ Ngước Lên Trời</span>
-        </button>
-
-        {/* Nút bấm Thắp Nhang Vái Phật trên thanh công cụ */}
-        <button
-          onClick={handleTriggerIncenseBow}
-          disabled={isIncenseBowing}
-          className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${
-            isIncenseBowing
-              ? 'bg-amber-500 text-white border-yellow-300 ring-2 ring-yellow-400/50 shadow-[0_0_16px_rgba(245,158,11,0.6)] animate-pulse'
-              : 'anime-glass-panel hover:bg-amber-500/20 text-amber-300 hover:text-white border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105'
-          }`}
-          title="Thắp 3 nén nhang trầm và thành kính cúi mình vái lạy 3 bái dâng Phật"
-        >
-          <span>🕯️ Thắp Nhang Vái Phật</span>
-        </button>
-
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl anime-glass-panel border border-pink-400/30 text-pink-200 text-xs font-sans font-bold shadow-xl">
-          <Eye className="w-3.5 h-3.5 text-pink-400" />
-          <span>Click chuột để đi • Kéo xoay góc nhìn • Lăn chuột thu phóng</span>
-        </div>
-      </div>
-
-      {/* FLOATING ACTION: NÚT THẮP NHANG & VÁI LẠY PHẬT TỔ */}
-      <div className="absolute top-20 sm:top-24 right-3 sm:right-6 z-30 pointer-events-auto">
-        <button
-          onClick={handleTriggerIncenseBow}
-          disabled={isIncenseBowing}
-          className={`px-3.5 py-2.5 rounded-2xl font-heading font-black text-xs sm:text-sm flex items-center gap-2 shadow-2xl transition-all cursor-pointer backdrop-blur-md border ${
-            isIncenseBowing
-              ? 'bg-amber-500/90 text-white border-yellow-200 ring-4 ring-yellow-400/50 shadow-[0_0_24px_rgba(245,158,11,0.8)] animate-pulse scale-105'
-              : 'bg-gradient-to-r from-amber-600/90 via-orange-500/90 to-yellow-500/90 hover:from-amber-500 hover:to-yellow-400 text-white border-yellow-300/70 shadow-[0_0_20px_rgba(245,158,11,0.45)] hover:scale-105 active:scale-95'
-          }`}
-          title="Thắp 3 nén nhang trầm và thành kính cúi mình vái lạy 3 bái dâng Phật"
-        >
-          <span className="text-base sm:text-lg animate-bounce">🕯️</span>
-          <span>{isIncenseBowing ? 'Đang Dâng Hương & Vái Lạy...' : 'Thắp Nhang & Vái Lạy'}</span>
-        </button>
-      </div>
-
-      {/* ON-SCREEN DIRECTIONAL D-PAD CONTROLLER (ANIME GAMEPAD) */}
-      <div className="absolute bottom-20 sm:bottom-18 left-3 sm:left-6 z-30 pointer-events-auto flex flex-col items-center">
-        <button
-          onPointerDown={() => handleDirectionStart('up')}
-          onPointerUp={() => handleDirectionEnd('up')}
-          onPointerLeave={() => handleDirectionEnd('up')}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-          title="Tiến thẳng theo hướng nhìn (W hoặc Mũi tên lên)"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
-
-        <div className="flex items-center gap-1 sm:gap-1.5 my-1">
-          <button
-            onPointerDown={() => handleDirectionStart('left')}
-            onPointerUp={() => handleDirectionEnd('left')}
-            onPointerLeave={() => handleDirectionEnd('left')}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-            title="Rẽ trái (A hoặc Mũi tên trái)"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-950/60 border border-pink-400/30 flex items-center justify-center text-pink-400 text-xs sm:text-sm select-none shadow-inner font-bold" title="WASD / Phím Mũi Tên">
-            ✦
-          </div>
-
-          <button
-            onPointerDown={() => handleDirectionStart('right')}
-            onPointerUp={() => handleDirectionEnd('right')}
-            onPointerLeave={() => handleDirectionEnd('right')}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-            title="Rẽ phải (D hoặc Mũi tên phải)"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-
-        <button
-          onPointerDown={() => handleDirectionStart('down')}
-          onPointerUp={() => handleDirectionEnd('down')}
-          onPointerLeave={() => handleDirectionEnd('down')}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-          title="Lùi lại (S hoặc Mũi tên xuống)"
-        >
-          <ChevronDown className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* BOTTOM DOCK: 14 ARCHITECTURAL ZONES DOCK (ANIME HORIZONTAL SCROLL) */}
-      <div className="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 z-20 pointer-events-auto">
-        <div className="anime-glass-panel border border-pink-400/40 p-2 sm:p-2.5 rounded-[24px] shadow-2xl flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-xs font-heading font-black text-pink-300 px-2 flex items-center gap-1.5 shrink-0 hidden md:flex">
-              <Footprints className="w-4 h-4 text-pink-400" />
-              <span>14 Cảnh Chùa:</span>
-            </span>
-
-            {TEMPLE_ZONES.map((zone, idx) => {
-              const isHere = currentZone.id === zone.id;
-              return (
-                <button
-                  key={zone.id}
-                  onClick={() => navigateToZone(zone)}
-                  title={`${zone.name} (${zone.subtitle})`}
-                  className={`px-3 py-1.5 rounded-xl font-heading text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${isHere
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black shadow-[0_0_15px_rgba(244,114,182,0.6)] border border-white/50 scale-105'
-                    : 'bg-purple-950/40 hover:bg-purple-900/50 border border-pink-400/20 text-purple-200 hover:text-white'
-                    }`}
-                >
-                  <span>{zone.icon}</span>
-                  <span className="text-[11px] font-bold hidden sm:inline">{zone.name.split('.')[1] || zone.name}</span>
-                  {idx < TEMPLE_ZONES.length - 1 && (
-                    <ChevronRight className="w-3 h-3 text-purple-400/40 hidden xl:inline" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* MODAL THẢ HOA ĐĂNG CẦU NGUYỆN BÊN HỒ SEN CHÙA MỘT CỘT */}
-      {isFloatingLanternModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-stone-900/95 via-purple-950/90 to-stone-950/95 border-2 border-pink-400/50 shadow-[0_0_50px_rgba(244,114,182,0.4)] text-white">
-            <button
-              onClick={() => setIsFloatingLanternModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full text-stone-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center mb-6">
-              <span className="text-4xl animate-bounce inline-block mb-2">🏮</span>
-              <h3 className="text-xl sm:text-2xl font-black font-heading bg-gradient-to-r from-pink-300 via-amber-200 to-rose-300 bg-clip-text text-transparent">
-                Thả Hoa Đăng Cầu Nguyện
-              </h3>
-              <p className="text-xs sm:text-sm text-pink-200/80 mt-1">
-                Gửi gắm ước nguyện thiện lành trôi theo làn nước xanh lá sen về đài sen Chùa Một Cột
-              </p>
-            </div>
-
-            {/* Chọn Mẫu Hoa Đăng */}
-            <div className="mb-5">
-              <label className="block text-xs font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                1. Chọn Sắc Hoa Đăng:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {[
-                  { id: 'pink', name: 'Hồng Ái Ngữ', icon: '🌸', color: 'border-pink-400 bg-pink-500/20' },
-                  { id: 'gold', name: 'Hoàng Kim', icon: '💛', color: 'border-amber-400 bg-amber-500/20' },
-                  { id: 'white', name: 'Bạch Ngọc', icon: '🤍', color: 'border-stone-200 bg-stone-100/20' },
-                  { id: 'cyan', name: 'Lam Thanh', icon: '💙', color: 'border-cyan-400 bg-cyan-500/20' },
-                ].map((lantern) => (
-                  <button
-                    key={lantern.id}
-                    onClick={() => setSelectedLanternType(lantern.id)}
-                    className={`p-3 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center gap-1.5 ${
-                      selectedLanternType === lantern.id
-                        ? `${lantern.color} border-2 shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105`
-                        : 'border-white/10 hover:border-white/30 bg-black/30'
-                    }`}
-                  >
-                    <span className="text-2xl">{lantern.icon}</span>
-                    <span className="text-xs font-bold">{lantern.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Chọn Hoặc Nhập Lời Cầu Nguyện */}
-            <div className="mb-6">
-              <label className="block text-xs font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                2. Lời Nguyện Ước Thành Tâm:
-              </label>
-              <div className="space-y-1.5 mb-3">
-                {[
-                  'Cầu cho Cha Mẹ bình an, tăng long phước thọ',
-                  'Cầu cho gia đạo hòa thuận, con cháu hiếu thảo',
-                  'Cầu cho công việc hanh thông, trí tuệ sáng suốt',
-                  'Cầu cho tâm hồn an tĩnh, tiêu trừ mọi ưu phiền',
-                ].map((wish, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCustomWishText(wish)}
-                    className={`w-full text-left p-2.5 rounded-xl text-xs transition cursor-pointer border ${
-                      customWishText === wish
-                        ? 'bg-pink-500/30 border-pink-400 text-white font-bold'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-stone-300'
-                    }`}
-                  >
-                    ✨ {wish}
-                  </button>
-                ))}
-              </div>
-
-              <textarea
-                value={customWishText}
-                onChange={(e) => setCustomWishText(e.target.value)}
-                placeholder="Hoặc tự nhập lời ước nguyện thành tâm của bạn..."
-                className="w-full p-3 rounded-xl bg-black/40 border border-pink-400/30 text-white text-xs sm:text-sm focus:border-pink-400 focus:outline-none resize-none h-18"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsFloatingLanternModalOpen(false)}
-                className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-stone-300 font-heading font-bold text-sm transition cursor-pointer"
-              >
-                Hủy Bỏ
-              </button>
-              <button
-                onClick={handleConfirmReleaseLantern}
-                className="flex-2 py-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-400 hover:to-amber-400 text-white font-heading font-black text-sm shadow-[0_0_20px_rgba(244,114,182,0.6)] flex items-center justify-center gap-2 transition cursor-pointer active:scale-95 border border-white/40"
-              >
-                <span>🏮 Thả Đèn Xuống Hồ Sen</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* WIDGET THIỀN ĐỊNH HƠI THỞ CHÁNH NIỆM BÊN HỒ SEN */}
-      {isLotusMeditationActive && (
-        <div className="fixed top-24 right-4 sm:right-8 z-40 p-4 sm:p-5 rounded-3xl bg-black/70 backdrop-blur-xl border-2 border-emerald-400/60 shadow-[0_0_30px_rgba(16,185,129,0.4)] text-white w-72 sm:w-80 animate-fade-in pointer-events-auto">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl animate-pulse">🧘</span>
-              <div>
-                <h4 className="text-sm font-black font-heading text-emerald-300">Tọa Thiền Bên Hồ Sen</h4>
-                <p className="text-[10px] text-emerald-200/70">Đã an trú: {meditationBreaths} chu kỳ hơi thở</p>
-              </div>
-            </div>
-            <button
-              onClick={handleDungDayBuocDi}
-              className="p-1.5 rounded-full hover:bg-white/10 text-stone-300 cursor-pointer"
-              title="Xong Khóa Thiền / Đứng Dậy"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Vòng Tròn Hơi Thở Tỏa Sáng */}
-          <div className="flex flex-col items-center justify-center py-4">
-            <div
-              className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-1000 ${
-                meditationBreathPhase === 'IN'
-                  ? 'scale-110 border-emerald-400 bg-emerald-500/20 shadow-[0_0_25px_rgba(52,211,153,0.6)]'
-                  : meditationBreathPhase === 'HOLD'
-                  ? 'scale-105 border-teal-300 bg-teal-500/30 shadow-[0_0_30px_rgba(45,212,191,0.7)]'
-                  : meditationBreathPhase === 'OUT'
-                  ? 'scale-90 border-pink-400 bg-pink-500/20 shadow-[0_0_20px_rgba(244,114,182,0.5)]'
-                  : 'scale-95 border-stone-400 bg-stone-500/10'
-              }`}
-            >
-              <span className="text-xs font-black font-heading text-center px-2">
-                {meditationBreathPhase === 'IN' && 'Hít Vào Thong Dong'}
-                {meditationBreathPhase === 'HOLD' && 'Giữ Tâm Tĩnh Lặng'}
-                {meditationBreathPhase === 'OUT' && 'Thở Ra Mỉm Cười'}
-                {meditationBreathPhase === 'REST' && 'Buông Thư Tự Tại'}
-              </span>
-              <span className="text-[10px] text-emerald-200 font-bold mt-1">🪷</span>
-            </div>
-            <p className="text-center text-[11px] text-emerald-100/80 italic mt-3 px-2">
-              "Thở vào tâm tĩnh lặng, thở ra miệng mỉm cười. Thấy hoa sen nở ngát, an lạc giữa trần ai."
-            </p>
-          </div>
-
-          <button
-            onClick={handleDungDayBuocDi}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 font-heading font-black text-xs shadow-lg transition cursor-pointer border border-emerald-300/40"
-          >
-            🚶 Đứng Dậy & Hồi Hướng Công Đức
-          </button>
-        </div>
-      )}
-
-      {/* Day / Night Atmosphere Toggle */}
-          <button
-            onClick={() => setIsNightMode(!isNightMode)}
-            title="Bật/Tắt chế độ Ánh Sáng Đèn Lồng Ban Đêm"
-            className={`p-2.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer border shrink-0 ${isNightMode ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
-              }`}
-          >
-            {isNightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
+      {/* Decoupled React-WebGL Bridge Overlays (Selective re-renders, 0 canvas rebuilds) */}
+      <Zen3DOverlays
+        onAddMerit={propsRef.current.onAddMerit}
+        onOpenDharma={propsRef.current.onOpenDharma}
+        templeZones={TEMPLE_ZONES}
+        isNightMode={isNightMode}
+        onToggleNightMode={() => setIsNightMode((prev) => !prev)}
+      />
     </div>
   );
 };
+
+export const Zen3DWorld = memo(Zen3DWorldComponent);
 // ==========================================
 // STYLIZED 3D ASSET BUILDERS (FANTASY ZEN MONASTERY)
 // ==========================================
