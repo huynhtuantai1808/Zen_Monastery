@@ -9,8 +9,11 @@ export interface ChibiCharacterRig {
     idle: THREE.AnimationAction;
     sit: THREE.AnimationAction;
     incenseBow: THREE.AnimationAction;
+    meditationBow: THREE.AnimationAction;
   };
   incenseBundle?: THREE.Group;
+  meritHaloGroup?: THREE.Group;
+  updateMeritHalo?: (merit: number, level: number) => void;
 }
 
 export type RealisticCharacterRig = ChibiCharacterRig;
@@ -403,6 +406,87 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   headMesh.rotation.y = -Math.PI / 2; // Hướng mặt về phía trước z+
   headMesh.castShadow = true;
   head.add(headMesh);
+
+  // ==========================================
+  // VẦNG HÀO QUANG PHƯỚC BÁU (BUDDHIST MERIT HALO)
+  // Tỏa sáng rạng ngời phía sau đầu nhân vật, tỷ lệ thuận với điểm công đức
+  // ==========================================
+  const meritHaloGroup = new THREE.Group();
+  meritHaloGroup.name = 'MeritHalo';
+  meritHaloGroup.position.set(0, 0.08, -0.32);
+
+  // 1. Vòng tròn hào quang ngoài cùng (Outer Wisdom Ring)
+  const outerRingGeo = new THREE.RingGeometry(0.32, 0.44, 32);
+  const matHaloOuter = new THREE.MeshBasicMaterial({
+    color: 0xfde047,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.5,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const outerRing = new THREE.Mesh(outerRingGeo, matHaloOuter);
+  meritHaloGroup.add(outerRing);
+
+  // 2. Vòng hoa sen / Bát Chánh Đạo bên trong (Inner 8-Spoke Mandala Ring)
+  const innerRingGeo = new THREE.RingGeometry(0.18, 0.28, 24);
+  const matHaloInner = new THREE.MeshBasicMaterial({
+    color: 0xfbbf24,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const innerRing = new THREE.Mesh(innerRingGeo, matHaloInner);
+  meritHaloGroup.add(innerRing);
+
+  // 3. 8 Tia hào quang Bát Chánh Đạo (Eightfold Path Sunburst Rays)
+  const raysGroup = new THREE.Group();
+  const rayGeo = new THREE.BoxGeometry(0.024, 0.16, 0.005);
+  for (let ri = 0; ri < 8; ri++) {
+    const rayMesh = new THREE.Mesh(rayGeo, matHaloInner);
+    const rAngle = (ri / 8) * Math.PI * 2;
+    rayMesh.rotation.z = rAngle;
+    rayMesh.position.set(Math.cos(rAngle) * 0.30, Math.sin(rAngle) * 0.30, 0);
+    raysGroup.add(rayMesh);
+  }
+  meritHaloGroup.add(raysGroup);
+
+  // 4. Vầng sáng tâm thức ấm áp ở tâm (Central Golden Aura Disc)
+  const centerGlowGeo = new THREE.CircleGeometry(0.30, 24);
+  const matHaloGlow = new THREE.MeshBasicMaterial({
+    color: 0xfef08a,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.25,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const centerGlow = new THREE.Mesh(centerGlowGeo, matHaloGlow);
+  meritHaloGroup.add(centerGlow);
+
+  // 5. Nguồn sáng điểm ấm áp chiếu rạng sau gáy (Point Light)
+  const haloLight = new THREE.PointLight(0xfde047, 0.6, 4.0);
+  haloLight.position.set(0, 0, 0.1);
+  meritHaloGroup.add(haloLight);
+
+  head.add(meritHaloGroup);
+
+  const updateMeritHalo = (merit: number, level: number = 1) => {
+    const mFactor = Math.min(1.0, Math.max(0.12, merit / 650));
+    const lvFactor = Math.min(1.0, Math.max(0.1, level / 20));
+    const power = Math.min(1.0, mFactor * 0.75 + lvFactor * 0.25);
+
+    matHaloOuter.opacity = 0.20 + power * 0.75;
+    matHaloInner.opacity = 0.25 + power * 0.70;
+    matHaloGlow.opacity = 0.12 + power * 0.48;
+    haloLight.intensity = 0.25 + power * 1.85;
+    haloLight.distance = 2.5 + power * 2.5;
+
+    const targetScale = 0.75 + power * 0.45;
+    meritHaloGroup.scale.set(targetScale, targetScale, targetScale);
+  };
 
   // Tai hai bên (Ears)
   const earGeo = new THREE.SphereGeometry(0.045, 10, 8);
@@ -1193,15 +1277,102 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
 
   const incenseBowClip = new THREE.AnimationClip('incenseBow', incenseDur, incenseTracks);
 
+  // E. MEDITATION BOW CLIP (Tọa thiền nghe tiếng chuông cung kính chắp tay vái lạy rồi an trú)
+  const medBowDur = 3.0;
+  const medBowTimes = [0, 0.5, 1.3, 2.1, 3.0];
+  const medBowTracks: THREE.KeyframeTrack[] = [
+    new THREE.VectorKeyframeTrack('Hip.position', [0, 3.0], [0, 0.22, 0, 0, 0.22, 0]),
+    new THREE.VectorKeyframeTrack('Torso.position', [0, 3.0], [0, 0, 0, 0, 0, 0]),
+    // Hai chân giữ nguyên tư thế kiết già thiền tọa vững chãi
+    new THREE.QuaternionKeyframeTrack('LeftLeg.quaternion', medBowTimes, [
+      -0.6722, -0.115, -0.23, 0.6943,
+      -0.6722, -0.115, -0.23, 0.6943,
+      -0.6722, -0.115, -0.23, 0.6943,
+      -0.6722, -0.115, -0.23, 0.6943,
+      -0.6722, -0.115, -0.23, 0.6943,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightLeg.quaternion', medBowTimes, [
+      -0.6722, 0.115, 0.23, 0.6943,
+      -0.6722, 0.115, 0.23, 0.6943,
+      -0.6722, 0.115, 0.23, 0.6943,
+      -0.6722, 0.115, 0.23, 0.6943,
+      -0.6722, 0.115, 0.23, 0.6943,
+    ]),
+    new THREE.QuaternionKeyframeTrack('LeftShin.quaternion', medBowTimes, [
+      0.9471, -0.1634, -0.0315, 0.2745,
+      0.9471, -0.1634, -0.0315, 0.2745,
+      0.9471, -0.1634, -0.0315, 0.2745,
+      0.9471, -0.1634, -0.0315, 0.2745,
+      0.9471, -0.1634, -0.0315, 0.2745,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightShin.quaternion', medBowTimes, [
+      0.9471, 0.1634, 0.0315, 0.2745,
+      0.9471, 0.1634, 0.0315, 0.2745,
+      0.9471, 0.1634, 0.0315, 0.2745,
+      0.9471, 0.1634, 0.0315, 0.2745,
+      0.9471, 0.1634, 0.0315, 0.2745,
+    ]),
+    // Thân trên cúi mình cung kính theo tiếng chuông ngân (~30 độ) rồi nhẹ nhàng thẳng lưng
+    new THREE.QuaternionKeyframeTrack('Torso.quaternion', medBowTimes, [
+      0, 0, 0, 1,
+      0.06, 0, 0, 0.998,
+      0.26, 0, 0, 0.965,
+      0.08, 0, 0, 0.996,
+      0, 0, 0, 1,
+    ]),
+    // Đầu cúi theo thân mình trang nghiêm
+    new THREE.QuaternionKeyframeTrack('Head.quaternion', medBowTimes, [
+      0, 0, 0, 1,
+      0.08, 0, 0, 0.996,
+      0.24, 0, 0, 0.970,
+      0.08, 0, 0, 0.996,
+      0, 0, 0, 1,
+    ]),
+    // Hai tay nâng lên thành ấn Hiệp Chưởng (Anjali / Búp sen) trước ngực rồi hạ về đùi
+    new THREE.QuaternionKeyframeTrack('LeftArm.quaternion', medBowTimes, [
+      0.2444, 0.1651, -0.1329, 0.9462,
+      -0.30, 0.20, 0.14, 0.92,
+      -0.32, 0.20, 0.14, 0.92,
+      -0.20, 0.18, 0.10, 0.96,
+      0.2444, 0.1651, -0.1329, 0.9462,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightArm.quaternion', medBowTimes, [
+      0.2444, -0.1651, 0.1329, 0.9462,
+      -0.30, -0.20, -0.14, 0.92,
+      -0.32, -0.20, -0.14, 0.92,
+      -0.20, -0.18, -0.10, 0.96,
+      0.2444, -0.1651, 0.1329, 0.9462,
+    ]),
+    new THREE.QuaternionKeyframeTrack('LeftForearm.quaternion', medBowTimes, [
+      0.167, 0.0631, 0.234, 0.9557,
+      0.45, 0.04, 0.26, 0.85,
+      0.48, 0.04, 0.26, 0.83,
+      0.35, 0.04, 0.24, 0.90,
+      0.167, 0.0631, 0.234, 0.9557,
+    ]),
+    new THREE.QuaternionKeyframeTrack('RightForearm.quaternion', medBowTimes, [
+      0.167, -0.0631, -0.234, 0.9557,
+      0.45, -0.04, -0.26, 0.85,
+      0.48, -0.04, -0.26, 0.83,
+      0.35, -0.04, -0.24, 0.90,
+      0.167, -0.0631, -0.234, 0.9557,
+    ]),
+  ];
+  const meditationBowClip = new THREE.AnimationClip('meditationBow', medBowDur, medBowTracks);
+
   // Mixer
   const mixer = new THREE.AnimationMixer(model);
   const walkAction = mixer.clipAction(walkClip);
   const idleAction = mixer.clipAction(idleClip);
   const sitAction = mixer.clipAction(sitClip);
   const incenseBowAction = mixer.clipAction(incenseBowClip);
+  const meditationBowAction = mixer.clipAction(meditationBowClip);
 
   incenseBowAction.loop = THREE.LoopOnce;
   incenseBowAction.clampWhenFinished = true;
+
+  meditationBowAction.loop = THREE.LoopOnce;
+  meditationBowAction.clampWhenFinished = true;
 
   walkAction.loop = THREE.LoopRepeat;
   idleAction.loop = THREE.LoopRepeat;
@@ -1210,6 +1381,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   walkAction.timeScale = 1.15;
   idleAction.timeScale = 1.0;
   sitAction.timeScale = 1.0;
+  meditationBowAction.timeScale = 1.0;
 
   model.position.set(0, 0, 0);
   model.scale.set(1.0, 1.0, 1.0);
@@ -1222,8 +1394,11 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
       idle: idleAction,
       sit: sitAction,
       incenseBow: incenseBowAction,
+      meditationBow: meditationBowAction,
     },
     incenseBundle,
+    meritHaloGroup,
+    updateMeritHalo,
   };
 }
 

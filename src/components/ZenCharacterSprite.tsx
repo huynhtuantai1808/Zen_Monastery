@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CharacterAppearance, RobeColorType } from '../types/game';
+import { useGameStore } from '../store/gameStore';
 
 export type CharacterPose =
   | 'idle'
@@ -22,6 +23,7 @@ interface ZenCharacterSpriteProps {
   showNameTag?: boolean;
   subtitle?: string;
   onClick?: () => void;
+  showHalo?: boolean;
 }
 
 // Bảng màu áo sơ mi / trang phục theo phong cách Chibi Casual
@@ -106,7 +108,9 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   showNameTag = true,
   subtitle,
   onClick,
+  showHalo = true,
 }) => {
+  const congDuc = useGameStore((s) => s.stats.congDuc);
   const isFemale = character.gender === 'female';
   const palette = SHIRT_PALETTES[character.robeColor] || SHIRT_PALETTES.lam;
 
@@ -121,6 +125,50 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
   const hairHighlight = '#5c4033';
   const skinTone = '#ffedd5'; // Da sáng mịn
   const skinShade = '#fed7aa';
+
+  // ==========================================
+  // VẦNG HÀO QUANG PHƯỚC BÁU (BUDDHIST MERIT HALO)
+  // Tỏa sáng tỷ lệ thuận với điểm công đức tích lũy
+  // ==========================================
+  const renderMeritHalo = () => {
+    if (!showHalo && pose !== 'meditating') return null;
+    const power = Math.min(1.0, Math.max(0.18, congDuc / 650));
+    const haloRadius = 40 + power * 14;
+    const outerOpacity = Math.min(0.9, 0.25 + power * 0.65).toFixed(2);
+    const innerOpacity = Math.min(0.9, 0.35 + power * 0.55).toFixed(2);
+
+    return (
+      <g id="chibi-merit-halo" className="pointer-events-none">
+        <defs>
+          <radialGradient id="meritHaloGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fef08a" stopOpacity={outerOpacity} />
+            <stop offset="65%" stopColor="#fde047" stopOpacity={(parseFloat(outerOpacity) * 0.6).toFixed(2)} />
+            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="80" cy="54" r={haloRadius} fill="url(#meritHaloGrad)" />
+        <circle
+          cx="80"
+          cy="54"
+          r="38"
+          fill="none"
+          stroke="#fde047"
+          strokeWidth="2.2"
+          strokeDasharray="4,2"
+          opacity={innerOpacity}
+        />
+        <circle
+          cx="80"
+          cy="54"
+          r="34"
+          fill="none"
+          stroke="#f59e0b"
+          strokeWidth="1.2"
+          opacity={(parseFloat(innerOpacity) * 0.8).toFixed(2)}
+        />
+      </g>
+    );
+  };
 
   // ==========================================
   // 1. VẼ MÁI TÓC CHIBI THEO ĐÚNG CONCEPT ART & TÙY BIẾN
@@ -538,6 +586,7 @@ export const ZenCharacterSprite: React.FC<ZenCharacterSpriteProps> = ({
             ========================================================= */}
         {pose === 'idle' && (
           <svg viewBox="0 0 160 200" className="w-40 h-50 sm:w-48 sm:h-60 drop-shadow-2xl overflow-visible">
+            {renderMeritHalo()}
             {/* Bóng đổ dưới chân */}
             <ellipse cx="80" cy="189" rx="42" ry="7" fill="rgba(0,0,0,0.35)" />
 

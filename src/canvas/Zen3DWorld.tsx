@@ -1037,6 +1037,7 @@ function createIncenseSignTexture(): THREE.CanvasTexture {
 
 const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   character,
+  level,
   timePhase,
   isRaining,
   onOpenSweeping,
@@ -1095,6 +1096,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     onAddMerit,
     spendStamina,
     character,
+    level,
     timePhase,
     isRaining,
   });
@@ -1109,6 +1111,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     onAddMerit,
     spendStamina,
     character,
+    level,
     timePhase,
     isRaining,
   };
@@ -1127,10 +1130,25 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
   // 3D Chibi Character Rig & Animation Refs
   const charMixerRef = useRef<THREE.AnimationMixer | null>(null);
-  const charActionsRef = useRef<{ walk?: THREE.AnimationAction; idle?: THREE.AnimationAction; sit?: THREE.AnimationAction; incenseBow?: THREE.AnimationAction }>({});
+  const charActionsRef = useRef<{
+    walk?: THREE.AnimationAction;
+    idle?: THREE.AnimationAction;
+    sit?: THREE.AnimationAction;
+    incenseBow?: THREE.AnimationAction;
+    meditationBow?: THREE.AnimationAction;
+  }>({});
   const currentActionRef = useRef<string>('idle');
   const chibiModelLoadedRef = useRef<boolean>(false);
   const chibiModelRef = useRef<THREE.Group | null>(null);
+
+  // Vầng Hào Quang Phước Báu (Buddhist Merit Halo)
+  const meritHaloGroupRef = useRef<THREE.Group | null>(null);
+  const updateMeritHaloRef = useRef<((merit: number, level: number) => void) | null>(null);
+  const lastMeritRef = useRef<number>(-1);
+
+  // Trạng thái vái lạy khi ngồi thiền nghe chuông
+  const isMeditationBowingRef = useRef<boolean>(false);
+  const meditationBowTimerRef = useRef<number>(0);
 
   const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.42, z: 80 });
   // Zero-Allocation target position with persistent active flag
@@ -1347,6 +1365,29 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const handleLightIncenseSanctuary = useCallback(() => {
     handleTriggerIncenseBow();
   }, [handleTriggerIncenseBow]);
+
+  // HOẠT ẢNH VÁI LẠY KHI ĐANG TỌA THIỀN / THÍNH PHÁP NGHE TIẾNG CHUÔNG NGÂN
+  const handleTriggerMeditationBow = useCallback(() => {
+    // Chỉ kích hoạt khi nhân vật đang ở tư thế ngồi thiền
+    if (monkPoseRef.current !== 'SIT_EDGE') return;
+    if (isMeditationBowingRef.current) return;
+
+    isMeditationBowingRef.current = true;
+    meditationBowTimerRef.current = 180; // ~3.0s ở 60 FPS
+
+    if (charActionsRef.current.meditationBow) {
+      const bowAction = charActionsRef.current.meditationBow;
+      const sitAction = charActionsRef.current.sit;
+      bowAction.reset().enabled = true;
+      bowAction.setEffectiveWeight(1.0);
+      if (sitAction) {
+        sitAction.crossFadeTo(bowAction, 0.25, true);
+      }
+      bowAction.play();
+    }
+
+    propsRef.current.onAddMerit(10, 50, 42, '🙏 Lắng Nghe Chuông Ngân • Chí Thành Đảnh Lễ');
+  }, []);
 
   // =========================================================================
   // BACKEND LOGIC: 7 CHỨC NĂNG HÀNH LỄ & TƯƠNG TÁC TẠI CHÙA MỘT CỘT & HỒ SEN
@@ -1589,6 +1630,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       charMixerRef.current = rig.mixer;
       charActionsRef.current = rig.actions;
       chibiIncenseBundleRef.current = rig.incenseBundle || null;
+      meritHaloGroupRef.current = rig.meritHaloGroup || null;
+      updateMeritHaloRef.current = rig.updateMeritHalo || null;
+      rig.updateMeritHalo?.(useGameStore.getState().stats.congDuc, propsRef.current.level);
       rig.actions.idle.play();
       currentActionRef.current = 'idle';
 
@@ -2966,6 +3010,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     loadChibiCharacter(character).then((rig) => {
       charMixerRef.current = rig.mixer;
       charActionsRef.current = rig.actions;
+      meritHaloGroupRef.current = rig.meritHaloGroup || null;
+      updateMeritHaloRef.current = rig.updateMeritHalo || null;
+      rig.updateMeritHalo?.(useGameStore.getState().stats.congDuc, propsRef.current.level);
       rig.actions.idle.play();
       currentActionRef.current = 'idle';
 
@@ -3133,6 +3180,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       cameraDistRef.current = Math.max(3.5, Math.min(30.0, cameraDistRef.current + e.deltaY * 0.015));
     };
     renderer.domElement.addEventListener('wheel', handleWheel, { passive: false });
+
+    // Lắng nghe tiếng chuông chùa để nhân vật thiền tọa vái lạy cung kính
+    const unsubBell = soundEngine.addBellListener(() => {
+      handleTriggerMeditationBow();
+    });
 
     // ==========================================
     // 60+ FPS SMOOTH ANIMATION & MOVEMENT LOOP
@@ -3382,13 +3434,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           currentP.y = targetFloorY;
         }
 
-        // Hoạt ảnh 3D Chibi Rig (Idle / Walk / Sit)
+        // Hoạt ảnh 3D Chibi Rig (Idle / Walk / Sit / Meditation Bow / Incense Bow)
         if (charMixerRef.current && chibiModelLoadedRef.current) {
           let target = 'idle';
           if (monkPoseRef.current === 'INCENSE_BOW') {
             target = 'incenseBow';
           } else if (monkPoseRef.current === 'SIT_EDGE') {
-            target = 'sit';
+            target = isMeditationBowingRef.current ? 'meditationBow' : 'sit';
           } else if (isCurrentlyWalking) {
             target = 'walk';
           }
@@ -3409,6 +3461,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           }
 
           charMixerRef.current.update(delta);
+        }
+
+        // Cập nhật bộ đếm thời gian vái lạy khi ngồi thiền nghe chuông
+        if (isMeditationBowingRef.current) {
+          meditationBowTimerRef.current--;
+          if (meditationBowTimerRef.current <= 0) {
+            isMeditationBowingRef.current = false;
+          }
         }
 
         // Handle Relaxed Character Poses (Tự động thích ứng sàn Hiên Nước & Sảnh Chính Điện)
@@ -3437,12 +3497,29 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             }
             currentP.y = isNearCushion ? 3.38 : targetFloorY;
           }
+          // Dự phòng procedural bow nếu animation rig chưa tải xong
+          if (isMeditationBowingRef.current && !charActionsRef.current.meditationBow) {
+            const bowProgress = 1 - Math.abs((meditationBowTimerRef.current - 90) / 90);
+            monkGroupRef.current.rotation.x = 0.38 * bowProgress;
+          }
         } else {
           monkGroupRef.current.rotation.x = 0;
           monkGroupRef.current.rotation.z = 0;
         }
 
         monkGroupRef.current.position.set(currentP.x, currentP.y, currentP.z);
+
+        // Xoay nhẹ vầng hào quang phước báu & cập nhật độ sáng theo công đức
+        if (meritHaloGroupRef.current) {
+          meritHaloGroupRef.current.rotation.z += 0.005;
+        }
+        if (stepCount % 15 === 0) {
+          const curMerit = useGameStore.getState().stats.congDuc;
+          if (curMerit !== lastMeritRef.current) {
+            lastMeritRef.current = curMerit;
+            updateMeritHaloRef.current?.(curMerit, propsRef.current.level);
+          }
+        }
 
         // Check Zone Proximity (Zero-Allocation indexed loop)
         let closestZone: TempleZoneInfo | null = null;
@@ -3990,6 +4067,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      unsubBell();
       window.removeEventListener('resize', handleResize);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       renderer.domElement.removeEventListener('mousedown', handlePointerDown);
@@ -6457,7 +6535,7 @@ function createAuthenticDaiHungBaoDien(
   // 6.9. NPC HÒA THƯỢNG TRỤ TRÌ THUYẾT PHÁP (ÁO CÀ SA ĐỎ, RÂU BẠC DÀI, CHÂN MÀY DÀI)
   const abbotGroup = new THREE.Group();
   abbotGroup.position.set(2.4, 0.12, -2.8);
-  abbotGroup.rotation.y = -Math.PI * 0.65; // Hướng về đại chúng và hàng bồ đoàn thiền tọa
+  abbotGroup.rotation.y = -0.15; // Xoay mặt ra bên ngoài Chánh Điện (hướng về tiền đường & cửa chính tiếp đón Phật tử)
 
   // TÒA THUYẾT PHÁP HÒA THƯỢNG TRỤ TRÌ (MỞ RỘNG TO HƠN 40% THEO YÊU CẦU)
   // 1. Thảm gấm hoa sen đỏ hoàng gia bát giác ở đáy tòa

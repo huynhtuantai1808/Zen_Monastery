@@ -18,6 +18,7 @@ class ZenAudioEngine {
   private bgmVolume: number = 0.5;
   private bgmUrl: string = '/audio/on-rainy-days.webm';
   private bgmListeners: Array<(isPlaying: boolean, volume: number) => void> = [];
+  private bellListeners: Array<(pitch?: number, volume?: number) => void> = [];
   private hasRegisteredGesture: boolean = false;
 
   // Audio ducking for sacred bells & Sanctuary Hall
@@ -379,11 +380,29 @@ class ZenAudioEngine {
     this.bgmListeners.forEach((fn) => fn(this.isBgmPlaying, this.bgmVolume));
   }
 
+  public addBellListener(callback: (pitch?: number, volume?: number) => void): () => void {
+    this.bellListeners.push(callback);
+    return () => {
+      this.bellListeners = this.bellListeners.filter((l) => l !== callback);
+    };
+  }
+
+  public notifyBellListeners(pitch?: number, volume?: number) {
+    this.bellListeners.forEach((fn) => {
+      try {
+        fn(pitch, volume);
+      } catch (err) {
+        console.error('Error in bell listener:', err);
+      }
+    });
+  }
+
   /**
    * Tiếng chuông chùa vang vẳng từ xa (Distant Echo Temple Bell)
    * Authentic Buddhist Đại Hồng Chung reverberating across mist-covered mountains.
    */
   public playDistantEchoBell(pitch = 1, volume = 0.65) {
+    this.notifyBellListeners(pitch, volume);
     if (this.isMuted) return;
     this.initContext();
     this.duckBGMForBell(13.5); // Giảm nhạc nền trong suốt 13.5s tiếng chuông ngân
@@ -576,6 +595,7 @@ class ZenAudioEngine {
    * 432Hz pure sinusoidal tone with gentle pulsation for meditation.
    */
   public playSingingBowl() {
+    this.notifyBellListeners(1, 0.5);
     if (this.isMuted) return;
     this.initContext();
     this.duckBGMForBell(6.5); // Giảm nhạc nền trong suốt 6.5s chuông xoay
