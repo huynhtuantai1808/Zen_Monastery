@@ -1034,7 +1034,42 @@ function createIncenseSignTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// HỆ THỐNG ĐIỂM TUẦN TRA & NGHI THỨC CHO CÁC NPC ĐỘNG (ZERO-ALLOCATION CONSTANTS)
+// ══════════════════════════════════════════════════════════════════════════════
+interface TeaServerPatrolWaypoint {
+  x: number;
+  z: number;
+  facingAngle?: number;
+  wait: number; // Số frames dừng lại thực hiện động tác (60fps: 180 = 3s)
+  action: 'WAIT_TEA' | 'WALK' | 'SERVE_TABLE_1' | 'SERVE_TABLE_2' | 'GREET_ENTRANCE';
+}
 
+const TEA_SERVER_WAYPOINTS: TeaServerPatrolWaypoint[] = [
+  // WP 0: Bên bàn Sư Huynh Tuệ Trà, nhận ấm trà sen thơm ngát vừa pha
+  { x: -0.9, z: -0.6, facingAngle: -Math.PI / 2, wait: 200, action: 'WAIT_TEA' },
+  // WP 1: Lối đi ngắm cảnh hồ sen sang Bàn Khách 1
+  { x: 0.8, z: 0.2, wait: 0, action: 'WALK' },
+  // WP 2: Tại Bàn Khách 1, cúi xá chào & dâng khay trà sen thượng hạng
+  { x: 2.1, z: 0.6, facingAngle: Math.PI / 4, wait: 240, action: 'SERVE_TABLE_1' },
+  // WP 3: Góc hành lang phía trước
+  { x: 0.8, z: 3.2, wait: 0, action: 'WALK' },
+  // WP 4: Bậc tam cấp chính diện, cung kính nghinh đón Phật tử ghé Thiền Trà Quán
+  { x: 0.0, z: 5.2, facingAngle: 0, wait: 220, action: 'GREET_ENTRANCE' },
+  // WP 5: Tại Bàn Khách 2, rót thêm nước nóng & dọn chén trà
+  { x: -1.2, z: 3.8, facingAngle: -Math.PI * 0.75, wait: 240, action: 'SERVE_TABLE_2' },
+  // WP 6: Lối đi quay về bàn trà đạo
+  { x: -1.0, z: 1.2, wait: 0, action: 'WALK' },
+];
+
+const SWEEPER_WAYPOINTS = [
+  { x: 4.5, z: 5.5, wait: 160 },   // Phía đông Lư Hương, quét lá đa
+  { x: 6.5, z: -2.0, wait: 140 },  // Gần chậu bonsai tùng cổ thụ phía đông
+  { x: 2.0, z: -6.0, wait: 180 },  // Dưới chân bậc tam cấp Chánh Điện, dừng lau trán ngắm trời mây
+  { x: -4.5, z: -3.0, wait: 140 }, // Gần chậu bonsai phía tây
+  { x: -5.5, z: 4.5, wait: 160 },  // Phía tây Lư Hương, quét dọn sạch sẽ
+  { x: -0.5, z: 8.5, wait: 180 },  // Trước cổng tam quan sân trong, chắp tay xá chào
+];
 
 const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   character,
@@ -1218,16 +1253,63 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     head: THREE.Group;
     armR: THREE.Group;
     armL: THREE.Group;
+    kettle: THREE.Group;
+    teapot: THREE.Group;
+    gaiwan: THREE.Group;
+    ladle: THREE.Mesh;
     steamParticles: THREE.Mesh[];
   } | null>(null);
+  const teaMasterRitualFrameRef = useRef(0);
+
   const teaServerNpcRef = useRef<{
     group: THREE.Group;
     torso: THREE.Group;
     head: THREE.Group;
     armR: THREE.Group;
     armL: THREE.Group;
+    legL: THREE.Group;
+    legR: THREE.Group;
     tray: THREE.Group;
   } | null>(null);
+  const teaServerPatrolRef = useRef({
+    currentWp: 0,
+    waitTimer: 200,
+    walkCycle: 0,
+  });
+
+  // Sweeping Novice Monk in Front Courtyard (Chú Tiểu Quét Sân - Tuệ Tâm)
+  const sweeperNpcRef = useRef<{
+    group: THREE.Group;
+    torso: THREE.Group;
+    head: THREE.Group;
+    armR: THREE.Group;
+    armL: THREE.Group;
+    legL: THREE.Group;
+    legR: THREE.Group;
+    broom: THREE.Group;
+  } | null>(null);
+  const sweeperStateRef = useRef({
+    currentWp: 0,
+    waitTimer: 0,
+    walkCycle: 0,
+    sweepAngle: 0,
+  });
+
+  // Walking Meditation Novice Monk in Wooden Corridor (Chú Tiểu Kinh Hành - Tuệ Minh)
+  const walkingMonkNpcRef = useRef<{
+    group: THREE.Group;
+    torso: THREE.Group;
+    head: THREE.Group;
+    armR: THREE.Group;
+    armL: THREE.Group;
+    legL: THREE.Group;
+    legR: THREE.Group;
+    beads: THREE.Group;
+  } | null>(null);
+  const walkingMonkStateRef = useRef({
+    direction: 1,
+    walkCycle: 0,
+  });
 
   const smokeParticlesRef = useRef<THREE.Points | null>(null);
   const spiritParticlesRef = useRef<THREE.Points | null>(null);
@@ -2250,6 +2332,24 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       nightLightsRef.current.push(pLight);
       courtyardGroup.add(pLight);
     });
+
+    // [NPC CHÚ TIỂU QUÉT SÂN "TUỆ TÂM" - SÂN CHÙA CHÁNH ĐIỆN]
+    const matNoviceRobe = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.75 });
+    const matNoviceCollar = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
+    const matSkin = new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.55 });
+    const matStraw = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.85 });
+
+    const sweeperData = createSweepingMonkNpc(
+      matNoviceRobe,
+      matNoviceCollar,
+      matSkin,
+      matDarkTimber,
+      matStraw
+    );
+    sweeperData.group.position.set(SWEEPER_WAYPOINTS[0].x, 0.35, SWEEPER_WAYPOINTS[0].z);
+    courtyardGroup.add(sweeperData.group);
+    sweeperNpcRef.current = sweeperData;
+
     scene.add(courtyardGroup);
 
     // [ZONE 3: BẢO THÁP MEN NGỌC 3 TẦNG (KIẾN TRÚC MẪU MỚI THEO BẢN VẼ)]
@@ -2891,6 +2991,19 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     );
     corrRoof.position.set(0, 7.9, -0.25);
     corridorGroup.add(corrRoof);
+
+    // [NPC CHÚ TIỂU KINH HÀNH "TUỆ MINH" - DÃY HÀNH LANG GỖ LIM]
+    const matGreyRobe = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+    const walkingMonkData = createWalkingMonkNpc(
+      matGreyRobe,
+      matNoviceCollar,
+      matSkin,
+      matAmberWood
+    );
+    walkingMonkData.group.position.set(0, 0.60, -10.0);
+    corridorGroup.add(walkingMonkData.group);
+    walkingMonkNpcRef.current = walkingMonkData;
+
     scene.add(corridorGroup);
 
     // [ZONE 7: ĐẠI HÙNG BẢO ĐIỆN - TÒA CHÍNH KIẾN TRÚC MỚI THEO BẢN VẼ MẪU & SƯ PHỤ TRỤ TRÌ]
@@ -3664,6 +3777,21 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Cứu Tế Bát Cháo Nghĩa Tình', action: p.onOpenCharity, icon: '🍲' });
             } else if (zKey === 'COURTYARD') {
               actionsList.push({ title: 'Quét Lá Đa Chánh Niệm', action: p.onOpenSweeping, icon: '🧹' });
+              actionsList.push({
+                title: 'Trò Chuyện Với Chú Tiểu Tuệ Tâm',
+                action: () => {
+                  soundEngine.playWindChime();
+                  p.onAddMerit(15, 50, 40, '🙏 Đàm Đạo Cùng Chú Tiểu Tuệ Tâm');
+                  useZenBridge.getState().setTeaNpcDialogue({
+                    speaker: 'Chú Tiểu Tuệ Tâm',
+                    role: 'Thị Giả Chánh Điện • Tuệ Tâm',
+                    avatar: '🧹',
+                    text: 'A Di Đà Phật! Đệ tử đang quét dọn lá đa rụng trước sân Chánh Điện để giữ gìn cảnh chùa thanh tịnh.\n\nSư Phụ thường dạy: "Quét sạch bụi trần, tâm tự an". Kính chúc thí chủ thân tâm an lạc!',
+                    gatha: '📜 Kệ Quét Lá:\n"Quét sân sớm mai thanh tịnh lòng,\nLá đa rơi rụng cuốn trôi dòng.\nMỗi nhát chổi đưa tâm chánh niệm,\nBụi trần dứt sạch, tánh chân không."'
+                  });
+                },
+                icon: '🙏'
+              });
               actionsList.push({ title: 'Thắp Nén Hương Lòng', action: () => p.onAddMerit(10, 50, 40, 'Thắp Hương Tam Bảo'), icon: '🪔' });
             } else if (zKey === 'POND') {
               actionsList.push({
@@ -3713,6 +3841,21 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               });
             } else if (zKey === 'CORRIDOR') {
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
+              actionsList.push({
+                title: 'Đồng Hành Cùng Chú Tiểu Tuệ Minh',
+                action: () => {
+                  soundEngine.playWindChime();
+                  p.onAddMerit(20, 50, 40, '🏮 Kinh Hành Cùng Chú Tiểu Tuệ Minh');
+                  useZenBridge.getState().setTeaNpcDialogue({
+                    speaker: 'Chú Tiểu Tuệ Minh',
+                    role: 'Hành Giả Kinh Hành • Tuệ Minh',
+                    avatar: '🏮',
+                    text: 'Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! Từng bước chân đi trên hành lang là từng bước an trú vào hiện tại.\n\nBước chân chạm đất, lòng thanh thản. Mời thí chủ cùng kinh hành niệm Phật, xua tan mọi âu lo muộn phiền.',
+                    gatha: '📜 Kệ Kinh Hành:\n"Từng bước thong dong giữa đất trời,\nBồ đề tràng hạt niệm không ngơi.\nThân tâm lắng đọng miền an lạc,\nÁnh đạo soi đường rạng muôn nơi."'
+                  });
+                },
+                icon: '📿'
+              });
             } else if (zKey === 'SANCTUARY') {
               actionsList.push({ title: 'Bạch Sư Phụ Trụ Trì', action: handleTalkToAbbot, icon: '🙏' });
               actionsList.push({ title: 'Xin Xăm Xin Lộc', action: handleXinXam, icon: '🧧' });
@@ -4084,13 +4227,31 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         abbot.torso.position.y = 0.68 + Math.sin(stepCount * 0.03) * 0.008;
         // Hào quang trí tuệ tỏa sáng nhấp nháy êm dịu
         abbot.halo.rotation.z += 0.004;
+
+        // Tương tác động: Khi người chơi lại gần Chánh Điện (< 7.5m), Sư Phụ xoay mặt từ bi nhìn người chơi & chúc phúc
+        const distToAbbot = Math.hypot(playerPosRef.current.x - 2.4, playerPosRef.current.z - (-18.8));
         const matH = abbot.halo.material as THREE.MeshBasicMaterial;
-        if (matH) matH.opacity = 0.82 + Math.sin(stepCount * 0.04) * 0.14;
-        // Bàn tay phải lần tràng hạt bồ đề 108 hạt
-        abbot.armR.rotation.x = -0.65 + Math.sin(stepCount * 0.06) * 0.05;
-        abbot.beads.rotation.z = Math.sin(stepCount * 0.06) * 0.10;
-        // Đầu khẽ gật nhẹ từ bi
-        abbot.head.rotation.x = -0.04 + Math.sin(stepCount * 0.03) * 0.02;
+
+        if (distToAbbot < 7.5) {
+          const dxA = playerPosRef.current.x - 2.4;
+          const dzA = playerPosRef.current.z - (-18.8);
+          const targetAngA = Math.atan2(dxA, dzA);
+          let diffA = targetAngA - abbot.head.rotation.y;
+          while (diffA > Math.PI) diffA -= Math.PI * 2;
+          while (diffA < -Math.PI) diffA += Math.PI * 2;
+          abbot.head.rotation.y += Math.max(-0.04, Math.min(0.04, diffA * 0.06));
+
+          // Nâng tay ban ấn Vô Úy (Abhaya Mudra) chúc phúc
+          abbot.armR.rotation.x = -0.95 + Math.sin(stepCount * 0.04) * 0.04;
+          if (matH) matH.opacity = 0.92 + Math.sin(stepCount * 0.06) * 0.08;
+        } else {
+          abbot.head.rotation.y *= 0.95;
+          abbot.head.rotation.x = -0.04 + Math.sin(stepCount * 0.03) * 0.02;
+          // Bàn tay phải lần tràng hạt bồ đề 108 hạt
+          abbot.armR.rotation.x = -0.65 + Math.sin(stepCount * 0.06) * 0.05;
+          abbot.beads.rotation.z = Math.sin(stepCount * 0.06) * 0.10;
+          if (matH) matH.opacity = 0.82 + Math.sin(stepCount * 0.04) * 0.14;
+        }
       }
 
       // Khói trầm hương bốc lên nghi ngút từ Đại Đỉnh Hương Đồng (Zero-Allocation loop)
@@ -4116,13 +4277,92 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       // ══════════════════════════════════════════════════════════════════
       const teaMaster = teaMasterNpcRef.current;
       if (teaMaster) {
+        teaMasterRitualFrameRef.current = (teaMasterRitualFrameRef.current + 1) % 1080;
+        const rf = teaMasterRitualFrameRef.current;
+
         // Nhịp thở chánh niệm tĩnh lặng
         teaMaster.torso.position.y = 0.36 + Math.sin(stepCount * 0.03) * 0.006;
-        // Tay phải nâng ấm/muỗng trà rót nước sôi nhịp nhàng
-        teaMaster.armR.rotation.x = -0.65 + Math.sin(stepCount * 0.04) * 0.16;
-        teaMaster.armR.rotation.z = 0.25 + Math.sin(stepCount * 0.04) * 0.06;
-        // Đầu khẽ gật nhẹ từ bi
-        teaMaster.head.rotation.x = -0.04 + Math.sin(stepCount * 0.03) * 0.03;
+
+        if (rf < 240) {
+          // GIAI ĐOẠN 1: NÂNG ẤM ĐỒNG RÓT NƯỚC SÔI VÀO ẤM TỬ SA (0s - 4.0s)
+          const p = rf / 240;
+          const arc = Math.sin(p * Math.PI);
+          // Tay phải với lấy ấm và nhấc lên
+          teaMaster.armR.rotation.x = -0.65 + arc * 0.45;
+          teaMaster.armR.rotation.z = 0.25 - arc * 0.35;
+          // Ấm đồng nhấc lên khỏi bếp lò, di chuyển về phía ấm trà và nghiêng rót
+          teaMaster.kettle.position.x = -1.15 + arc * 0.75;
+          teaMaster.kettle.position.y = 0.94 + arc * 0.32;
+          teaMaster.kettle.position.z = -0.25 + arc * 0.15;
+          teaMaster.kettle.rotation.z = arc * 0.42;
+          // Đầu nghiêng nhìn chăm chú ấm nước
+          teaMaster.head.rotation.x = -0.04 + arc * 0.18;
+          teaMaster.head.rotation.y = arc * 0.20;
+        } else if (rf < 460) {
+          // GIAI ĐOẠN 2: HÃM TRÀ HOA SEN, DÙNG MUỖNG KHUẤY NHẸ & THƯỞNG HƯƠNG (4.0s - 7.6s)
+          const p = (rf - 240) / 220;
+          teaMaster.kettle.position.set(-1.15, 0.94, -0.25);
+          teaMaster.kettle.rotation.z = 0;
+
+          // Tay phải cầm muỗng khuấy nhẹ trà
+          teaMaster.armR.rotation.x = -0.55 + Math.sin(p * Math.PI * 4) * 0.12;
+          teaMaster.armR.rotation.z = 0.20 + Math.cos(p * Math.PI * 4) * 0.08;
+          teaMaster.ladle.rotation.z = Math.sin(p * Math.PI * 4) * 0.25;
+
+          // Hít thở thưởng hương trà sen
+          teaMaster.head.rotation.x = -0.08 + Math.sin(p * Math.PI * 2) * 0.10;
+          teaMaster.head.rotation.y = Math.sin(p * Math.PI) * 0.05;
+        } else if (rf < 700) {
+          // GIAI ĐOẠN 3: NÂNG ẤM TỬ SA RÓT SANG CHÉN TỐNG MEN NGỌC (7.6s - 11.6s)
+          const p = (rf - 460) / 240;
+          const arc = Math.sin(p * Math.PI);
+
+          teaMaster.armR.rotation.x = -0.65 + arc * 0.40;
+          teaMaster.armR.rotation.z = 0.25 - arc * 0.20;
+
+          // Ấm trà Tử Sa nâng lên và nghiêng rót vào chén tống
+          teaMaster.teapot.position.x = 0.10 + arc * 0.30;
+          teaMaster.teapot.position.y = 0.68 + arc * 0.26;
+          teaMaster.teapot.position.z = -0.05;
+          teaMaster.teapot.rotation.z = arc * 0.48;
+
+          teaMaster.head.rotation.x = 0.02 + arc * 0.15;
+          teaMaster.head.rotation.y = -arc * 0.15;
+        } else if (rf < 900) {
+          // GIAI ĐOẠN 4: NÂNG CHÉN TỐNG RÓT ĐỀU RA 4 CHÉN QUÂN (11.6s - 15.0s)
+          const p = (rf - 700) / 200;
+          const arc = Math.sin(p * Math.PI);
+          teaMaster.teapot.position.set(0.10, 0.68, -0.05);
+          teaMaster.teapot.rotation.z = 0;
+
+          teaMaster.armR.rotation.x = -0.70 + arc * 0.35;
+          teaMaster.armL.rotation.x = -0.60 + arc * 0.25;
+
+          // Chén tống di chuyển nhẹ nhàng trên 4 chén
+          teaMaster.gaiwan.position.x = 0.55 - arc * 0.28;
+          teaMaster.gaiwan.position.y = 0.62 + arc * 0.22;
+          teaMaster.gaiwan.position.z = -0.05 + Math.sin(p * Math.PI * 2) * 0.18;
+          teaMaster.gaiwan.rotation.x = arc * 0.32;
+
+          teaMaster.head.rotation.x = arc * 0.20;
+          teaMaster.head.rotation.y = 0;
+        } else {
+          // GIAI ĐOẠN 5: CUNG KÍNH MỜI TRÀ & XÁ CHÀO KHÁCH (15.0s - 18.0s)
+          const p = (rf - 900) / 180;
+          const arc = Math.sin(p * Math.PI);
+          teaMaster.gaiwan.position.set(0.55, 0.62, -0.05);
+          teaMaster.gaiwan.rotation.x = 0;
+
+          // Hai tay mở rộng cung kính dâng mời
+          teaMaster.armR.rotation.x = -0.65 + arc * 0.30;
+          teaMaster.armR.rotation.z = 0.25 + arc * 0.25;
+          teaMaster.armL.rotation.x = -0.65 + arc * 0.30;
+          teaMaster.armL.rotation.z = -0.25 - arc * 0.25;
+
+          // Cúi mình xá chào
+          teaMaster.torso.rotation.x = arc * 0.16;
+          teaMaster.head.rotation.x = arc * 0.25;
+        }
 
         // Khói hơi nước trà thơm bốc lên nghi ngút (Zero-Allocation indexed loop)
         const steamList = teaMaster.steamParticles;
@@ -4143,14 +4383,194 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         }
       }
 
+      // ──────────────────────────────────────────────────────────────────
+      // CHÚ TIỂU PHỤC VỤ TRÀ (TIỂU TRÀ): TUẦN TRA, ĐI LẠI BƯNG KHAY & DÂNG TRÀ
+      // ──────────────────────────────────────────────────────────────────
       const teaServer = teaServerNpcRef.current;
       if (teaServer) {
-        // Chú Tiểu Phục Vụ Trà thở nhẹ nhàng và cúi xá chào khách
-        teaServer.torso.position.y = 0.56 + Math.sin(stepCount * 0.03) * 0.005;
-        teaServer.torso.rotation.x = 0.05 + Math.sin(stepCount * 0.025) * 0.05;
-        teaServer.head.rotation.x = 0.08 + Math.sin(stepCount * 0.025) * 0.08;
-        // Khay trà giữ cân bằng êm ái
-        teaServer.tray.position.y = 0.38 + Math.sin(stepCount * 0.03) * 0.005;
+        const patrol = teaServerPatrolRef.current;
+        const targetWp = TEA_SERVER_WAYPOINTS[patrol.currentWp];
+
+        const curX = teaServer.group.position.x;
+        const curZ = teaServer.group.position.z;
+        const dx = targetWp.x - curX;
+        const dz = targetWp.z - curZ;
+        const dist = Math.hypot(dx, dz);
+
+        if (patrol.waitTimer > 0) {
+          // ĐANG DỪNG THỰC HIỆN NGHI THỨC TẠI ĐIỂM DỪNG (BƯNG TRÀ / XÁ CHÀO)
+          patrol.waitTimer--;
+          // Chân đứng ngay ngắn trên sàn
+          teaServer.legL.rotation.x *= 0.82;
+          teaServer.legR.rotation.x *= 0.82;
+
+          // Xoay mặt về hướng định sẵn của điểm dừng nếu có
+          if (targetWp.facingAngle !== undefined) {
+            let diff = targetWp.facingAngle - teaServer.group.rotation.y;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            teaServer.group.rotation.y += diff * 0.06;
+          }
+
+          const waitProgress = 1 - (patrol.waitTimer / (targetWp.wait || 1));
+          const bow = Math.sin(waitProgress * Math.PI);
+
+          if (targetWp.action === 'SERVE_TABLE_1' || targetWp.action === 'SERVE_TABLE_2') {
+            // Cúi mình xá chào & dâng khay trà mời khách
+            teaServer.torso.rotation.x = bow * 0.28;
+            teaServer.head.rotation.x = 0.08 + bow * 0.32;
+            teaServer.tray.position.z = 0.38 + bow * 0.14;
+            teaServer.tray.position.y = 0.38 - bow * 0.06;
+          } else if (targetWp.action === 'GREET_ENTRANCE') {
+            // Đứng tại bậc tam cấp nghinh đón khách thập phương
+            teaServer.torso.rotation.x = bow * 0.18;
+            teaServer.head.rotation.x = 0.05 + bow * 0.22;
+            teaServer.head.rotation.y = Math.sin(stepCount * 0.03) * 0.12;
+            teaServer.tray.position.z = 0.38;
+            teaServer.tray.position.y = 0.38;
+          } else if (targetWp.action === 'WAIT_TEA') {
+            // Đứng bên bàn Sư Huynh chờ lấy ấm trà mới
+            teaServer.torso.rotation.x = bow * 0.14;
+            teaServer.head.rotation.x = 0.12 + bow * 0.15;
+            teaServer.tray.position.z = 0.38;
+          }
+          teaServer.torso.position.y = 0.56 + Math.sin(stepCount * 0.03) * 0.005;
+        } else if (dist < 0.12) {
+          // ĐÃ ĐẾN WAYPOINT: BẮT ĐẦU CHỜ NẾU CÓ THỜI GIAN CHỜ
+          if (targetWp.wait > 0) {
+            patrol.waitTimer = targetWp.wait;
+          }
+          patrol.currentWp = (patrol.currentWp + 1) % TEA_SERVER_WAYPOINTS.length;
+        } else {
+          // ĐANG BƯỚC ĐI TỚI WAYPOINT TIẾP THEO
+          patrol.walkCycle += 0.13;
+          const moveSpeed = 0.022; // ~1.32 m/s
+
+          // Xoay hướng mặt theo hướng di chuyển
+          const moveAngle = Math.atan2(dx, dz);
+          let diff = moveAngle - teaServer.group.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          teaServer.group.rotation.y += diff * 0.10;
+
+          // Di chuyển vị trí
+          teaServer.group.position.x += (dx / dist) * moveSpeed;
+          teaServer.group.position.z += (dz / dist) * moveSpeed;
+
+          // Hoạt ảnh bước chân bipedal đong đưa
+          teaServer.legL.rotation.x = Math.sin(patrol.walkCycle) * 0.46;
+          teaServer.legR.rotation.x = -Math.sin(patrol.walkCycle) * 0.46;
+
+          // Thân người nhấp nhô nhịp nhàng theo bước chân
+          teaServer.torso.position.y = 0.56 + Math.abs(Math.sin(patrol.walkCycle * 2)) * 0.024;
+          teaServer.torso.rotation.z = Math.sin(patrol.walkCycle) * 0.025;
+          teaServer.torso.rotation.x = 0.04;
+          teaServer.head.rotation.x = 0.04 + Math.sin(patrol.walkCycle * 2) * 0.015;
+
+          // Khay trà giữ thăng bằng phẳng khi đi
+          teaServer.tray.position.y = 0.38 + Math.abs(Math.sin(patrol.walkCycle * 2)) * 0.012;
+          teaServer.tray.position.z = 0.38;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────────
+      // CHÚ TIỂU QUÉT SÂN "TUỆ TÂM" - QUÉT LÁ ĐA & TUẦN TRA SÂN CHÙA
+      // ──────────────────────────────────────────────────────────────────
+      const sweeper = sweeperNpcRef.current;
+      if (sweeper) {
+        const sw = sweeperStateRef.current;
+        const targetWp = SWEEPER_WAYPOINTS[sw.currentWp];
+        const curX = sweeper.group.position.x;
+        const curZ = sweeper.group.position.z;
+        const dx = targetWp.x - curX;
+        const dz = targetWp.z - curZ;
+        const dist = Math.hypot(dx, dz);
+
+        if (sw.waitTimer > 0) {
+          // Nghỉ tay quét lá, lau trán hoặc ngắm cảnh sân chùa
+          sw.waitTimer--;
+          sweeper.legL.rotation.x *= 0.82;
+          sweeper.legR.rotation.x *= 0.82;
+
+          sweeper.torso.position.y = 0.52 + Math.sin(stepCount * 0.03) * 0.005;
+          sweeper.torso.rotation.x = 0.06;
+          // Tay phải chống nhẹ cán chổi, tay trái đưa lên lau trán
+          const p = 1 - (sw.waitTimer / (targetWp.wait || 1));
+          const wipe = Math.sin(p * Math.PI);
+          sweeper.armL.rotation.x = -0.65 - wipe * 0.85;
+          sweeper.armL.rotation.y = 0.45 + wipe * 0.30;
+          sweeper.head.rotation.y = Math.sin(stepCount * 0.02) * 0.20;
+          sweeper.head.rotation.x = -0.05 + wipe * 0.10;
+        } else if (dist < 0.15) {
+          if (targetWp.wait > 0) {
+            sw.waitTimer = targetWp.wait;
+          }
+          sw.currentWp = (sw.currentWp + 1) % SWEEPER_WAYPOINTS.length;
+        } else {
+          // Vừa bước đi vừa quét lá
+          sw.walkCycle += 0.09;
+          sw.sweepAngle += 0.12;
+          const moveSpeed = 0.015;
+
+          const moveAngle = Math.atan2(dx, dz);
+          let diff = moveAngle - sweeper.group.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          sweeper.group.rotation.y += diff * 0.08;
+
+          sweeper.group.position.x += (dx / dist) * moveSpeed;
+          sweeper.group.position.z += (dz / dist) * moveSpeed;
+
+          // Bước chân
+          sweeper.legL.rotation.x = Math.sin(sw.walkCycle) * 0.38;
+          sweeper.legR.rotation.x = -Math.sin(sw.walkCycle) * 0.38;
+
+          sweeper.torso.position.y = 0.52 + Math.abs(Math.sin(sw.walkCycle * 2)) * 0.018;
+
+          // Động tác quét chổi tre qua lại uyển chuyển
+          const sweepSin = Math.sin(sw.sweepAngle);
+          sweeper.armR.rotation.y = -0.25 + sweepSin * 0.35;
+          sweeper.armL.rotation.y = 0.45 + sweepSin * 0.35;
+          sweeper.broom.rotation.y = sweepSin * 0.40;
+          sweeper.torso.rotation.y = sweepSin * 0.12;
+          sweeper.head.rotation.y = sweepSin * 0.10;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────────
+      // CHÚ TIỂU KINH HÀNH "TUỆ MINH" - BƯỚC ĐI CHÁNH NIỆN DỌC HÀNH LANG GỖ LIM
+      // ──────────────────────────────────────────────────────────────────
+      const walkingMonk = walkingMonkNpcRef.current;
+      if (walkingMonk) {
+        const wm = walkingMonkStateRef.current;
+        wm.walkCycle += 0.06; // Kinh hành bước chân rất chậm và chánh niệm
+        const moveSpeed = 0.014;
+
+        // Di chuyển qua lại dọc hành lang gỗ (Z từ -11.5 đến +11.5)
+        walkingMonk.group.position.z += wm.direction * moveSpeed;
+
+        if (walkingMonk.group.position.z > 11.5) {
+          wm.direction = -1;
+        } else if (walkingMonk.group.position.z < -11.5) {
+          wm.direction = 1;
+        }
+
+        // Xoay hướng mặt mượt mà
+        const targetRot = wm.direction > 0 ? 0 : Math.PI;
+        let diff = targetRot - walkingMonk.group.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        walkingMonk.group.rotation.y += diff * 0.05;
+
+        // Bước đi khoan thai
+        walkingMonk.legL.rotation.x = Math.sin(wm.walkCycle) * 0.32;
+        walkingMonk.legR.rotation.x = -Math.sin(wm.walkCycle) * 0.32;
+
+        walkingMonk.torso.position.y = 0.52 + Math.abs(Math.sin(wm.walkCycle * 2)) * 0.012;
+        // Tràng hạt bồ đề khẽ lắc nhẹ theo nhịp lần hạt
+        walkingMonk.beads.rotation.z = Math.sin(wm.walkCycle) * 0.08;
+        // Đầu hơi cúi chánh niệm
+        walkingMonk.head.rotation.x = 0.18 + Math.sin(wm.walkCycle * 2) * 0.02;
       }
 
       // Update User Floating Flower Lanterns (Hoa đăng người chơi thả trôi trên hồ - Zero-Allocation)
@@ -8046,6 +8466,10 @@ function createAuthenticTeaPavilion(
     head: THREE.Group;
     armR: THREE.Group;
     armL: THREE.Group;
+    kettle: THREE.Group;
+    teapot: THREE.Group;
+    gaiwan: THREE.Group;
+    ladle: THREE.Mesh;
     steamParticles: THREE.Mesh[];
   };
   teaServer: {
@@ -8054,6 +8478,8 @@ function createAuthenticTeaPavilion(
     head: THREE.Group;
     armR: THREE.Group;
     armL: THREE.Group;
+    legL: THREE.Group;
+    legR: THREE.Group;
     tray: THREE.Group;
   };
 } {
@@ -8270,40 +8696,49 @@ function createAuthenticTeaPavilion(
   coals.position.set(-1.15, 0.785, -0.25);
   masterTableGroup.add(coals);
 
-  // Ấm đồng cổ đun nước sôi có vòi
+  // Cụm ấm đồng cổ đun nước sôi có vòi (Kettle Group)
+  const kettleGroup = new THREE.Group();
+  kettleGroup.position.set(-1.15, 0.94, -0.25);
+
   const kettle = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.28, 12), matBronze);
-  kettle.position.set(-1.15, 0.94, -0.25);
-  masterTableGroup.add(kettle);
+  kettleGroup.add(kettle);
 
   const kettleHandle = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.02, 6, 12, Math.PI), matDarkTimber);
-  kettleHandle.position.set(-1.15, 1.10, -0.25);
-  masterTableGroup.add(kettleHandle);
+  kettleHandle.position.set(0, 0.16, 0);
+  kettleGroup.add(kettleHandle);
+  masterTableGroup.add(kettleGroup);
 
   // Khay trà thuyền trúc hoa sen
   const teaTray = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 0.95), matWoodLim);
   teaTray.position.set(0.3, 0.54, 0.05);
   masterTableGroup.add(teaTray);
 
-  // Ấm trà Tử Sa (Yixing Teapot màu nâu đỏ)
+  // Cụm ấm trà Tử Sa (Yixing Teapot Group màu nâu đỏ)
+  const teapotGroup = new THREE.Group();
+  teapotGroup.position.set(0.1, 0.68, -0.05);
+
   const matClay = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.6 });
   const teapot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), matClay);
-  teapot.position.set(0.1, 0.68, -0.05);
-  masterTableGroup.add(teapot);
+  teapotGroup.add(teapot);
 
   const teapotSpout = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.12, 6), matClay);
   teapotSpout.rotation.z = -Math.PI / 3;
-  teapotSpout.position.set(0.20, 0.70, -0.05);
-  masterTableGroup.add(teapotSpout);
+  teapotSpout.position.set(0.10, 0.02, 0);
+  teapotGroup.add(teapotSpout);
 
   const teapotLid = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.04, 10), matGold);
-  teapotLid.position.set(0.1, 0.81, -0.05);
-  masterTableGroup.add(teapotLid);
+  teapotLid.position.set(0, 0.13, 0);
+  teapotGroup.add(teapotLid);
+  masterTableGroup.add(teapotGroup);
 
-  // Chén tống men ngọc & 4 chén quân bạch ngọc
+  // Cụm chén tống men ngọc (Gaiwan Group) & 4 chén quân bạch ngọc
   const matCeladon = new THREE.MeshStandardMaterial({ color: 0x6ee7b7, roughness: 0.35, metalness: 0.15 });
+  const gaiwanGroup = new THREE.Group();
+  gaiwanGroup.position.set(0.55, 0.62, -0.05);
+
   const gaiwan = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.06, 0.12, 10), matCeladon);
-  gaiwan.position.set(0.55, 0.62, -0.05);
-  masterTableGroup.add(gaiwan);
+  gaiwanGroup.add(gaiwan);
+  masterTableGroup.add(gaiwanGroup);
 
   for (let idx = 0; idx < 4; idx++) {
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 0.06, 8), matCeladon);
@@ -8502,17 +8937,33 @@ function createAuthenticTeaPavilion(
   masterNpcGroup.add(mTorso);
   teaPavilion.add(masterNpcGroup);
 
-  // 13. NPC 2: CHÚ TIỂU PHỤC VỤ TRÀ (TIỂU TRÀ - ĐỨNG BƯNG KHAY TRÀ CHÀO KHÁCH)
+  // 13. NPC 2: CHÚ TIỂU PHỤC VỤ TRÀ (TIỂU TRÀ - ĐI LẠI BƯNG KHAY TRÀ PHỤC VỤ & CHÀO KHÁCH)
   const serverNpcGroup = new THREE.Group();
-  serverNpcGroup.position.set(1.4, 0.52, 2.8);
-  serverNpcGroup.rotation.y = -Math.PI / 5;
+  serverNpcGroup.position.set(TEA_SERVER_WAYPOINTS[0].x, 0.52, TEA_SERVER_WAYPOINTS[0].z);
+  serverNpcGroup.rotation.y = TEA_SERVER_WAYPOINTS[0].facingAngle || 0;
 
-  for (const lx of [-0.12, 0.12]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.56, 8), matMonkRobe);
-    leg.position.set(lx, 0.28, 0);
-    leg.castShadow = true;
-    serverNpcGroup.add(leg);
-  }
+  // Đôi chân Chibi Chú Tiểu có khớp hông xoay bipedal để bước đi tự nhiên
+  const sLegL = new THREE.Group();
+  sLegL.position.set(-0.12, 0.54, 0);
+  const sLegLMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.54, 8), matMonkRobe);
+  sLegLMesh.position.set(0, -0.27, 0);
+  sLegLMesh.castShadow = true;
+  sLegL.add(sLegLMesh);
+  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matNoviceCollar);
+  shoeL.position.set(0, -0.52, 0.04);
+  sLegL.add(shoeL);
+  serverNpcGroup.add(sLegL);
+
+  const sLegR = new THREE.Group();
+  sLegR.position.set(0.12, 0.54, 0);
+  const sLegRMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.54, 8), matMonkRobe);
+  sLegRMesh.position.set(0, -0.27, 0);
+  sLegRMesh.castShadow = true;
+  sLegR.add(sLegRMesh);
+  const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matNoviceCollar);
+  shoeR.position.set(0, -0.52, 0.04);
+  sLegR.add(shoeR);
+  serverNpcGroup.add(sLegR);
 
   const sTorso = new THREE.Group();
   sTorso.position.set(0, 0.56, 0);
@@ -8596,6 +9047,10 @@ function createAuthenticTeaPavilion(
       head: mHead,
       armR: mArmR,
       armL: mArmL,
+      kettle: kettleGroup,
+      teapot: teapotGroup,
+      gaiwan: gaiwanGroup,
+      ladle,
       steamParticles,
     },
     teaServer: {
@@ -8604,8 +9059,268 @@ function createAuthenticTeaPavilion(
       head: sHead,
       armR: sArmR,
       armL: sArmL,
+      legL: sLegL,
+      legR: sLegR,
       tray: trayGroup,
     },
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NPC CHÚ TIỂU QUÉT SÂN "TUỆ TÂM" - SÂN CHÙA CHÁNH ĐIỆN (BIPEDAL WALKING & SWEEPING)
+// ══════════════════════════════════════════════════════════════════════════════
+function createSweepingMonkNpc(
+  matRobe: THREE.Material,
+  matCollar: THREE.Material,
+  matSkin: THREE.Material,
+  matDarkTimber: THREE.Material,
+  matStraw: THREE.Material
+): {
+  group: THREE.Group;
+  torso: THREE.Group;
+  head: THREE.Group;
+  armR: THREE.Group;
+  armL: THREE.Group;
+  legL: THREE.Group;
+  legR: THREE.Group;
+  broom: THREE.Group;
+} {
+  const sweeperGroup = new THREE.Group();
+
+  // Khớp hông bipedal để bước đi tự nhiên
+  const sLegL = new THREE.Group();
+  sLegL.position.set(-0.12, 0.52, 0);
+  const legMeshL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.52, 8), matRobe);
+  legMeshL.position.set(0, -0.26, 0);
+  legMeshL.castShadow = true;
+  sLegL.add(legMeshL);
+  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matCollar);
+  shoeL.position.set(0, -0.50, 0.03);
+  sLegL.add(shoeL);
+  sweeperGroup.add(sLegL);
+
+  const sLegR = new THREE.Group();
+  sLegR.position.set(0.12, 0.52, 0);
+  const legMeshR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.52, 8), matRobe);
+  legMeshR.position.set(0, -0.26, 0);
+  legMeshR.castShadow = true;
+  sLegR.add(legMeshR);
+  const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matCollar);
+  shoeR.position.set(0, -0.50, 0.03);
+  sLegR.add(shoeR);
+  sweeperGroup.add(sLegR);
+
+  // Thân trên
+  const sTorso = new THREE.Group();
+  sTorso.position.set(0, 0.52, 0);
+
+  const sBody = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.56, 12), matRobe);
+  sBody.position.set(0, 0.28, 0);
+  sBody.castShadow = true;
+  sTorso.add(sBody);
+
+  const sCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.27, 0.14, 12), matCollar);
+  sCollar.position.set(0, 0.48, 0);
+  sTorso.add(sCollar);
+
+  // Chổi tre truyền thống (Bamboo Broom)
+  const broomGroup = new THREE.Group();
+  broomGroup.position.set(0.20, 0.20, 0.25);
+
+  const broomHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.35, 8), matDarkTimber);
+  broomHandle.position.set(0, 0, 0);
+  broomHandle.rotation.x = 0.35;
+  broomHandle.rotation.z = -0.25;
+  broomGroup.add(broomHandle);
+
+  const broomHead = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 8), matStraw);
+  broomHead.position.set(-0.16, -0.58, 0.22);
+  broomHead.rotation.x = Math.PI - 0.35;
+  broomHead.rotation.z = 0.25;
+  broomGroup.add(broomHead);
+
+  const broomTie = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.06, 8), matCollar);
+  broomTie.position.set(-0.12, -0.42, 0.17);
+  broomGroup.add(broomTie);
+
+  sTorso.add(broomGroup);
+
+  // Đôi tay cầm chổi
+  const sArmR = new THREE.Group();
+  sArmR.position.set(0.26, 0.44, 0.02);
+  const sSleeveR = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.34, 8), matRobe);
+  sSleeveR.position.set(-0.04, -0.12, 0.14);
+  sSleeveR.rotation.x = -0.80;
+  sSleeveR.rotation.y = -0.25;
+  sArmR.add(sSleeveR);
+  const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
+  rHand.position.set(-0.04, -0.26, 0.26);
+  sArmR.add(rHand);
+  sTorso.add(sArmR);
+
+  const sArmL = new THREE.Group();
+  sArmL.position.set(-0.26, 0.44, 0.02);
+  const sSleeveL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.34, 8), matRobe);
+  sSleeveL.position.set(0.10, -0.10, 0.16);
+  sSleeveL.rotation.x = -0.65;
+  sSleeveL.rotation.y = 0.45;
+  sArmL.add(sSleeveL);
+  const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matSkin);
+  lHand.position.set(0.18, -0.20, 0.28);
+  sArmL.add(lHand);
+  sTorso.add(sArmL);
+
+  // Đầu Chú Tiểu Chibi
+  const sHead = new THREE.Group();
+  sHead.position.set(0, 0.56, 0);
+  const faceTex = createTueTinhFaceTexture();
+  const sFaceMat = new THREE.MeshStandardMaterial({ map: faceTex, roughness: 0.5 });
+  const sHeadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 20), sFaceMat);
+  sHeadMesh.rotation.y = -Math.PI / 2;
+  sHeadMesh.castShadow = true;
+  sHead.add(sHeadMesh);
+
+  for (const ex of [-0.27, 0.27]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), matSkin);
+    ear.scale.set(0.5, 1.0, 0.7);
+    ear.position.set(ex, 0, -0.02);
+    sHead.add(ear);
+  }
+  sTorso.add(sHead);
+  sweeperGroup.add(sTorso);
+
+  return {
+    group: sweeperGroup,
+    torso: sTorso,
+    head: sHead,
+    armR: sArmR,
+    armL: sArmL,
+    legL: sLegL,
+    legR: sLegR,
+    broom: broomGroup,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NPC CHÚ TIỂU KINH HÀNH "TUỆ MINH" - DÃY HÀNH LANG GỖ LIM (WALKING MEDITATION)
+// ══════════════════════════════════════════════════════════════════════════════
+function createWalkingMonkNpc(
+  matRobe: THREE.Material,
+  matCollar: THREE.Material,
+  matSkin: THREE.Material,
+  matAmberWood: THREE.Material
+): {
+  group: THREE.Group;
+  torso: THREE.Group;
+  head: THREE.Group;
+  armR: THREE.Group;
+  armL: THREE.Group;
+  legL: THREE.Group;
+  legR: THREE.Group;
+  beads: THREE.Group;
+} {
+  const monkGroup = new THREE.Group();
+
+  // Khớp hông bipedal
+  const mLegL = new THREE.Group();
+  mLegL.position.set(-0.12, 0.52, 0);
+  const legMeshL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.52, 8), matRobe);
+  legMeshL.position.set(0, -0.26, 0);
+  legMeshL.castShadow = true;
+  mLegL.add(legMeshL);
+  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matCollar);
+  shoeL.position.set(0, -0.50, 0.03);
+  mLegL.add(shoeL);
+  monkGroup.add(mLegL);
+
+  const mLegR = new THREE.Group();
+  mLegR.position.set(0.12, 0.52, 0);
+  const legMeshR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.52, 8), matRobe);
+  legMeshR.position.set(0, -0.26, 0);
+  legMeshR.castShadow = true;
+  mLegR.add(legMeshR);
+  const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.20), matCollar);
+  shoeR.position.set(0, -0.50, 0.03);
+  mLegR.add(shoeR);
+  monkGroup.add(mLegR);
+
+  // Thân trên
+  const mTorso = new THREE.Group();
+  mTorso.position.set(0, 0.52, 0);
+
+  const mBody = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.56, 12), matRobe);
+  mBody.position.set(0, 0.28, 0);
+  mBody.castShadow = true;
+  mTorso.add(mBody);
+
+  const mCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.27, 0.14, 12), matCollar);
+  mCollar.position.set(0, 0.48, 0);
+  mTorso.add(mCollar);
+
+  // Đôi tay chắp trước ngực lần tràng hạt bồ đề
+  const mArmR = new THREE.Group();
+  mArmR.position.set(0.24, 0.42, 0.02);
+  const mSleeveR = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.32, 8), matRobe);
+  mSleeveR.position.set(-0.08, -0.08, 0.16);
+  mSleeveR.rotation.x = -0.95;
+  mSleeveR.rotation.y = -0.45;
+  mArmR.add(mSleeveR);
+  const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), matSkin);
+  rHand.position.set(-0.16, -0.16, 0.26);
+  mArmR.add(rHand);
+  mTorso.add(mArmR);
+
+  const mArmL = new THREE.Group();
+  mArmL.position.set(-0.24, 0.42, 0.02);
+  const mSleeveL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.32, 8), matRobe);
+  mSleeveL.position.set(0.08, -0.08, 0.16);
+  mSleeveL.rotation.x = -0.95;
+  mSleeveL.rotation.y = 0.45;
+  mArmL.add(mSleeveL);
+  const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), matSkin);
+  lHand.position.set(0.16, -0.16, 0.26);
+  mArmL.add(lHand);
+  mTorso.add(mArmL);
+
+  // Chuỗi hạt bồ đề 108 hạt cầm trước ngực
+  const beadsGroup = new THREE.Group();
+  beadsGroup.position.set(0, 0.28, 0.28);
+  for (let b = 0; b < 16; b++) {
+    const bAng = (b / 16) * Math.PI * 2;
+    const beadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), matAmberWood);
+    beadMesh.position.set(Math.cos(bAng) * 0.10, Math.sin(bAng) * 0.12, 0);
+    beadsGroup.add(beadMesh);
+  }
+  mTorso.add(beadsGroup);
+
+  // Đầu khẽ cúi chánh niệm
+  const mHead = new THREE.Group();
+  mHead.position.set(0, 0.56, 0);
+  const faceTex = createTueTinhFaceTexture();
+  const mFaceMat = new THREE.MeshStandardMaterial({ map: faceTex, roughness: 0.5 });
+  const mHeadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 20), mFaceMat);
+  mHeadMesh.rotation.y = -Math.PI / 2;
+  mHeadMesh.castShadow = true;
+  mHead.add(mHeadMesh);
+
+  for (const ex of [-0.27, 0.27]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), matSkin);
+    ear.scale.set(0.5, 1.0, 0.7);
+    ear.position.set(ex, 0, -0.02);
+    mHead.add(ear);
+  }
+  mTorso.add(mHead);
+  monkGroup.add(mTorso);
+
+  return {
+    group: monkGroup,
+    torso: mTorso,
+    head: mHead,
+    armR: mArmR,
+    armL: mArmL,
+    legL: mLegL,
+    legR: mLegR,
+    beads: beadsGroup,
   };
 }
 
