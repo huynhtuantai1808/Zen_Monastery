@@ -202,15 +202,19 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: 1.9, maxX: 3.3, minZ: -30.8, maxZ: -29.2, name: 'Stone Arch Post R' },
 ];
 
+const _collisionResult: { x: number; z: number } = { x: 0, z: 0 };
+
 /**
  * Resolves character position against monastery obstacle geometry.
  * Returns the adjusted (x, z) coordinates with smooth surface sliding.
+ * Uses persistent `out` object for Zero-Allocation in 60fps Game Loop.
  */
 export function resolveMonkCollision(
   px: number,
   py: number,
   pz: number,
-  bodyRadius: number = MONK_COLLISION_RADIUS
+  bodyRadius: number = MONK_COLLISION_RADIUS,
+  out: { x: number; z: number } = _collisionResult
 ): { x: number; z: number } {
   let curX = px;
   let curZ = pz;
@@ -283,7 +287,9 @@ export function resolveMonkCollision(
   curX = Math.max(-46.0, Math.min(46.0, curX));
   curZ = Math.max(-68.0, Math.min(86.0, curZ));
 
-  return { x: curX, z: curZ };
+  out.x = curX;
+  out.z = curZ;
+  return out;
 }
 
 /**
@@ -1127,9 +1133,22 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const chibiModelRef = useRef<THREE.Group | null>(null);
 
   const playerPosRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0.42, z: 80 });
-  const targetPosRef = useRef<{ x: number; y?: number; z: number } | null>({ x: 0, z: 66 });
+  // Zero-Allocation target position with persistent active flag
+  const targetPosRef = useRef<{ x: number; y: number; z: number; active: boolean }>({ x: 0, y: 0.42, z: 66, active: true });
   const playerRotationRef = useRef<number>(Math.PI);
-  const lotusFootstepsRef = useRef<{ mesh: THREE.Mesh; life: number }[]>([]);
+  // Zero-Allocation Pooled Footsteps (Reuses pre-allocated meshes without runtime allocation/GC)
+  const footstepPoolRef = useRef<{ mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; life: number; active: boolean }[]>([]);
+
+  const setTargetPos = useCallback((x: number, y: number, z: number) => {
+    targetPosRef.current.x = x;
+    targetPosRef.current.y = y;
+    targetPosRef.current.z = z;
+    targetPosRef.current.active = true;
+  }, []);
+
+  const clearTargetPos = useCallback(() => {
+    targetPosRef.current.active = false;
+  }, []);
 
   // Directional Input State
   const keysPressedRef = useRef<{ up: boolean; down: boolean; left: boolean; right: boolean }>({
@@ -1243,7 +1262,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     playerPosRef.current.x = targetCushion.x;
     playerPosRef.current.y = targetCushion.y;
     playerPosRef.current.z = targetCushion.z;
-    targetPosRef.current = null;
+    clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
@@ -1287,7 +1306,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       chibiIncenseBundleRef.current.visible = true;
     }
 
-    targetPosRef.current = null;
+    clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
@@ -1340,7 +1359,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 27.5;
-    targetPosRef.current = null;
+    clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
@@ -1376,7 +1395,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 23.0;
-    targetPosRef.current = null;
+    clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
@@ -1497,7 +1516,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     playerPosRef.current.x = -26.0;
     playerPosRef.current.z = 23.5;
-    targetPosRef.current = null;
+    clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
@@ -1640,17 +1659,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     useZenBridge.getState().setMonkPose(pose);
     if (pose === 'LIE_DOWN') {
       playerPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
-      targetPosRef.current = { x: -30.0, y: 0.94, z: 36.5 };
+      setTargetPos(-30.0, 0.94, 36.5);
     } else if (pose === 'SIT_EDGE') {
       playerPosRef.current = { x: -26.0, y: 0.89, z: 23.5 };
-      targetPosRef.current = { x: -26.0, y: 0.89, z: 23.5 };
+      setTargetPos(-26.0, 0.89, 23.5);
     }
   };
 
   // Navigate character to a specific zone (Silent on click)
   const navigateToZone = (zone: TempleZoneInfo) => {
     const floorY = getTerrainFloorElevation(zone.pos.x, zone.pos.z, zone.pos.y ?? 0.42);
-    targetPosRef.current = { x: zone.pos.x, y: floorY, z: zone.pos.z };
+    setTargetPos(zone.pos.x, floorY, zone.pos.z);
     useZenBridge.getState().setIsTourPlaying(false);
     isTourPlayingRef.current = false;
 
@@ -1679,7 +1698,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       isTourPlayingRef.current = true;
       const nextZone = TEMPLE_ZONES[nextIdx];
       const floorY = getTerrainFloorElevation(nextZone.pos.x, nextZone.pos.z, nextZone.pos.y ?? 0.42);
-      targetPosRef.current = { x: nextZone.pos.x, y: floorY, z: nextZone.pos.z };
+      setTargetPos(nextZone.pos.x, floorY, nextZone.pos.z);
       if (destinationMarkerRef.current) {
         destinationMarkerRef.current.position.set(nextZone.pos.x, floorY + 0.08, nextZone.pos.z);
         destinationMarkerRef.current.visible = true;
@@ -1689,7 +1708,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
   const restartFromGate = () => {
     playerPosRef.current = { x: 0, y: 0.42, z: 80 };
-    targetPosRef.current = { x: 0, y: 0.42, z: 66 };
+    setTargetPos(0, 0.42, 66);
     tourIndexRef.current = 0;
     tourWaitRef.current = 0;
     useZenBridge.getState().setIsTourPlaying(false, 0);
@@ -1711,7 +1730,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
   const handleDirectionStart = (dir: 'up' | 'down' | 'left' | 'right') => {
     keysPressedRef.current[dir] = true;
-    targetPosRef.current = null;
+    clearTargetPos();
     if (destinationMarkerRef.current) destinationMarkerRef.current.visible = false;
   };
 
@@ -2991,9 +3010,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     spiritParticlesRef.current = spiritPoints;
     scene.add(spiritPoints);
 
-    // Raycaster for Mouse Cursor Aiming and Rotation Control
+    // Pre-allocated Raycaster and Vectors for Mouse/Touch (Zero-Allocation on Pointer Events)
     const raycaster = new THREE.Raycaster();
-    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.25);
+    const upVector = new THREE.Vector3(0, 1, 0);
+    const groundPlane = new THREE.Plane(upVector, -0.25);
+    const sanctuaryPlane = new THREE.Plane(upVector, -3.30);
+    const hitVec = new THREE.Vector3();
+    const hitSanctuaryVec = new THREE.Vector3();
 
     const updateCursorGroundPos = (clientX: number, clientY: number) => {
       if (!renderer || !camera) return;
@@ -3003,38 +3026,35 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       cursorScreenPosRef.current.set(ndcX, ndcY);
 
       raycaster.setFromCamera(cursorScreenPosRef.current, camera);
-      const hit = new THREE.Vector3();
       const currentPy = playerPosRef.current.y || 0.42;
-
-      // Hỗ trợ bắt chuẩn mặt sàn cao Y = 3.30m của Đại Hùng Bảo Điện khi click vào Chánh Điện
-      const sanctuaryPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -3.30);
-      const hitSanctuary = new THREE.Vector3();
       let matchedSanctuary = false;
 
-      if (raycaster.ray.intersectPlane(sanctuaryPlane, hitSanctuary)) {
-        if (hitSanctuary.x >= -23.5 && hitSanctuary.x <= 23.5 && hitSanctuary.z <= -0.5 && hitSanctuary.z >= -34.0) {
-          hit.copy(hitSanctuary);
+      if (raycaster.ray.intersectPlane(sanctuaryPlane, hitSanctuaryVec)) {
+        if (hitSanctuaryVec.x >= -23.5 && hitSanctuaryVec.x <= 23.5 && hitSanctuaryVec.z <= -0.5 && hitSanctuaryVec.z >= -34.0) {
+          hitVec.copy(hitSanctuaryVec);
           matchedSanctuary = true;
         }
       }
 
       if (!matchedSanctuary) {
         groundPlane.constant = -currentPy;
-        if (raycaster.ray.intersectPlane(groundPlane, hit)) {
-          hit.x = Math.max(-50, Math.min(50, hit.x));
-          hit.z = Math.max(-75, Math.min(95, hit.z));
+        if (raycaster.ray.intersectPlane(groundPlane, hitVec)) {
+          hitVec.x = Math.max(-50, Math.min(50, hitVec.x));
+          hitVec.z = Math.max(-75, Math.min(95, hitVec.z));
         }
       }
 
-      cursorGroundPosRef.current.copy(hit);
+      cursorGroundPosRef.current.copy(hitVec);
       hasGroundTargetRef.current = true;
     };
 
-    // Pointer Event Listeners
+    // Pointer Event Listeners (Zero-Allocation in-place coordinate updates)
     const handlePointerDown = (e: MouseEvent) => {
       isDraggingOrbitRef.current = true;
-      dragStartPosRef.current = { x: e.clientX, y: e.clientY };
-      lastPointerDownPosRef.current = { x: e.clientX, y: e.clientY };
+      dragStartPosRef.current.x = e.clientX;
+      dragStartPosRef.current.y = e.clientY;
+      lastPointerDownPosRef.current.x = e.clientX;
+      lastPointerDownPosRef.current.y = e.clientY;
     };
 
     const handlePointerMove = (e: MouseEvent) => {
@@ -3043,11 +3063,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       if (isDraggingOrbitRef.current) {
         const dx = e.clientX - dragStartPosRef.current.x;
         const dy = e.clientY - dragStartPosRef.current.y;
-        dragStartPosRef.current = { x: e.clientX, y: e.clientY };
+        dragStartPosRef.current.x = e.clientX;
+        dragStartPosRef.current.y = e.clientY;
 
         cameraYawRef.current -= dx * 0.007;
-        // Allows player to tilt UP into the sky (pitch down to -0.92 rad / ~53 degrees up)
-        // or tilt DOWN towards the ground (pitch up to +0.95 rad / ~55 degrees down)
         cameraPitchRef.current = Math.max(-0.92, Math.min(0.95, cameraPitchRef.current + dy * 0.005));
       }
     };
@@ -3064,7 +3083,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         const resolved = resolveMonkCollision(rawTargetX, currentPy, rawTargetZ);
         const floorY = getTerrainFloorElevation(resolved.x, resolved.z, currentPy);
 
-        targetPosRef.current = { x: resolved.x, y: floorY, z: resolved.z };
+        setTargetPos(resolved.x, floorY, resolved.z);
         stuckCountRef.current = 0;
         if (monkPoseRef.current !== 'STAND') {
           monkPoseRef.current = 'STAND';
@@ -3083,18 +3102,20 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     window.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseup', handlePointerUp);
 
-    // Touch Support for Mobile
+    // Touch Support for Mobile (Zero-Allocation in-place coordinates)
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 1) {
         isDraggingOrbitRef.current = true;
-        dragStartPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        dragStartPosRef.current.x = e.touches[0].clientX;
+        dragStartPosRef.current.y = e.touches[0].clientY;
       }
     };
     const handleTouchMove = (e: TouchEvent) => {
       if (!isDraggingOrbitRef.current || e.touches.length !== 1) return;
       const dx = e.touches[0].clientX - dragStartPosRef.current.x;
       const dy = e.touches[0].clientY - dragStartPosRef.current.y;
-      dragStartPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      dragStartPosRef.current.x = e.touches[0].clientX;
+      dragStartPosRef.current.y = e.touches[0].clientY;
 
       cameraYawRef.current -= dx * 0.008;
       cameraPitchRef.current = Math.max(-0.92, Math.min(0.95, cameraPitchRef.current + dy * 0.006));
@@ -3170,6 +3191,37 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       return next;
     };
 
+    // Pre-allocate Zero-Allocation Lotus Footstep Mesh Pool (24 reusable items)
+    const footstepGeo = new THREE.CircleGeometry(0.48, 8);
+    footstepGeo.rotateX(-Math.PI / 2);
+    const footstepPool: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; life: number; active: boolean }[] = [];
+    for (let fpi = 0; fpi < 24; fpi++) {
+      const fMat = new THREE.MeshBasicMaterial({
+        color: 0xfde047,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+      });
+      const fMesh = new THREE.Mesh(footstepGeo, fMat);
+      fMesh.visible = false;
+      scene.add(fMesh);
+      footstepPool.push({ mesh: fMesh, mat: fMat, life: 0, active: false });
+    }
+    footstepPoolRef.current = footstepPool;
+    let nextFootstepIdx = 0;
+
+    const spawnPooledFootstep = (x: number, y: number, z: number) => {
+      const pool = footstepPoolRef.current;
+      if (pool.length === 0) return;
+      const item = pool[nextFootstepIdx];
+      nextFootstepIdx = (nextFootstepIdx + 1) % pool.length;
+      item.mesh.position.set(x, y + 0.04, z);
+      item.mesh.visible = true;
+      item.life = 60;
+      item.mat.opacity = 0.9;
+      item.active = true;
+    };
+
     let stepCount = 0;
     const clock = new THREE.Clock();
 
@@ -3242,9 +3294,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           }
 
           if (stepCount % 16 === 0) {
-            spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
+            spawnPooledFootstep(currentP.x, currentP.y, currentP.z);
           }
-        } else if (targetPosRef.current) {
+        } else if (targetPosRef.current.active) {
           const targetP = targetPosRef.current;
           const dx = targetP.x - currentP.x;
           const dz = targetP.z - currentP.z;
@@ -3267,7 +3319,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             if (actualMoved < 0.001) {
               stuckCountRef.current = (stuckCountRef.current || 0) + 1;
               if (stuckCountRef.current > 40) {
-                targetPosRef.current = null;
+                clearTargetPos();
                 stuckCountRef.current = 0;
                 if (destinationMarkerRef.current) {
                   destinationMarkerRef.current.visible = false;
@@ -3285,11 +3337,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             monkGroupRef.current.rotation.y += diff * Math.min(1.0, 12.0 * delta);
 
             if (stepCount % 16 === 0) {
-              spawnLotusFootstep(scene, currentP.x, currentP.z, lotusFootstepsRef, currentP.y);
+              spawnPooledFootstep(currentP.x, currentP.y, currentP.z);
             }
           } else {
             isWalkingStateRef.current = false;
-            targetPosRef.current = null;
+            clearTargetPos();
             if (destinationMarkerRef.current) {
               destinationMarkerRef.current.visible = false;
             }
@@ -3375,9 +3427,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             // Tọa thiền kiết già tại Sảnh Chính Điện / Phòng Thiền: Hướng về phía trước bàn thờ Phật
             monkGroupRef.current.rotation.set(0, Math.PI, 0);
             // Nếu ngồi trên bồ đoàn thiền tọa: nâng độ cao lên 3.38m để ngồi chính xác trên mặt đệm nhung đỏ
-            const isNearCushion = SANCTUARY_CUSHIONS.some(
-              (c) => Math.hypot(c.x - currentP.x, c.z - currentP.z) < 0.95
-            );
+            let isNearCushion = false;
+            for (let ci = 0; ci < SANCTUARY_CUSHIONS.length; ci++) {
+              const c = SANCTUARY_CUSHIONS[ci];
+              if (Math.hypot(c.x - currentP.x, c.z - currentP.z) < 0.95) {
+                isNearCushion = true;
+                break;
+              }
+            }
             currentP.y = isNearCushion ? 3.38 : targetFloorY;
           }
         } else {
@@ -3387,11 +3444,12 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
         monkGroupRef.current.position.set(currentP.x, currentP.y, currentP.z);
 
-        // Check Zone Proximity
+        // Check Zone Proximity (Zero-Allocation indexed loop)
         let closestZone: TempleZoneInfo | null = null;
         let minDist = 24;
 
-        for (const zone of TEMPLE_ZONES) {
+        for (let zi = 0; zi < TEMPLE_ZONES.length; zi++) {
+          const zone = TEMPLE_ZONES[zi];
           const zdist = Math.hypot(zone.pos.x - currentP.x, zone.pos.z - currentP.z);
           if (zdist < minDist) {
             minDist = zdist;
@@ -3612,14 +3670,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         }
       }
 
-      // Handle Tour Countdown timer
-      if (isTourPlayingRef.current && targetPosRef.current === null && tourWaitRef.current > 0) {
+      // Handle Tour Countdown timer (Zero-Allocation targetPos update)
+      if (isTourPlayingRef.current && !targetPosRef.current.active && tourWaitRef.current > 0) {
         tourWaitRef.current--;
         if (tourWaitRef.current <= 0) {
           const nextIndex = (tourIndexRef.current + 1) % TEMPLE_ZONES.length;
           tourIndexRef.current = nextIndex;
           const targetZone = TEMPLE_ZONES[nextIndex];
-          targetPosRef.current = { x: targetZone.pos.x, y: targetZone.pos.y, z: targetZone.pos.z };
+          setTargetPos(targetZone.pos.x, targetZone.pos.y ?? 0.42, targetZone.pos.z);
 
           if (destinationMarkerRef.current) {
             destinationMarkerRef.current.position.set(targetZone.pos.x, (targetZone.pos.y || 0) + 0.35, targetZone.pos.z);
@@ -3640,17 +3698,19 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         }
       }
 
-      // Lotus Footsteps Fade Out
-      lotusFootstepsRef.current = lotusFootstepsRef.current.filter((foot) => {
-        foot.life--;
-        const mat = foot.mesh.material as THREE.MeshStandardMaterial;
-        mat.opacity = foot.life / 60;
-        if (foot.life <= 0) {
-          scene.remove(foot.mesh);
-          return false;
+      // Lotus Footsteps Fade Out (Zero-Allocation pre-allocated pool update)
+      const fPool = footstepPoolRef.current;
+      for (let fi = 0; fi < fPool.length; fi++) {
+        const foot = fPool[fi];
+        if (foot.active) {
+          foot.life--;
+          foot.mat.opacity = (foot.life / 60) * 0.9;
+          if (foot.life <= 0) {
+            foot.active = false;
+            foot.mesh.visible = false;
+          }
         }
-        return true;
-      });
+      }
 
       // ══════════════════════════════════════════════════════════════════
       // HOẠT ẢNH GÕ CHUÔNG NPC CHÚ TIỂU TUỆ TĨNH & ĐẠI HỒNG CHUNG
@@ -3759,15 +3819,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           bell.rotation.z = Math.sin(t * 32.0) * 0.07 * (1 - t);
         }
 
-        // Sóng âm kim quang lan tỏa
+        // Sóng âm kim quang lan tỏa (Zero-Allocation indexed loop)
         if (ripples) {
           ripples.visible = true;
-          ripples.children.forEach((ring, idx) => {
-            const rT = ((cycleFrame - 595 + idx * 12) % 45) / 45;
+          const rChildren = ripples.children;
+          for (let rIdx = 0; rIdx < rChildren.length; rIdx++) {
+            const ring = rChildren[rIdx] as THREE.Mesh;
+            const rT = ((cycleFrame - 595 + rIdx * 12) % 45) / 45;
             ring.scale.set(1 + rT * 5.2, 1 + rT * 5.2, 1 + rT * 5.2);
-            const mat = (ring as THREE.Mesh).material as THREE.MeshBasicMaterial;
+            const mat = ring.material as THREE.MeshBasicMaterial;
             if (mat) mat.opacity = Math.max(0, (1 - rT) * 0.85);
-          });
+          }
         }
 
         // Chú Tiểu thu tay về trước ngực, chắp hai tay lại thành ấn Hiệp Chưởng (Anjali) và cúi đầu xá Phật
@@ -3824,11 +3886,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         abbot.head.rotation.x = -0.04 + Math.sin(stepCount * 0.03) * 0.02;
       }
 
-      // Khói trầm hương bốc lên nghi ngút từ Đại Đỉnh Hương Đồng
-      incenseSmokeParticlesRef.current.forEach((smoke, idx) => {
+      // Khói trầm hương bốc lên nghi ngút từ Đại Đỉnh Hương Đồng (Zero-Allocation loop)
+      const smokeList = incenseSmokeParticlesRef.current;
+      for (let sIdx = 0; sIdx < smokeList.length; sIdx++) {
+        const smoke = smokeList[sIdx];
         smoke.position.y += 0.022;
-        smoke.position.x += Math.sin(stepCount * 0.03 + idx * 1.2) * 0.006;
-        smoke.position.z += Math.cos(stepCount * 0.025 + idx * 1.5) * 0.006;
+        smoke.position.x += Math.sin(stepCount * 0.03 + sIdx * 1.2) * 0.006;
+        smoke.position.z += Math.cos(stepCount * 0.025 + sIdx * 1.5) * 0.006;
         const progress = Math.max(0, Math.min(1, (smoke.position.y - 1.6) / 3.8));
         smoke.scale.set(1 + progress * 2.8, 1 + progress * 2.8, 1 + progress * 2.8);
         const matS = smoke.material as THREE.MeshBasicMaterial;
@@ -3838,14 +3902,16 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           smoke.position.x = (Math.random() - 0.5) * 0.25;
           smoke.position.z = (Math.random() - 0.5) * 0.25;
         }
-      });
+      }
 
-      // Update User Floating Flower Lanterns (Hoa đăng người chơi thả trôi trên hồ)
-      userLanternsRef.current.forEach((lantern) => {
+      // Update User Floating Flower Lanterns (Hoa đăng người chơi thả trôi trên hồ - Zero-Allocation)
+      const lanternList = userLanternsRef.current;
+      for (let lIdx = 0; lIdx < lanternList.length; lIdx++) {
+        const lantern = lanternList[lIdx];
         lantern.mesh.position.z += lantern.speed;
         lantern.mesh.position.y = 0.56 + Math.sin(stepCount * 0.05 + lantern.mesh.position.x * 2) * 0.015;
         lantern.mesh.rotation.y += 0.005;
-      });
+      }
 
       // Swimming Koi Fish: distance-culled (only compute when within 85m of pond center (-26, 34))
       const distToPond = Math.hypot(playerPosRef.current.x - (-26), playerPosRef.current.z - 34);
@@ -3855,33 +3921,36 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           koiFeedingTimerRef.current--;
         }
 
-        koiFishListRef.current.forEach((koi, idx) => {
+        const koiList = koiFishListRef.current;
+        for (let kIdx = 0; kIdx < koiList.length; kIdx++) {
+          const koi = koiList[kIdx];
           koi.angle += koi.speed * (isFeeding ? 1.6 : 1.0);
 
           // Khi rải mồi: đàn cá bơi gom về gần chân cầu đá (bán kính ~ 3.2m)
           let currentRadius = koi.radius;
           if (isFeeding) {
-            currentRadius = 3.2 + (idx % 4) * 0.75;
+            currentRadius = 3.2 + (kIdx % 4) * 0.75;
           }
 
           koi.mesh.position.x = Math.cos(koi.angle) * currentRadius;
           koi.mesh.position.z = Math.sin(koi.angle) * currentRadius;
           koi.mesh.rotation.y = -koi.angle + Math.PI / 2;
           // Độ cao ngập tự nhiên dưới mặt hồ sen xanh biếc
-          koi.mesh.position.y = (isFeeding ? 0.49 : 0.46) + Math.sin(stepCount * (isFeeding ? 0.12 : 0.04) + koi.angle * 2 + idx) * 0.035;
+          koi.mesh.position.y = (isFeeding ? 0.49 : 0.46) + Math.sin(stepCount * (isFeeding ? 0.12 : 0.04) + koi.angle * 2 + kIdx) * 0.035;
 
           // Vẫy đuôi cá chân thực theo từng nhịp bơi
           const tailG = koi.mesh.userData.tailMesh as THREE.Group | undefined;
           if (tailG) {
-            tailG.rotation.y = Math.sin(stepCount * (isFeeding ? 0.32 : 0.16) + idx * 1.4) * (isFeeding ? 0.65 : 0.42);
+            tailG.rotation.y = Math.sin(stepCount * (isFeeding ? 0.32 : 0.16) + kIdx * 1.4) * (isFeeding ? 0.65 : 0.42);
           }
-        });
+        }
       }
 
-      // Bamboo Leaves Sway
-      bambooLeavesRef.current.forEach((bG, idx) => {
-        bG.rotation.z = Math.sin(stepCount * 0.02 + idx) * 0.05;
-      });
+      // Bamboo Leaves Sway (Zero-Allocation loop)
+      const bambooList = bambooLeavesRef.current;
+      for (let bIdx = 0; bIdx < bambooList.length; bIdx++) {
+        bambooList[bIdx].rotation.z = Math.sin(stepCount * 0.02 + bIdx) * 0.05;
+      }
 
       // Vintage Fan Rotating Blades (On Rainy Days Deck)
       if (fanBladesRef.current) {
@@ -7766,26 +7835,4 @@ function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group {
 // ══════════════════════════════════════════════════════════════════════════════
 
 /** Build a tiny 4-stop gradient texture for MeshToonMaterial */
-// Spawn Glowing Lotus Petal Underfoot
-function spawnLotusFootstep(
-  scene: THREE.Scene,
-  x: number,
-  z: number,
-  footstepsRef: React.MutableRefObject<{ mesh: THREE.Mesh; life: number }[]>,
-  y: number = 0.42
-) {
-  const flower = new THREE.Mesh(
-    new THREE.CircleGeometry(0.48, 8),
-    new THREE.MeshStandardMaterial({
-      color: 0xfde047,
-      emissive: 0xf59e0b,
-      emissiveIntensity: 0.75,
-      transparent: true,
-      opacity: 0.9,
-    })
-  );
-  flower.rotateX(-Math.PI / 2);
-  flower.position.set(x, y + 0.04, z);
-  scene.add(flower);
-  footstepsRef.current.push({ mesh: flower, life: 60 });
-}
+
