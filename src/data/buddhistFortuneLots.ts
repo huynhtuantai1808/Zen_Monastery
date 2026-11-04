@@ -419,3 +419,4 @@ export const BUDDHIST_FORTUNE_LOTS: BuddhistFortuneLot[] = [
     meritBonus: 60,
   },
 ];
+

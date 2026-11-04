@@ -25,6 +25,7 @@ import { useZenBridge, zenWorldBridge, type TempleZoneInfo } from './bridge/zenW
 interface Zen3DOverlaysProps {
   onAddMerit: (amount: number, x: number, y: number, label?: string) => void;
   onOpenDharma: () => void;
+  onOpenTeaHouse?: () => void;
   templeZones: TempleZoneInfo[];
   isNightMode: boolean;
   onToggleNightMode: () => void;
@@ -33,6 +34,7 @@ interface Zen3DOverlaysProps {
 export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
   onAddMerit,
   onOpenDharma,
+  onOpenTeaHouse,
   templeZones,
   isNightMode,
   onToggleNightMode,
@@ -49,6 +51,7 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
   const isIncenseBowing = useZenBridge((s) => s.isIncenseBowing);
   const bellNpcDialogue = useZenBridge((s) => s.bellNpcDialogue);
   const abbotDialogue = useZenBridge((s) => s.abbotDialogue);
+  const teaNpcDialogue = useZenBridge((s) => s.teaNpcDialogue);
   const isAbbotVoiceActive = useZenBridge((s) => s.isAbbotVoiceActive);
   const abbotVoiceProgress = useZenBridge((s) => s.abbotVoiceProgress);
   const abbotVoiceDuration = useZenBridge((s) => s.abbotVoiceDuration);
@@ -346,6 +349,80 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
               <button
                 onClick={() => useZenBridge.getState().setBellNpcDialogue(null)}
                 className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-200 hover:text-white font-heading text-xs transition cursor-pointer border border-amber-400/30"
+              >
+                Tâm An Lạc 🙏
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOGUE MODAL: CHÚ TIỂU PHA TRÀ & PHỤC VỤ TRÀ (THIỀN TRÀ QUÁN) */}
+      {teaNpcDialogue && (
+        <div className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-40 pointer-events-auto max-w-[94vw] sm:max-w-md w-full animate-fadeIn">
+          <div className="anime-glass-panel border-2 border-emerald-400/60 p-4 sm:p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.7)] backdrop-blur-xl relative bg-stone-950/90">
+            <button
+              onClick={() => useZenBridge.getState().setTeaNpcDialogue(null)}
+              className="absolute top-3 right-3 text-emerald-200 hover:text-white text-xs p-1.5 rounded-full hover:bg-white/10 transition cursor-pointer font-bold"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-2xl shadow-lg border border-emerald-300/60 ring-2 ring-emerald-400/30 shrink-0">
+                {teaNpcDialogue.avatar}
+              </div>
+              <div>
+                <div className="font-heading font-black text-sm sm:text-base text-emerald-200 flex items-center gap-1.5">
+                  <span>{teaNpcDialogue.speaker}</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-normal">
+                    {teaNpcDialogue.role}
+                  </span>
+                </div>
+                <div className="text-[11px] text-emerald-100/70 font-sans">
+                  Hiên Trà Thiền Môn • Thiền Trà Quán
+                </div>
+              </div>
+            </div>
+
+            <div className="text-xs sm:text-sm text-stone-100 font-serif leading-relaxed mb-3 whitespace-pre-line bg-black/30 p-3 rounded-2xl border border-emerald-500/20">
+              {teaNpcDialogue.text}
+            </div>
+
+            {teaNpcDialogue.gatha && (
+              <div className="text-[11px] sm:text-xs text-emerald-300/90 font-serif italic text-center p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-400/30 mb-3 whitespace-pre-line leading-relaxed shadow-inner">
+                {teaNpcDialogue.gatha}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  soundEngine.playTeaPour();
+                  soundEngine.playWindChime();
+                  onAddMerit(25, 50, 40, '🍵 Thưởng Trà Sen Chánh Niệm');
+                  useZenBridge.getState().setTeaNpcDialogue(null);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-emerald-300/50"
+              >
+                <span>🍵</span>
+                <span>Thưởng Thức Trà Sen</span>
+              </button>
+              {onOpenTeaHouse && (
+                <button
+                  onClick={() => {
+                    useZenBridge.getState().setTeaNpcDialogue(null);
+                    onOpenTeaHouse();
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-amber-300/50"
+                >
+                  <span>🌸</span>
+                  <span>Trà Đạo</span>
+                </button>
+              )}
+              <button
+                onClick={() => useZenBridge.getState().setTeaNpcDialogue(null)}
+                className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-200 hover:text-white font-heading text-xs transition cursor-pointer border border-emerald-400/30"
               >
                 Tâm An Lạc 🙏
               </button>

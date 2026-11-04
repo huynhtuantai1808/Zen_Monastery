@@ -41,6 +41,7 @@ export interface ZenBridgeState {
   // Dialogues & Voice
   bellNpcDialogue: NpcDialogueData | null;
   abbotDialogue: NpcDialogueData | null;
+  teaNpcDialogue: NpcDialogueData | null;
   isAbbotVoiceActive: boolean;
   abbotVoiceProgress: number;
   abbotVoiceDuration: { current: string; total: string };
@@ -68,6 +69,7 @@ export interface ZenBridgeState {
   setIsIncenseBowing: (bowing: boolean) => void;
   setBellNpcDialogue: (dialogue: NpcDialogueData | null) => void;
   setAbbotDialogue: (dialogue: NpcDialogueData | null) => void;
+  setTeaNpcDialogue: (dialogue: NpcDialogueData | null) => void;
   setAbbotVoice: (active: boolean, progress?: number, duration?: { current: string; total: string }) => void;
   setIsAutoBellActive: (active: boolean) => void;
   setLanternModalOpen: (open: boolean) => void;
@@ -98,6 +100,8 @@ export interface ZenWebGlCommands {
   setGraphicsQuality: (quality: GraphicsQuality) => void;
   updateCharacter: (char: CharacterAppearance) => void;
   drawFortune: () => void;
+  talkToTeaMaster: () => void;
+  serveTea: () => void;
 }
 
 export const useZenBridge = create<ZenBridgeState>((set) => ({
@@ -114,6 +118,7 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
 
   bellNpcDialogue: null,
   abbotDialogue: null,
+  teaNpcDialogue: null,
   isAbbotVoiceActive: false,
   abbotVoiceProgress: 0,
   abbotVoiceDuration: { current: '00:00', total: '00:00' },
@@ -142,6 +147,7 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
   setIsIncenseBowing: (isIncenseBowing) => set({ isIncenseBowing }),
   setBellNpcDialogue: (bellNpcDialogue) => set({ bellNpcDialogue }),
   setAbbotDialogue: (abbotDialogue) => set({ abbotDialogue }),
+  setTeaNpcDialogue: (teaNpcDialogue) => set({ teaNpcDialogue }),
   setAbbotVoice: (isAbbotVoiceActive, abbotVoiceProgress, abbotVoiceDuration) =>
     set((prev) => ({
       isAbbotVoiceActive,
@@ -183,6 +189,8 @@ const defaultCommands: ZenWebGlCommands = {
   setGraphicsQuality: () => {},
   updateCharacter: () => {},
   drawFortune: () => {},
+  talkToTeaMaster: () => {},
+  serveTea: () => {},
 };
 
 class ZenWorldBridgeManager {
