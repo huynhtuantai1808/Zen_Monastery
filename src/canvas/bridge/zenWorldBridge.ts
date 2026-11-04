@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { CharacterAppearance, GraphicsQuality } from '../../types/game';
+import type { BuddhistFortuneLot } from '../../data/buddhistFortuneLots';
 import type { TempleZoneInfo } from '../Zen3DWorld';
 
 export type { TempleZoneInfo };
@@ -51,6 +52,11 @@ export interface ZenBridgeState {
   meditationBreathPhase: BreathPhaseType;
   meditationBreaths: number;
 
+  // Xin Xăm Xin Lộc (Buddhist Fortune Divination)
+  isFortuneModalOpen: boolean;
+  currentFortune: BuddhistFortuneLot | null;
+  isShakingLot: boolean;
+
   // State Mutators (Edge-triggered, low frequency)
   setCurrentZone: (zone: TempleZoneInfo) => void;
   setZoneBanner: (banner: TempleZoneInfo | null) => void;
@@ -66,6 +72,9 @@ export interface ZenBridgeState {
   setIsAutoBellActive: (active: boolean) => void;
   setLanternModalOpen: (open: boolean) => void;
   setLotusMeditation: (active: boolean, phase?: BreathPhaseType, count?: number) => void;
+  setFortuneModalOpen: (open: boolean) => void;
+  setCurrentFortune: (fortune: BuddhistFortuneLot | null) => void;
+  setIsShakingLot: (shaking: boolean) => void;
 }
 
 export interface ZenWebGlCommands {
@@ -88,6 +97,7 @@ export interface ZenWebGlCommands {
   setDayNight: (isNight: boolean) => void;
   setGraphicsQuality: (quality: GraphicsQuality) => void;
   updateCharacter: (char: CharacterAppearance) => void;
+  drawFortune: () => void;
 }
 
 export const useZenBridge = create<ZenBridgeState>((set) => ({
@@ -113,6 +123,10 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
   isLotusMeditationActive: false,
   meditationBreathPhase: 'IN',
   meditationBreaths: 0,
+
+  isFortuneModalOpen: false,
+  currentFortune: null,
+  isShakingLot: false,
 
   setCurrentZone: (currentZone) => set({ currentZone }),
   setZoneBanner: (zoneBanner) => set({ zoneBanner }),
@@ -142,6 +156,9 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
       meditationBreathPhase: phase !== undefined ? phase : prev.meditationBreathPhase,
       meditationBreaths: count !== undefined ? count : prev.meditationBreaths,
     })),
+  setFortuneModalOpen: (isFortuneModalOpen) => set({ isFortuneModalOpen }),
+  setCurrentFortune: (currentFortune) => set({ currentFortune }),
+  setIsShakingLot: (isShakingLot) => set({ isShakingLot }),
 }));
 
 // Default no-op command implementations
@@ -165,6 +182,7 @@ const defaultCommands: ZenWebGlCommands = {
   setDayNight: () => {},
   setGraphicsQuality: () => {},
   updateCharacter: () => {},
+  drawFortune: () => {},
 };
 
 class ZenWorldBridgeManager {

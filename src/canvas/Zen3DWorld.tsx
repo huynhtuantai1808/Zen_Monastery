@@ -8,6 +8,7 @@ import { loadChibiCharacter } from '../services/characterLoader';
 import { preloadMonkVoiceAudio, stopAbbotVoice } from '../services/monkVoiceService';
 import { useZenBridge, zenWorldBridge } from './bridge/zenWorldBridge';
 import { Zen3DOverlays } from './Zen3DOverlays';
+import { BUDDHIST_FORTUNE_LOTS } from '../data/buddhistFortuneLots';
 interface Zen3DWorldProps {
   character: CharacterAppearance;
   level: number;
@@ -1271,6 +1272,41 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     propsRef.current.onAddMerit(40, 50, 35, '🙏 Thính Pháp Với Sư Phụ Trụ Trì');
   }, []);
 
+  // XIN XĂM XIN LỘC & XEM VẬN MỆNH LINH THIÊNG NƠI SƯ PHỤ TRỤ TRÌ
+  const handleXinXam = useCallback(() => {
+    soundEngine.playWoodenFish();
+    soundEngine.playSingingBowl();
+
+    useZenBridge.getState().setFortuneModalOpen(true);
+    useZenBridge.getState().setIsShakingLot(true);
+    useZenBridge.getState().setCurrentFortune(null);
+
+    // Xoay nhân vật hướng về phía tòa thuyết pháp của Sư Phụ Trụ Trì
+    if (monkGroupRef.current) {
+      const curX = monkGroupRef.current.position.x;
+      const curZ = monkGroupRef.current.position.z;
+      const angle = Math.atan2(2.4 - curX, -18.8 - curZ);
+      monkGroupRef.current.rotation.set(0, angle, 0);
+    }
+
+    // Thời gian lắc ống xăm tre 1.2s tạo cảm giác chân thực và hồi hộp
+    setTimeout(() => {
+      const randomIdx = Math.floor(Math.random() * BUDDHIST_FORTUNE_LOTS.length);
+      const fortune = BUDDHIST_FORTUNE_LOTS[randomIdx];
+
+      useZenBridge.getState().setIsShakingLot(false);
+      useZenBridge.getState().setCurrentFortune(fortune);
+      soundEngine.playBell(528, 1.8);
+
+      propsRef.current.onAddMerit(
+        fortune.meritBonus,
+        50,
+        38,
+        `🧧 Quẻ Xăm Số ${fortune.lotNumber}: ${fortune.title}`
+      );
+    }, 1200);
+  }, []);
+
   // KHÓA LỄ THÍNH PHÁP & TỌA THIỀN CHÁNH NIỆM THEO TIẾNG MỎ SƯ THẦY
   const handleStartDharmaChantSession = useCallback(() => {
     preloadMonkVoiceAudio();
@@ -1886,6 +1922,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, isHigh ? 1.25 : 1.0));
         }
       },
+      drawFortune: handleXinXam,
     });
 
     const width = container.clientWidth || window.innerWidth;
@@ -3600,6 +3637,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Kinh Hành Chánh Niệm', action: () => p.onAddMerit(15, 50, 40, 'Kinh Hành'), icon: '🏮' });
             } else if (zKey === 'SANCTUARY') {
               actionsList.push({ title: 'Bạch Sư Phụ Trụ Trì', action: handleTalkToAbbot, icon: '🙏' });
+              actionsList.push({ title: 'Xin Xăm Xin Lộc', action: handleXinXam, icon: '🧧' });
               actionsList.push({ title: 'Khóa Lễ Thính Pháp', action: handleStartDharmaChantSession, icon: '📜' });
               actionsList.push({ title: 'Tọa Thiền Nghe Pháp', action: handleSitMeditationLecture, icon: '🧘' });
               actionsList.push({ title: 'Thắp Nhang Trầm Cầu An', action: handleLightIncenseSanctuary, icon: '🕯️' });

@@ -56,12 +56,23 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
   const isLotusMeditationActive = useZenBridge((s) => s.isLotusMeditationActive);
   const meditationBreathPhase = useZenBridge((s) => s.meditationBreathPhase);
   const meditationBreaths = useZenBridge((s) => s.meditationBreaths);
+  const isFortuneModalOpen = useZenBridge((s) => s.isFortuneModalOpen);
+  const currentFortune = useZenBridge((s) => s.currentFortune);
+  const isShakingLot = useZenBridge((s) => s.isShakingLot);
 
   // Local UI modal states
   const [selectedLanternType, setSelectedLanternType] = useState<string>('pink');
   const [customWishText, setCustomWishText] = useState<string>(
     'Cầu cho Cha Mẹ bình an, tăng long phước thọ'
   );
+
+  const handleDrawFortune = () => {
+    zenWorldBridge.commands.drawFortune();
+  };
+
+  const handleCloseFortuneModal = () => {
+    useZenBridge.getState().setFortuneModalOpen(false);
+  };
 
   // Vòng lặp hơi thở chánh niệm khi tọa thiền bên hồ sen
   useEffect(() => {
@@ -472,6 +483,16 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
 
             <div className="flex flex-wrap items-center justify-end gap-2">
               <button
+                onClick={() => {
+                  handleCloseAbbotDialogue();
+                  zenWorldBridge.commands.drawFortune();
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-stone-950 font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-amber-300"
+              >
+                <span>🧧</span>
+                <span>Xin Xăm Xin Lộc</span>
+              </button>
+              <button
                 onClick={handleStartDharmaChantSession}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-700 hover:from-red-500 hover:to-amber-600 text-white font-heading font-black text-xs shadow-md transition cursor-pointer active:scale-95 flex items-center gap-1.5 border border-red-400/50"
               >
@@ -869,6 +890,205 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
           >
             🚶 Đứng Dậy & Hồi Hướng Công Đức
           </button>
+        </div>
+      )}
+
+      {/* MODAL XIN XĂM XIN LỘC & XEM VẬN MỆNH LINH THIÊNG */}
+      {isFortuneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in pointer-events-auto">
+          <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-3xl bg-gradient-to-b from-stone-900/98 via-stone-950/98 to-stone-900/98 border-2 border-amber-500/60 shadow-[0_0_60px_rgba(245,158,11,0.35)] text-white">
+            <button
+              onClick={handleCloseFortuneModal}
+              className="absolute top-4 right-4 p-2 rounded-full text-amber-200/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              title="Đóng bảng quẻ xăm"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header Ribbon */}
+            <div className="text-center mb-5">
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-red-950/80 via-amber-900/80 to-red-950/80 border border-amber-400/50 text-amber-300 text-xs font-heading font-black shadow-inner mb-2">
+                <span>🏮</span>
+                <span>QUẺ XĂM LINH THIÊNG • CHÙA SƠN TỰ</span>
+                <span>🏮</span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-amber-100/70 font-serif italic">
+                Thành tâm đảnh lễ Chư Phật Tam Bảo • Cầu mong bình an & khai mở trí tuệ
+              </p>
+            </div>
+
+            {/* State 1: Đang lắc ống xăm tre */}
+            {isShakingLot ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center animate-pulse">
+                {/* Ống xăm tre 3D & Thẻ xăm rung rinh */}
+                <div className="relative w-28 h-40 mb-6 flex items-center justify-center">
+                  {/* Aura hào quang vàng */}
+                  <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-xl animate-ping" />
+
+                  {/* Ống xăm tre */}
+                  <div className="relative w-24 h-36 rounded-2xl bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 border-3 border-amber-400/80 shadow-[0_0_30px_rgba(251,191,36,0.5)] flex flex-col items-center justify-between p-2 overflow-hidden">
+                    {/* Các thẻ tre nhô lên lắc lư */}
+                    <div className="absolute -top-6 flex items-end justify-center gap-1.5 w-full">
+                      <div className="w-2.5 h-14 bg-gradient-to-b from-amber-200 to-amber-400 rounded-t-sm shadow -rotate-12 animate-bounce" style={{ animationDuration: '0.4s' }} />
+                      <div className="w-2.5 h-16 bg-gradient-to-b from-red-500 to-amber-300 rounded-t-sm shadow rotate-3 animate-bounce" style={{ animationDuration: '0.35s' }} />
+                      <div className="w-2.5 h-12 bg-gradient-to-b from-amber-200 to-amber-400 rounded-t-sm shadow -rotate-6 animate-bounce" style={{ animationDuration: '0.45s' }} />
+                      <div className="w-2.5 h-15 bg-gradient-to-b from-amber-300 to-amber-500 rounded-t-sm shadow rotate-12 animate-bounce" style={{ animationDuration: '0.38s' }} />
+                    </div>
+
+                    {/* Họa tiết hoa sen khắc trên ống tre */}
+                    <div className="mt-auto mb-2 text-2xl opacity-90">🪷</div>
+                    <div className="text-[10px] font-heading font-black text-amber-200 tracking-widest uppercase">
+                      Chùa Sơn Tự
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-base sm:text-lg font-heading font-black text-amber-300 mb-1">
+                  Đang Lắc Ống Xăm Tre Linh Thiêng...
+                </h3>
+                <p className="text-xs text-amber-200/80 font-serif max-w-sm">
+                  Lắng lòng thanh tịnh, nghe tiếng mõ ngân vang... Thẻ xăm thiện duyên đang rơi xuống...
+                </p>
+              </div>
+            ) : currentFortune ? (
+              /* State 2: Đã gieo được quẻ xăm linh thiêng */
+              <div className="space-y-4 animate-fade-in">
+                {/* Danh hiệu quẻ & Hạng cát tường */}
+                <div className="text-center p-3 rounded-2xl bg-gradient-to-r from-amber-950/60 via-red-950/40 to-amber-950/60 border border-amber-500/30">
+                  <div className="flex items-center justify-center gap-2 mb-1.5">
+                    <span className={`px-3 py-1 rounded-full text-xs font-black shadow-md bg-gradient-to-r ${currentFortune.badgeColor}`}>
+                      ✨ {currentFortune.rank} ✨
+                    </span>
+                  </div>
+                  <h2 className="text-lg sm:text-2xl font-heading font-black text-amber-200 tracking-wide">
+                    Quẻ Số {currentFortune.lotNumber}: {currentFortune.title}
+                  </h2>
+                </div>
+
+                {/* Thơ Kệ Quẻ Xăm Bát Nhã (Giấy Thư Pháp Trầm Ấm) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-100/10 via-amber-50/5 to-transparent border border-amber-400/40 text-center relative shadow-inner">
+                  <div className="text-[11px] font-heading font-bold text-amber-400 uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
+                    <span>📜</span>
+                    <span>Thơ Kệ Quẻ Xăm</span>
+                    <span>📜</span>
+                  </div>
+                  <div className="space-y-1 sm:space-y-1.5">
+                    {currentFortune.poem.map((line, idx) => (
+                      <p key={idx} className="font-serif italic text-amber-100 text-sm sm:text-base leading-relaxed tracking-wide">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ý Nghĩa Tổng Quan */}
+                <div className="p-3.5 rounded-xl bg-black/40 border border-amber-500/20 text-xs sm:text-sm text-stone-200 font-serif leading-relaxed">
+                  <span className="font-heading font-bold text-amber-300">Lời Luận Giải: </span>
+                  {currentFortune.generalMeaning}
+                </div>
+
+                {/* Chi Tiết 5 Phương Diện Vận Mệnh */}
+                <div>
+                  <h4 className="text-xs font-heading font-black text-amber-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <span>✨</span>
+                    <span>Chi Tiết Vận Trình 5 Phương Diện:</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-stone-900/90 border border-amber-400/20">
+                      <div className="font-heading font-black text-amber-300 flex items-center gap-1 mb-1">
+                        <span>🏡</span>
+                        <span>Gia Đạo & Bình An:</span>
+                      </div>
+                      <p className="text-stone-300 font-serif text-[11px] leading-relaxed">
+                        {currentFortune.aspects.giaDao}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-900/90 border border-amber-400/20">
+                      <div className="font-heading font-black text-amber-300 flex items-center gap-1 mb-1">
+                        <span>📈</span>
+                        <span>Công Danh & Sự Nghiệp:</span>
+                      </div>
+                      <p className="text-stone-300 font-serif text-[11px] leading-relaxed">
+                        {currentFortune.aspects.congDanh}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-900/90 border border-amber-400/20">
+                      <div className="font-heading font-black text-amber-300 flex items-center gap-1 mb-1">
+                        <span>💰</span>
+                        <span>Tài Lộc & Mưu Sự:</span>
+                      </div>
+                      <p className="text-stone-300 font-serif text-[11px] leading-relaxed">
+                        {currentFortune.aspects.taiLoc}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-900/90 border border-amber-400/20">
+                      <div className="font-heading font-black text-amber-300 flex items-center gap-1 mb-1">
+                        <span>🌿</span>
+                        <span>Sức Khỏe & Thân Tâm:</span>
+                      </div>
+                      <p className="text-stone-300 font-serif text-[11px] leading-relaxed">
+                        {currentFortune.aspects.sucKhoe}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-900/90 border border-amber-400/20 sm:col-span-2">
+                      <div className="font-heading font-black text-amber-300 flex items-center gap-1 mb-1">
+                        <span>🌸</span>
+                        <span>Duyên Lành & Quý Nhân:</span>
+                      </div>
+                      <p className="text-stone-300 font-serif text-[11px] leading-relaxed">
+                        {currentFortune.aspects.duyenLanh}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lời Sư Phụ Khai Thị */}
+                <div className="p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-red-950/60 to-amber-950/60 border border-red-500/40 text-xs shadow-inner">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-lg">📿</span>
+                    <span className="font-heading font-black text-amber-300 text-xs">
+                      Sư Phụ Trụ Trì Khai Thị:
+                    </span>
+                  </div>
+                  <p className="text-amber-100/90 font-serif italic text-[11px] sm:text-xs leading-relaxed">
+                    {currentFortune.monkAdvice}
+                  </p>
+                </div>
+
+                {/* Thông báo phước báu */}
+                <div className="text-center py-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-400/40 text-yellow-300 text-xs font-heading font-black">
+                    <span>✨</span>
+                    <span>Phước Báu Nhận Được: +{currentFortune.meritBonus} Điểm Công Đức</span>
+                    <span>✨</span>
+                  </span>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                  <button
+                    onClick={handleDrawFortune}
+                    className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-200 font-heading font-bold text-xs transition cursor-pointer border border-amber-400/30 flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                  >
+                    <span>🎋</span>
+                    <span>Lắc Ống Xăm Tiếp</span>
+                  </button>
+
+                  <button
+                    onClick={handleCloseFortuneModal}
+                    className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-heading font-black text-xs transition cursor-pointer shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center justify-center gap-2 active:scale-95 border border-yellow-200"
+                  >
+                    <span>🙏</span>
+                    <span>Tạ Lễ & Nhận Lộc</span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       )}
     </>
