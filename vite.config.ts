@@ -11,7 +11,20 @@ export default defineConfig({
       output: {
         manualChunks(id: string) {
           if (id.includes('node_modules/three')) {
-            return 'three';
+            return 'vendor-three';
+          }
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/zustand')
+          ) {
+            return 'vendor-react';
+          }
+          if (
+            id.includes('node_modules/lucide-react') ||
+            id.includes('node_modules/canvas-confetti')
+          ) {
+            return 'vendor-ui';
           }
         },
       },

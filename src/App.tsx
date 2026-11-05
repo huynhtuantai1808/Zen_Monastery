@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import {
   BookOpen,
   Sliders,
@@ -14,20 +14,23 @@ import {
   ScrollText,
 } from 'lucide-react';
 import { useGameStore } from './store/gameStore';
-import { CharacterCreationModal } from './components/CharacterCreationModal';
 import { TopHeaderHUD } from './components/TopHeaderHUD';
-import { GraphicsSettingsModal } from './components/GraphicsSettingsModal';
-import { SweepingModal } from './components/SweepingModal';
-import { TeaHouseModal } from './components/TeaHouseModal';
-import { DharmaEveningModal } from './components/DharmaEveningModal';
-import { ZenOpenWorld } from './canvas/ZenOpenWorld';
 import { Zen3DWorld } from './canvas/Zen3DWorld';
-import { WoodChoppingModal } from './components/WoodChoppingModal';
-import { WaterCarryingModal } from './components/WaterCarryingModal';
-import { AltarCleaningModal } from './components/AltarCleaningModal';
-import { CharityModal } from './components/CharityModal';
-import { CalligraphyModal } from './components/CalligraphyModal';
-import { ZenQuestModal } from './components/ZenQuestModal';
+import { ZenModalFallback } from './components/lazy/ZenModalFallback';
+
+// Lazy-loaded secondary modals & 2D canvas for code splitting & initial load performance
+const CharacterCreationModal = lazy(() => import('./components/CharacterCreationModal').then(m => ({ default: m.CharacterCreationModal })));
+const GraphicsSettingsModal = lazy(() => import('./components/GraphicsSettingsModal').then(m => ({ default: m.GraphicsSettingsModal })));
+const SweepingModal = lazy(() => import('./components/SweepingModal').then(m => ({ default: m.SweepingModal })));
+const TeaHouseModal = lazy(() => import('./components/TeaHouseModal').then(m => ({ default: m.TeaHouseModal })));
+const DharmaEveningModal = lazy(() => import('./components/DharmaEveningModal').then(m => ({ default: m.DharmaEveningModal })));
+const WoodChoppingModal = lazy(() => import('./components/WoodChoppingModal').then(m => ({ default: m.WoodChoppingModal })));
+const WaterCarryingModal = lazy(() => import('./components/WaterCarryingModal').then(m => ({ default: m.WaterCarryingModal })));
+const AltarCleaningModal = lazy(() => import('./components/AltarCleaningModal').then(m => ({ default: m.AltarCleaningModal })));
+const CharityModal = lazy(() => import('./components/CharityModal').then(m => ({ default: m.CharityModal })));
+const CalligraphyModal = lazy(() => import('./components/CalligraphyModal').then(m => ({ default: m.CalligraphyModal })));
+const ZenQuestModal = lazy(() => import('./components/ZenQuestModal').then(m => ({ default: m.ZenQuestModal })));
+const ZenOpenWorld = lazy(() => import('./canvas/ZenOpenWorld').then(m => ({ default: m.ZenOpenWorld })));
 import { ZEN_QUESTS, type ZenQuestItem } from './data/zenQuests';
 import { soundEngine } from './services/audioEngine';
 import { preloadMonkVoiceAudio, cancelLegacySpeechSynthesis } from './services/monkVoiceService';
@@ -410,7 +413,8 @@ export default function App() {
         </main>
       ) : worldMode === 'OPEN_WORLD' ? (
         <main className="relative flex-1 w-full h-full overflow-hidden">
-          <ZenOpenWorld
+          <Suspense fallback={<ZenModalFallback message="Đang khai mở Thế Giới Mở 2D..." />}>
+            <ZenOpenWorld
             character={character}
             level={effectiveLevel}
             timePhase={timePhase}
@@ -435,6 +439,7 @@ export default function App() {
             onAddMerit={(amount, x, y, label) => addMerit(amount, x, y, label)}
             spendStamina={spendStaminaHandler}
           />
+          </Suspense>
         </main>
       ) : (
         <div
@@ -560,6 +565,7 @@ export default function App() {
           )}
 
           {/* NỘI DUNG GAME THEO BUỔI Ở CHẾ ĐỘ FOCUS */}
+          <Suspense fallback={<ZenModalFallback message="Đang khởi tạo Thời Khóa Thiền..." />}>
           {timePhase === 'MORNING' && (
             <SweepingModal
               isOpen={true}
@@ -591,6 +597,7 @@ export default function App() {
               onNewDay={() => setTimePhase('MORNING')}
             />
           )}
+          </Suspense>
         </div>
       )}
 
