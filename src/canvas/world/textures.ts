@@ -331,6 +331,178 @@ export function createDaiHungBaoDienPlaqueTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+// =======================================================================
+// HOÀNH PHI ĐẠI TỰ CỔNG TAM QUAN: "CHÙA VÂN ẨN" & "TỊNH TÂM SƠN TỰ"
+// =======================================================================
+
+export function createChuaVanAnGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  // Deep Imperial Lacquer Background (Sơn son thếp vàng hoàng gia)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  // Outer Gilded Wood Frame
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  // Inner Gold Filigree Trim
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  // Corner Flourishes (Hoa văn góc chạm mây/hoa sen)
+  const drawCornerFlourish = (x: number, y: number, flipX: number, flipY: number) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flipX, flipY);
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(40, 68);
+    ctx.quadraticCurveTo(70, 72, 68, 40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(54, 54, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
+  drawCornerFlourish(0, 0, 1, 1);
+  drawCornerFlourish(1024, 0, -1, 1);
+  drawCornerFlourish(0, 360, 1, -1);
+  drawCornerFlourish(1024, 360, -1, -1);
+
+  // Top Center Golden Lotus Emblem (Phù điêu hoa sen vàng đỉnh hoành phi)
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.arc(512, 28, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red Seal Stamps on Left and Right (Triện son cổ truyền)
+  const drawSeal = (x: number, y: number, text: string) => {
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(x, y, 64, 64);
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 64, 64);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 20px "Noto Serif", "Songti SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 32, y + 32);
+  };
+  drawSeal(65, 148, '佛寶');
+  drawSeal(895, 148, '吉祥');
+
+  // Main Temple Name: "CHÙA VÂN ẨN" (chữ thếp vàng phát sáng)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 112px "Noto Serif", "Times New Roman", "Songti SC", serif';
+
+  // Golden Glow Shadow
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('CHÙA VÂN ẨN', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('CHÙA VÂN ẨN', 512, 155);
+
+  // Subtitle / Classical Sino-Vietnamese / Script Subtitle: "✦ TỊNH TÂM SƠN TỰ ✦" (雲 隱 寺)
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", "Times New Roman", "Songti SC", serif';
+  const subGrad = ctx.createLinearGradient(0, 255, 0, 305);
+  subGrad.addColorStop(0, '#ffffff');
+  subGrad.addColorStop(0.3, '#fef08a');
+  subGrad.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = subGrad;
+  ctx.fillText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.5;
+  ctx.strokeText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+export function createTinhTamGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 102px "Noto Serif", "Times New Roman", serif';
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 20;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('TỊNH TÂM SƠN TỰ', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('TỊNH TÂM SƠN TỰ', 512, 155);
+
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", serif';
+  ctx.fillText('✦  AN NHIÊN TỈNH THỨC  ✦  PHÚC HUỆ SONG TU  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
 export function createSideCalligraphyPlaqueTexture(text: string): THREE.CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 768;
@@ -385,6 +557,178 @@ export function createSideCalligraphyPlaqueTexture(text: string): THREE.CanvasTe
     ctx.lineWidth = 2.5;
     ctx.strokeText(ch, x, 110);
   });
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+// =======================================================================
+// HOÀNH PHI ĐẠI TỰ CỔNG TAM QUAN: "CHÙA VÂN ẨN" & "TỊNH TÂM SƠN TỰ"
+// =======================================================================
+
+export function createChuaVanAnGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  // Deep Imperial Lacquer Background (Sơn son thếp vàng hoàng gia)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  // Outer Gilded Wood Frame
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  // Inner Gold Filigree Trim
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  // Corner Flourishes (Hoa văn góc chạm mây/hoa sen)
+  const drawCornerFlourish = (x: number, y: number, flipX: number, flipY: number) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flipX, flipY);
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(40, 68);
+    ctx.quadraticCurveTo(70, 72, 68, 40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(54, 54, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
+  drawCornerFlourish(0, 0, 1, 1);
+  drawCornerFlourish(1024, 0, -1, 1);
+  drawCornerFlourish(0, 360, 1, -1);
+  drawCornerFlourish(1024, 360, -1, -1);
+
+  // Top Center Golden Lotus Emblem (Phù điêu hoa sen vàng đỉnh hoành phi)
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.arc(512, 28, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red Seal Stamps on Left and Right (Triện son cổ truyền)
+  const drawSeal = (x: number, y: number, text: string) => {
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(x, y, 64, 64);
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 64, 64);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 20px "Noto Serif", "Songti SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 32, y + 32);
+  };
+  drawSeal(65, 148, '佛寶');
+  drawSeal(895, 148, '吉祥');
+
+  // Main Temple Name: "CHÙA VÂN ẨN" (chữ thếp vàng phát sáng)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 112px "Noto Serif", "Times New Roman", "Songti SC", serif';
+
+  // Golden Glow Shadow
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('CHÙA VÂN ẨN', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('CHÙA VÂN ẨN', 512, 155);
+
+  // Subtitle / Classical Sino-Vietnamese / Script Subtitle: "✦ TỊNH TÂM SƠN TỰ ✦" (雲 隱 寺)
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", "Times New Roman", "Songti SC", serif';
+  const subGrad = ctx.createLinearGradient(0, 255, 0, 305);
+  subGrad.addColorStop(0, '#ffffff');
+  subGrad.addColorStop(0.3, '#fef08a');
+  subGrad.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = subGrad;
+  ctx.fillText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.5;
+  ctx.strokeText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+export function createTinhTamGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 102px "Noto Serif", "Times New Roman", serif';
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 20;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('TỊNH TÂM SƠN TỰ', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('TỊNH TÂM SƠN TỰ', 512, 155);
+
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", serif';
+  ctx.fillText('✦  AN NHIÊN TỈNH THỨC  ✦  PHÚC HUỆ SONG TU  ✦', 512, 280);
 
   const tex = new THREE.CanvasTexture(c);
   tex.anisotropy = 4;
@@ -627,6 +971,178 @@ export function createCoupletTexture(text: string): THREE.CanvasTexture {
   return tex;
 }
 
+// =======================================================================
+// HOÀNH PHI ĐẠI TỰ CỔNG TAM QUAN: "CHÙA VÂN ẨN" & "TỊNH TÂM SƠN TỰ"
+// =======================================================================
+
+export function createChuaVanAnGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  // Deep Imperial Lacquer Background (Sơn son thếp vàng hoàng gia)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  // Outer Gilded Wood Frame
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  // Inner Gold Filigree Trim
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  // Corner Flourishes (Hoa văn góc chạm mây/hoa sen)
+  const drawCornerFlourish = (x: number, y: number, flipX: number, flipY: number) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flipX, flipY);
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(40, 68);
+    ctx.quadraticCurveTo(70, 72, 68, 40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(54, 54, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
+  drawCornerFlourish(0, 0, 1, 1);
+  drawCornerFlourish(1024, 0, -1, 1);
+  drawCornerFlourish(0, 360, 1, -1);
+  drawCornerFlourish(1024, 360, -1, -1);
+
+  // Top Center Golden Lotus Emblem (Phù điêu hoa sen vàng đỉnh hoành phi)
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.arc(512, 28, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red Seal Stamps on Left and Right (Triện son cổ truyền)
+  const drawSeal = (x: number, y: number, text: string) => {
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(x, y, 64, 64);
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 64, 64);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 20px "Noto Serif", "Songti SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 32, y + 32);
+  };
+  drawSeal(65, 148, '佛寶');
+  drawSeal(895, 148, '吉祥');
+
+  // Main Temple Name: "CHÙA VÂN ẨN" (chữ thếp vàng phát sáng)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 112px "Noto Serif", "Times New Roman", "Songti SC", serif';
+
+  // Golden Glow Shadow
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('CHÙA VÂN ẨN', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('CHÙA VÂN ẨN', 512, 155);
+
+  // Subtitle / Classical Sino-Vietnamese / Script Subtitle: "✦ TỊNH TÂM SƠN TỰ ✦" (雲 隱 寺)
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", "Times New Roman", "Songti SC", serif';
+  const subGrad = ctx.createLinearGradient(0, 255, 0, 305);
+  subGrad.addColorStop(0, '#ffffff');
+  subGrad.addColorStop(0.3, '#fef08a');
+  subGrad.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = subGrad;
+  ctx.fillText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.5;
+  ctx.strokeText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+export function createTinhTamGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 102px "Noto Serif", "Times New Roman", serif';
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 20;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('TỊNH TÂM SƠN TỰ', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('TỊNH TÂM SƠN TỰ', 512, 155);
+
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", serif';
+  ctx.fillText('✦  AN NHIÊN TỈNH THỨC  ✦  PHÚC HUỆ SONG TU  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
 export function createIncenseSignTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 512;
@@ -656,6 +1172,178 @@ export function createIncenseSignTexture(): THREE.CanvasTexture {
   ctx.fillStyle = '#fde68a';
   ctx.shadowBlur = 6;
   ctx.fillText('KHU VỰC THẮP NHANG', 256, 150);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+// =======================================================================
+// HOÀNH PHI ĐẠI TỰ CỔNG TAM QUAN: "CHÙA VÂN ẨN" & "TỊNH TÂM SƠN TỰ"
+// =======================================================================
+
+export function createChuaVanAnGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  // Deep Imperial Lacquer Background (Sơn son thếp vàng hoàng gia)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  // Outer Gilded Wood Frame
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  // Inner Gold Filigree Trim
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  // Corner Flourishes (Hoa văn góc chạm mây/hoa sen)
+  const drawCornerFlourish = (x: number, y: number, flipX: number, flipY: number) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flipX, flipY);
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(40, 68);
+    ctx.quadraticCurveTo(70, 72, 68, 40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(54, 54, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
+  drawCornerFlourish(0, 0, 1, 1);
+  drawCornerFlourish(1024, 0, -1, 1);
+  drawCornerFlourish(0, 360, 1, -1);
+  drawCornerFlourish(1024, 360, -1, -1);
+
+  // Top Center Golden Lotus Emblem (Phù điêu hoa sen vàng đỉnh hoành phi)
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.arc(512, 28, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red Seal Stamps on Left and Right (Triện son cổ truyền)
+  const drawSeal = (x: number, y: number, text: string) => {
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(x, y, 64, 64);
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 64, 64);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 20px "Noto Serif", "Songti SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 32, y + 32);
+  };
+  drawSeal(65, 148, '佛寶');
+  drawSeal(895, 148, '吉祥');
+
+  // Main Temple Name: "CHÙA VÂN ẨN" (chữ thếp vàng phát sáng)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 112px "Noto Serif", "Times New Roman", "Songti SC", serif';
+
+  // Golden Glow Shadow
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('CHÙA VÂN ẨN', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('CHÙA VÂN ẨN', 512, 155);
+
+  // Subtitle / Classical Sino-Vietnamese / Script Subtitle: "✦ TỊNH TÂM SƠN TỰ ✦" (雲 隱 寺)
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", "Times New Roman", "Songti SC", serif';
+  const subGrad = ctx.createLinearGradient(0, 255, 0, 305);
+  subGrad.addColorStop(0, '#ffffff');
+  subGrad.addColorStop(0.3, '#fef08a');
+  subGrad.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = subGrad;
+  ctx.fillText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.5;
+  ctx.strokeText('✦  TỊNH TÂM SƠN TỰ  ✦  雲 隱 寺  ✦', 512, 280);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+export function createTinhTamGatePlaqueTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 360;
+  const ctx = c.getContext('2d')!;
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 360);
+  bgGrad.addColorStop(0, '#3f0c10');
+  bgGrad.addColorStop(0.3, '#7f1d1d');
+  bgGrad.addColorStop(0.7, '#881337');
+  bgGrad.addColorStop(1, '#2b0709');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(10, 10, 1004, 340);
+
+  ctx.strokeStyle = '#fde68a';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, 976, 312);
+
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 960, 296);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 102px "Noto Serif", "Times New Roman", serif';
+  ctx.shadowColor = 'rgba(254, 240, 138, 0.95)';
+  ctx.shadowBlur = 20;
+
+  const textGrad = ctx.createLinearGradient(0, 70, 0, 240);
+  textGrad.addColorStop(0, '#ffffff');
+  textGrad.addColorStop(0.2, '#fef08a');
+  textGrad.addColorStop(0.65, '#f59e0b');
+  textGrad.addColorStop(1, '#b45309');
+  ctx.fillStyle = textGrad;
+
+  ctx.fillText('TỊNH TÂM SƠN TỰ', 512, 155);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 3.5;
+  ctx.strokeText('TỊNH TÂM SƠN TỰ', 512, 155);
+
+  ctx.shadowBlur = 10;
+  ctx.font = 'bold 36px "Noto Serif", serif';
+  ctx.fillText('✦  AN NHIÊN TỈNH THỨC  ✦  PHÚC HUỆ SONG TU  ✦', 512, 280);
 
   const tex = new THREE.CanvasTexture(c);
   tex.anisotropy = 4;
