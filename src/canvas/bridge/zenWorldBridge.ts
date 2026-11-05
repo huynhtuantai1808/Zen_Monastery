@@ -45,6 +45,8 @@ export interface ZenBridgeState {
   isAbbotVoiceActive: boolean;
   abbotVoiceProgress: number;
   abbotVoiceDuration: { current: string; total: string };
+  isTueTamVoiceActive: boolean;
+  tueTamVoiceProgress: number;
   isAutoBellActive: boolean;
 
   // Lotus Pond Special Features
@@ -71,6 +73,7 @@ export interface ZenBridgeState {
   setAbbotDialogue: (dialogue: NpcDialogueData | null) => void;
   setTeaNpcDialogue: (dialogue: NpcDialogueData | null) => void;
   setAbbotVoice: (active: boolean, progress?: number, duration?: { current: string; total: string }) => void;
+  setTueTamVoice: (active: boolean, progress?: number) => void;
   setIsAutoBellActive: (active: boolean) => void;
   setLanternModalOpen: (open: boolean) => void;
   setLotusMeditation: (active: boolean, phase?: BreathPhaseType, count?: number) => void;
@@ -103,6 +106,8 @@ export interface ZenWebGlCommands {
   drawFortune: () => void;
   talkToTeaMaster: () => void;
   serveTea: () => void;
+  playTueTamVoice: (clipKey?: 'GREETING' | 'SWEEP_START' | 'SWEEP_COMPLETE' | 'AN_LAC') => void;
+  stopTueTamVoice: () => void;
 }
 
 export const useZenBridge = create<ZenBridgeState>((set) => ({
@@ -123,6 +128,8 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
   isAbbotVoiceActive: false,
   abbotVoiceProgress: 0,
   abbotVoiceDuration: { current: '00:00', total: '00:00' },
+  isTueTamVoiceActive: false,
+  tueTamVoiceProgress: 0,
   isAutoBellActive: true,
 
   isLanternModalOpen: false,
@@ -154,6 +161,11 @@ export const useZenBridge = create<ZenBridgeState>((set) => ({
       isAbbotVoiceActive,
       abbotVoiceProgress: abbotVoiceProgress !== undefined ? abbotVoiceProgress : prev.abbotVoiceProgress,
       abbotVoiceDuration: abbotVoiceDuration !== undefined ? abbotVoiceDuration : prev.abbotVoiceDuration,
+    })),
+  setTueTamVoice: (isTueTamVoiceActive, tueTamVoiceProgress) =>
+    set((prev) => ({
+      isTueTamVoiceActive,
+      tueTamVoiceProgress: tueTamVoiceProgress !== undefined ? tueTamVoiceProgress : prev.tueTamVoiceProgress,
     })),
   setIsAutoBellActive: (isAutoBellActive) => set({ isAutoBellActive }),
   setLanternModalOpen: (isLanternModalOpen) => set({ isLanternModalOpen }),
@@ -193,6 +205,8 @@ const defaultCommands: ZenWebGlCommands = {
   drawFortune: () => {},
   talkToTeaMaster: () => {},
   serveTea: () => {},
+  playTueTamVoice: () => {},
+  stopTueTamVoice: () => {},
 };
 
 class ZenWorldBridgeManager {

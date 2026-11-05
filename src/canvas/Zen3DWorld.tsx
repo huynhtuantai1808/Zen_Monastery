@@ -6,6 +6,7 @@ import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
 import { loadChibiCharacter } from '../services/characterLoader';
 import { preloadMonkVoiceAudio, stopAbbotVoice } from '../services/monkVoiceService';
+import { preloadTueTamVoice, speakTueTamVoice, stopTueTamVoice } from '../services/tueTamVoiceService';
 import { useZenBridge, zenWorldBridge } from './bridge/zenWorldBridge';
 import { Zen3DOverlays } from './Zen3DOverlays';
 import { BUDDHIST_FORTUNE_LOTS } from '../data/buddhistFortuneLots';
@@ -1031,6 +1032,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const handleDirectionStart = (dir: 'up' | 'down' | 'left' | 'right') => {
     keysPressedRef.current[dir] = true;
     tourNavQueueRef.current = [];
+    stopTueTamVoice();
+    useZenBridge.getState().setTueTamVoice(false, 0);
     if (isTourPlayingRef.current) {
       isTourPlayingRef.current = false;
       useZenBridge.getState().setIsTourPlaying(false);
@@ -1118,6 +1121,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const container = mountRef.current;
     if (!container) return;
 
+    // Nạp sẵn giọng đọc Chú Tiểu Tuệ Tâm vào bộ nhớ đệm Web Audio
+    preloadTueTamVoice().catch(() => {});
+
     // Register WebGL command bus on bridge
     const unregisterBridge = zenWorldBridge.registerCommands({
       navigateToZone,
@@ -1155,6 +1161,20 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       drawFortune: handleXinXam,
       talkToTeaMaster: handleTalkToTeaMaster,
       serveTea: handleXinChenTraSen,
+      playTueTamVoice: (clipKey = 'GREETING') => {
+        speakTueTamVoice(undefined, clipKey, {
+          onStart: () => useZenBridge.getState().setTueTamVoice(true, 0),
+          onEnd: () => useZenBridge.getState().setTueTamVoice(false, 100),
+          onTimeUpdate: (cur, dur) => {
+            const pct = dur > 0 ? (cur / dur) * 100 : 0;
+            useZenBridge.getState().setTueTamVoice(true, pct);
+          }
+        });
+      },
+      stopTueTamVoice: () => {
+        stopTueTamVoice();
+        useZenBridge.getState().setTueTamVoice(false, 0);
+      },
     });
 
     const width = container.clientWidth || window.innerWidth;
@@ -2433,6 +2453,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         const floorY = getTerrainFloorElevation(resolved.x, resolved.z, currentPy);
 
         tourNavQueueRef.current = [];
+        stopTueTamVoice();
+        useZenBridge.getState().setTueTamVoice(false, 0);
         if (isTourPlayingRef.current) {
           isTourPlayingRef.current = false;
           useZenBridge.getState().setIsTourPlaying(false);
@@ -2954,7 +2976,6 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               actionsList.push({
                 title: 'Trò Chuyện Với Chú Tiểu Tuệ Tâm',
                 action: () => {
-                  soundEngine.playWindChime();
                   p.onAddMerit(15, 50, 40, '🙏 Đàm Đạo Cùng Chú Tiểu Tuệ Tâm');
                   useZenBridge.getState().setTeaNpcDialogue({
                     speaker: 'Chú Tiểu Tuệ Tâm',
@@ -2962,6 +2983,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
                     avatar: '🧹',
                     text: 'A Di Đà Phật! Đệ tử đang quét dọn lá đa rụng trước sân Chánh Điện để giữ gìn cảnh chùa thanh tịnh.\n\nSư Phụ thường dạy: "Quét sạch bụi trần, tâm tự an". Kính chúc thí chủ thân tâm an lạc!',
                     gatha: '📜 Kệ Quét Lá:\n"Quét sân sớm mai thanh tịnh lòng,\nLá đa rơi rụng cuốn trôi dòng.\nMỗi nhát chổi đưa tâm chánh niệm,\nBụi trần dứt sạch, tánh chân không."'
+                  });
+                  speakTueTamVoice(undefined, 'GREETING', {
+                    onStart: () => useZenBridge.getState().setTueTamVoice(true, 0),
+                    onEnd: () => useZenBridge.getState().setTueTamVoice(false, 100),
+                    onTimeUpdate: (cur, dur) => {
+                      const pct = dur > 0 ? (cur / dur) * 100 : 0;
+                      useZenBridge.getState().setTueTamVoice(true, pct);
+                    }
                   });
                 },
                 icon: '🙏'

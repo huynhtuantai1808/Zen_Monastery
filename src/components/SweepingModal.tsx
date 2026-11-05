@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Feather, AlertCircle, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Feather, AlertCircle, X, Volume2 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ZenCharacterSprite } from './ZenCharacterSprite';
 import { soundEngine } from '../services/audioEngine';
+import { speakTueTamVoice, stopTueTamVoice } from '../services/tueTamVoiceService';
 
 interface Leaf {
   id: number;
@@ -46,6 +47,24 @@ export const SweepingModal: React.FC<SweepingModalProps> = ({
   const [calmCombo, setCalmCombo] = useState<number>(0);
   const [isSweepingAnim, setIsSweepingAnim] = useState<boolean>(false);
   const lastSweepTimeRef = useRef<number>(0);
+  const hasSpokenWelcomeRef = useRef<boolean>(false);
+  const hasSpokenCompleteRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (!hasSpokenWelcomeRef.current) {
+        hasSpokenWelcomeRef.current = true;
+        speakTueTamVoice(undefined, 'SWEEP_START');
+      }
+    } else {
+      hasSpokenWelcomeRef.current = false;
+      hasSpokenCompleteRef.current = false;
+      stopTueTamVoice();
+    }
+    return () => {
+      stopTueTamVoice();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -91,10 +110,16 @@ export const SweepingModal: React.FC<SweepingModalProps> = ({
 
     soundEngine.playBroomSweep();
     setRushMeter((prev) => Math.max(0, prev - 15));
-    setCalmCombo((prev) => prev + 1);
+    const nextCombo = calmCombo + 1;
+    setCalmCombo(nextCombo);
 
-    const bonus = Math.min(15, calmCombo * 2);
-    onAddMerit(15 + bonus, clientX, clientY, calmCombo > 2 ? `✨ Điềm tĩnh +${15 + bonus}` : undefined);
+    if (nextCombo >= 5 && !hasSpokenCompleteRef.current) {
+      hasSpokenCompleteRef.current = true;
+      speakTueTamVoice(undefined, 'SWEEP_COMPLETE');
+    }
+
+    const bonus = Math.min(15, nextCombo * 2);
+    onAddMerit(15 + bonus, clientX, clientY, nextCombo > 2 ? `✨ Điềm tĩnh +${15 + bonus}` : undefined);
 
     setLeaves((prev) => prev.filter((l) => l.id !== leaf.id));
 
@@ -120,8 +145,18 @@ export const SweepingModal: React.FC<SweepingModalProps> = ({
           <div className="flex items-center gap-2 text-amber-200 font-serif font-bold text-sm">
             <Feather className="w-4 h-4 text-amber-400" />
             <span>Quét Lá Đa Chánh Niệm</span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 hidden sm:inline-flex items-center gap-1 font-normal">
+              <Volume2 className="w-3 h-3 text-amber-400" />
+              <span>Chú Tiểu Tuệ Tâm đồng hành</span>
+            </span>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-stone-400 hover:text-stone-200 hover:bg-stone-800">
+          <button
+            onClick={() => {
+              stopTueTamVoice();
+              onClose();
+            }}
+            className="p-1 rounded-lg text-stone-400 hover:text-stone-200 hover:bg-stone-800 cursor-pointer"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>

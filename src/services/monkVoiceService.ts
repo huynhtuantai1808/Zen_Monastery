@@ -21,6 +21,11 @@ interface VoiceOptions {
 let monkAudio: HTMLAudioElement | null = null;
 let currentOptions: VoiceOptions | null = null;
 let isPlayingInternal = false;
+let onBeforeSpeakAbbot: (() => void) | null = null;
+
+export function setOnBeforeSpeakAbbot(fn: (() => void) | null): void {
+  onBeforeSpeakAbbot = fn;
+}
 
 // Triệt tiêu ngay lập tức bất kỳ giọng robot tiếng Anh nào còn đọng lại trong bộ nhớ trình duyệt
 export function cancelLegacySpeechSynthesis(): void {
@@ -156,6 +161,9 @@ export function speakAbbotVoice(
 ): () => void {
   // Dập tắt ngay lập tức bất kỳ giọng robot tiếng Anh nào của SpeechSynthesis
   cancelLegacySpeechSynthesis();
+
+  // Ngắt giọng các thị giả/chú tiểu khác nếu đang phát
+  onBeforeSpeakAbbot?.();
 
   // Dừng luồng phát trước nếu có
   currentOptions = null;
