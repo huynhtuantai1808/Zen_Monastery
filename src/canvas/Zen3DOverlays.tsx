@@ -632,8 +632,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
         <button
           onClick={() => zenWorldBridge.commands.toggleTour()}
           className={`px-3.5 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-2 transition-all cursor-pointer border ${isTourPlaying
-              ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-300 ring-2 ring-pink-400/50 shadow-[0_0_18px_rgba(244,114,182,0.5)]'
-              : 'anime-glass-panel hover:bg-white/10 text-pink-200 border-pink-400/40 backdrop-blur-md'
+            ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-300 ring-2 ring-pink-400/50 shadow-[0_0_18px_rgba(244,114,182,0.5)]'
+            : 'anime-glass-panel hover:bg-white/10 text-pink-200 border-pink-400/40 backdrop-blur-md'
             }`}
           title="Tự động dẫn nhân vật vãn cảnh qua 14 danh thắng chùa"
         >
@@ -680,8 +680,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
             );
           }}
           className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${cameraMode === 'ON_RAINY_DAYS'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 ring-2 ring-emerald-400/50 shadow-[0_0_16px_rgba(52,211,153,0.5)]'
-              : 'anime-glass-panel hover:bg-white/10 text-emerald-300 border-emerald-500/40'
+            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 ring-2 ring-emerald-400/50 shadow-[0_0_16px_rgba(52,211,153,0.5)]'
+            : 'anime-glass-panel hover:bg-white/10 text-emerald-300 border-emerald-500/40'
             }`}
           title="Bật giao diện & góc nhìn nghệ thuật 'On Rainy Days'"
         >
@@ -702,8 +702,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
           onClick={() => zenWorldBridge.commands.triggerIncenseBow()}
           disabled={isIncenseBowing}
           className={`px-3 py-2 rounded-2xl font-heading text-xs font-black shadow-xl flex items-center gap-1.5 transition-all cursor-pointer border ${isIncenseBowing
-              ? 'bg-amber-500 text-white border-yellow-300 ring-2 ring-yellow-400/50 shadow-[0_0_16px_rgba(245,158,11,0.6)] animate-pulse'
-              : 'anime-glass-panel hover:bg-amber-500/20 text-amber-300 hover:text-white border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105'
+            ? 'bg-amber-500 text-white border-yellow-300 ring-2 ring-yellow-400/50 shadow-[0_0_16px_rgba(245,158,11,0.6)] animate-pulse'
+            : 'anime-glass-panel hover:bg-amber-500/20 text-amber-300 hover:text-white border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105'
             }`}
           title="Thắp 3 nén nhang trầm và thành kính cúi mình vái lạy 3 bái dâng Phật"
         >
@@ -722,8 +722,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
           onClick={() => zenWorldBridge.commands.triggerIncenseBow()}
           disabled={isIncenseBowing}
           className={`px-3.5 py-2.5 rounded-2xl font-heading font-black text-xs sm:text-sm flex items-center gap-2 shadow-2xl transition-all cursor-pointer backdrop-blur-md border ${isIncenseBowing
-              ? 'bg-amber-500/90 text-white border-yellow-200 ring-4 ring-yellow-400/50 shadow-[0_0_24px_rgba(245,158,11,0.8)] animate-pulse scale-105'
-              : 'bg-gradient-to-r from-amber-600/90 via-orange-500/90 to-yellow-500/90 hover:from-amber-500 hover:to-yellow-400 text-white border-yellow-300/70 shadow-[0_0_20px_rgba(245,158,11,0.45)] hover:scale-105 active:scale-95'
+            ? 'bg-amber-500/90 text-white border-yellow-200 ring-4 ring-yellow-400/50 shadow-[0_0_24px_rgba(245,158,11,0.8)] animate-pulse scale-105'
+            : 'bg-gradient-to-r from-amber-600/90 via-orange-500/90 to-yellow-500/90 hover:from-amber-500 hover:to-yellow-400 text-white border-yellow-300/70 shadow-[0_0_20px_rgba(245,158,11,0.45)] hover:scale-105 active:scale-95'
             }`}
           title="Thắp 3 nén nhang trầm và thành kính cúi mình vái lạy 3 bái dâng Phật"
         >
@@ -790,11 +790,10 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
         <button
           type="button"
           onClick={toggleSprint}
-          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 cursor-pointer shadow-xl border ${
-            isSprintActive
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 cursor-pointer shadow-xl border ${isSprintActive
               ? 'bg-amber-500/40 border-amber-300 text-amber-200 shadow-amber-500/30 ring-2 ring-amber-400/50'
               : 'anime-glass-panel border-pink-400/40 text-pink-200 hover:bg-pink-500/30'
-          }`}
+            }`}
           title={isSprintActive ? 'Chế độ Chạy Nhanh (8.8 m/s) ĐANG BẬT - Nhấn để đi bộ' : 'Bật chế độ Chạy Nhanh Sprint (8.8 m/s)'}
         >
           <span className="text-base sm:text-lg">🏃</span>
@@ -819,8 +818,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
                   onClick={() => zenWorldBridge.commands.navigateToZone(zone)}
                   title={`${zone.name} (${zone.subtitle})`}
                   className={`px-3 py-1.5 rounded-xl font-heading text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${isHere
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black shadow-[0_0_15px_rgba(244,114,182,0.6)] border border-white/50 scale-105'
-                      : 'bg-purple-950/40 hover:bg-purple-900/50 border border-pink-400/20 text-purple-200 hover:text-white'
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black shadow-[0_0_15px_rgba(244,114,182,0.6)] border border-white/50 scale-105'
+                    : 'bg-purple-950/40 hover:bg-purple-900/50 border border-pink-400/20 text-purple-200 hover:text-white'
                     }`}
                 >
                   <span>{zone.icon}</span>
@@ -838,8 +837,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
             onClick={onToggleNightMode}
             title="Bật/Tắt chế độ Ánh Sáng Đèn Lồng Ban Đêm"
             className={`p-2.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer border shrink-0 ${isNightMode
-                ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]'
-                : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
+              ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-purple-950 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.5)]'
+              : 'text-purple-200 hover:bg-white/10 border-pink-400/30'
               }`}
           >
             {isNightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -884,8 +883,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
                     key={lantern.id}
                     onClick={() => setSelectedLanternType(lantern.id)}
                     className={`p-3 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center gap-1.5 ${selectedLanternType === lantern.id
-                        ? `${lantern.color} border-2 shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105`
-                        : 'border-white/10 hover:border-white/30 bg-black/30'
+                      ? `${lantern.color} border-2 shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105`
+                      : 'border-white/10 hover:border-white/30 bg-black/30'
                       }`}
                   >
                     <span className="text-2xl">{lantern.icon}</span>
@@ -911,8 +910,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
                     key={idx}
                     onClick={() => setCustomWishText(wish)}
                     className={`w-full text-left p-2.5 rounded-xl text-xs transition cursor-pointer border ${customWishText === wish
-                        ? 'bg-pink-500/30 border-pink-400 text-white font-bold'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-stone-300'
+                      ? 'bg-pink-500/30 border-pink-400 text-white font-bold'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 text-stone-300'
                       }`}
                   >
                     ✨ {wish}
@@ -970,12 +969,12 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
           <div className="flex flex-col items-center justify-center py-4">
             <div
               className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-1000 ${meditationBreathPhase === 'IN'
-                  ? 'scale-110 border-emerald-400 bg-emerald-500/20 shadow-[0_0_25px_rgba(52,211,153,0.6)]'
-                  : meditationBreathPhase === 'HOLD'
-                    ? 'scale-105 border-teal-300 bg-teal-500/30 shadow-[0_0_30px_rgba(45,212,191,0.7)]'
-                    : meditationBreathPhase === 'OUT'
-                      ? 'scale-90 border-pink-400 bg-pink-500/20 shadow-[0_0_20px_rgba(244,114,182,0.5)]'
-                      : 'scale-95 border-stone-400 bg-stone-500/10'
+                ? 'scale-110 border-emerald-400 bg-emerald-500/20 shadow-[0_0_25px_rgba(52,211,153,0.6)]'
+                : meditationBreathPhase === 'HOLD'
+                  ? 'scale-105 border-teal-300 bg-teal-500/30 shadow-[0_0_30px_rgba(45,212,191,0.7)]'
+                  : meditationBreathPhase === 'OUT'
+                    ? 'scale-90 border-pink-400 bg-pink-500/20 shadow-[0_0_20px_rgba(244,114,182,0.5)]'
+                    : 'scale-95 border-stone-400 bg-stone-500/10'
                 }`}
             >
               <span className="text-xs font-black font-heading text-center px-2">
