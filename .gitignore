@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 specs
+specs\*
+spec\001-responsive-player-movement
 .agents
 .specify
 dist
