@@ -530,3 +530,4 @@ export function getTargetMeditationCushion(playerX: number, playerZ: number): { 
   }
   return closest;
 }
+

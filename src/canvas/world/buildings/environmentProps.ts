@@ -469,3 +469,4 @@ export function createStylizedSilkLantern(matSilk: THREE.Material): THREE.Group 
 
   return g;
 }
+

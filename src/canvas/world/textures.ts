@@ -678,3 +678,4 @@ export function createTueTinhFaceTexture(): THREE.CanvasTexture {
   tex.wrapT = THREE.ClampToEdgeWrapping;
   return tex;
 }
+
