@@ -66,17 +66,32 @@ export const MONK_COLLISION_RADIUS = 0.45;
 
 // Comprehensive monastery collision geometry (Circles & AABB Boxes)
 export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
-  // 1. Cổng Tam Quan (Zone 1 Gate) - 4 stone pillars + lanterns & flagpoles (3 open gates)
-  { type: 'circle', x: -6.5, z: 66.0, r: 0.85, name: 'Gate Pillar 1' },
-  { type: 'circle', x: -2.2, z: 66.0, r: 0.85, name: 'Gate Pillar 2' },
-  { type: 'circle', x: 2.2, z: 66.0, r: 0.85, name: 'Gate Pillar 3' },
-  { type: 'circle', x: 6.5, z: 66.0, r: 0.85, name: 'Gate Pillar 4' },
-  { type: 'circle', x: -6.5, z: 67.6, r: 0.7, name: 'Gate Lantern 1' },
-  { type: 'circle', x: -2.2, z: 67.6, r: 0.7, name: 'Gate Lantern 2' },
-  { type: 'circle', x: 2.2, z: 67.6, r: 0.7, name: 'Gate Lantern 3' },
-  { type: 'circle', x: 6.5, z: 67.6, r: 0.7, name: 'Gate Lantern 4' },
-  { type: 'circle', x: -7.2, z: 67.2, r: 0.4, name: 'Flagpole L' },
-  { type: 'circle', x: 7.2, z: 67.2, r: 0.4, name: 'Flagpole R' },
+  // 0. TƯỜNG BAO KHUÔN VIÊN SƠN TỰ (MONASTERY PERIMETER BOUNDARY WALLS: 104m x 124m)
+  // Tường Nam cánh Tây (South Wall West: X từ -52 đến -8, Z: 66)
+  { type: 'box', minX: -53.2, maxX: -8.0, minZ: 65.3, maxZ: 66.8, maxY: 4.5, name: 'South Perimeter Wall West' },
+  // Tường Nam cánh Đông (South Wall East: X từ 8 đến 52, Z: 66)
+  { type: 'box', minX: 8.0, maxX: 53.2, minZ: 65.3, maxZ: 66.8, maxY: 4.5, name: 'South Perimeter Wall East' },
+  // Tường Tây (West Wall: X = -52, Z từ 66 đến -58)
+  { type: 'box', minX: -53.2, maxX: -51.3, minZ: -59.2, maxZ: 66.8, maxY: 4.5, name: 'West Perimeter Wall' },
+  // Tường Bắc (North Wall: Z = -58, X từ -52 đến 52)
+  { type: 'box', minX: -53.2, maxX: 53.2, minZ: -59.2, maxZ: -57.3, maxY: 4.5, name: 'North Perimeter Wall' },
+  // Tường Đông (East Wall: X = 52, Z từ -58 đến 66)
+  { type: 'box', minX: 51.3, maxX: 53.2, minZ: -59.2, maxZ: 66.8, maxY: 4.5, name: 'East Perimeter Wall' },
+
+  // 1. CỔNG TAM QUAN 3 GIAN CỔ TRUYỀN (Zone 1 Gate: 4 stone pillars + 3 open portals)
+  // 4 trụ đá hoa cương bát giác Cổng Tam Quan (khoảng mở thông thủy > 3.5m cho mỗi gian)
+  { type: 'circle', x: -7.2, z: 66.0, r: 0.72, name: 'Gate Pillar West Outer' },
+  { type: 'circle', x: -2.4, z: 66.0, r: 0.72, name: 'Gate Pillar West Inner' },
+  { type: 'circle', x: 2.4, z: 66.0, r: 0.72, name: 'Gate Pillar East Inner' },
+  { type: 'circle', x: 7.2, z: 66.0, r: 0.72, name: 'Gate Pillar East Outer' },
+  // Đôi tượng linh thú / sư tử đá chầu bậc tam cấp lối vào chính
+  { type: 'circle', x: -3.8, z: 69.2, r: 0.65, name: 'Guardian Lion Left' },
+  { type: 'circle', x: 3.8, z: 69.2, r: 0.65, name: 'Guardian Lion Right' },
+  // Đôi đèn đá cổ kính mặt tiền cổng
+  { type: 'circle', x: -8.2, z: 67.8, r: 0.6, name: 'Gate Stone Lantern L' },
+  { type: 'circle', x: 8.2, z: 67.8, r: 0.6, name: 'Gate Stone Lantern R' },
+  { type: 'circle', x: -8.6, z: 66.0, r: 0.35, name: 'Flagpole L' },
+  { type: 'circle', x: 8.6, z: 66.0, r: 0.35, name: 'Flagpole R' },
 
   // 2. Sân Chùa (Zone 2 Courtyard) - Bronze Censer, Bonsai pots & Stone lanterns
   { type: 'circle', x: 0.0, z: 22.0, r: 2.2, name: 'Bronze Censer' },

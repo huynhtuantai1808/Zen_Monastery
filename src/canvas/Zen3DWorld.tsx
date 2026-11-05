@@ -78,6 +78,7 @@ import { createAuthenticDaiHungBaoDien } from './world/buildings/mainHall';
 import { createAuthenticJadePagoda } from './world/buildings/jadePagoda';
 import { createAuthenticBellTower } from './world/buildings/bellTower';
 import { createAuthenticTeaPavilion } from './world/buildings/teaPavilion';
+import { createRedesignedTempleGate, createMonasteryPerimeterWalls, type PerimeterWallMaterials } from './world/buildings/perimeterWall';
 
 // CẤU HÌNH ĐỘNG HỌC DI CHUYỂN NHÂN VẬT CHÍNH (RESPONSIVE MOVEMENT CONFIG)
 const BASE_SPEED = 5.8; // m/s - Vận tốc đi bộ cơ bản (+61% so với 3.6 cũ)
@@ -1326,43 +1327,22 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     scene.add(cloudGroup);
 
 
-    // [ZONE 1: CỔNG TAM QUAN]
-    const gateGroup = new THREE.Group();
-    gateGroup.position.set(0, 0, 66);
-    for (const px of [-6.5, -2.2, 2.2, 6.5]) {
-      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 7.2, 12), matStoneGrey);
-      col.position.set(px, 3.6, 0);
-      col.castShadow = true;
-      gateGroup.add(col);
+    // [ZONE 1: CỔNG TAM QUAN 3 GIAN CỔ TRUYỀN & TƯỜNG BAO SƠN TỰ]
+    const perimeterMaterials: PerimeterWallMaterials = {
+      matStoneGrey,
+      matRoofTile,
+      matBrick: matTileBrick,
+      matWoodWarm,
+      matDarkTimber,
+      matGold,
+      matLanternRed,
+    };
 
-      const lan = createStylizedStoneLantern(matStoneGrey);
-      lan.position.set(px, 0.35, 1.6);
-      gateGroup.add(lan);
-    }
+    const redesignedGate = createRedesignedTempleGate(perimeterMaterials);
+    scene.add(redesignedGate);
 
-    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 0.3), matGold);
-    signBoard.position.set(0, 5.8, 0);
-    gateGroup.add(signBoard);
-
-    const gateRoof1 = createStylizedCurvedRoof(17, 7.2, matRoofTile);
-    gateRoof1.position.set(0, 7.8, 0);
-    gateGroup.add(gateRoof1);
-
-    const gateRoof2 = createStylizedCurvedRoof(11, 5.2, matRoofTile);
-    gateRoof2.position.set(0, 9.8, 0);
-    gateGroup.add(gateRoof2);
-
-    // Fluttering Buddhist flags
-    for (const fx of [-7.2, 7.2]) {
-      const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 9.0, 8), matWoodWarm);
-      flagPole.position.set(fx, 4.5, 1.2);
-      gateGroup.add(flagPole);
-
-      const flag = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.4, 1.8), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 }));
-      flag.position.set(fx, 8.2, 2.0);
-      gateGroup.add(flag);
-    }
-    scene.add(gateGroup);
+    const monasteryPerimeterWalls = createMonasteryPerimeterWalls(perimeterMaterials);
+    scene.add(monasteryPerimeterWalls);
 
     // [ZONE 2: SÂN CHÙA & ĐẠI LƯ HƯƠNG]
     const courtyardGroup = new THREE.Group();
