@@ -28,6 +28,7 @@ interface Zen3DWorldProps {
 
 import type {
   TempleZoneInfo,
+  TempleZoneCamera,
   CircleObstacle,
   BoxObstacle,
   MonasteryObstacle
@@ -88,7 +89,7 @@ const QUICK_TURN = 36.0; // Gia tốc xoay tăng cường khi góc đổi chiề
 const STRIDE_STEP_DIST = 0.75; // Mét / bước chân thực tế cho âm thanh & bụi chân
 const CLICK_ARRIVE_DIST = 0.18; // Bán kính tới đích nhấp chuột để phanh dừng dứt khoát
 
-export type { TempleZoneInfo, CircleObstacle, BoxObstacle, MonasteryObstacle, TeaServerPatrolWaypoint };
+export type { TempleZoneInfo, TempleZoneCamera, CircleObstacle, BoxObstacle, MonasteryObstacle, TeaServerPatrolWaypoint };
 export {
   MONK_COLLISION_RADIUS,
   MONASTERY_OBSTACLES,
@@ -199,6 +200,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const tourIndexRef = useRef<number>(0);
   const tourWaitRef = useRef<number>(0);
   const isTourPlayingRef = useRef<boolean>(false);
+  const tourNavQueueRef = useRef<Array<{ x: number; y?: number; z: number }>>([]);
 
   // Character 3D Rig Refs
   const monkGroupRef = useRef<THREE.Group | null>(null);
@@ -946,24 +948,46 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     }
   };
 
-  // Navigate character to a specific zone (Silent on click)
-  const navigateToZone = (zone: TempleZoneInfo) => {
-    const floorY = getTerrainFloorElevation(zone.pos.x, zone.pos.z, zone.pos.y ?? 0.42);
-    setTargetPos(zone.pos.x, floorY, zone.pos.z);
-    useZenBridge.getState().setIsTourPlaying(false);
-    isTourPlayingRef.current = false;
+  const startNavigatingToZone = (targetIdx: number, isAutoTour: boolean) => {
+    const targetZone = TEMPLE_ZONES[targetIdx];
+    if (!targetZone) return;
 
-    if (zone.actionKey === 'NIGHT') {
-      setIsNightMode(true);
-    } else if (zone.actionKey === 'AERIAL') {
-      cameraDistRef.current = 32.0;
-      cameraPitchRef.current = 0.95;
-    }
+    tourIndexRef.current = targetIdx;
+    useZenBridge.getState().setIsTourPlaying(isAutoTour, targetIdx);
+    isTourPlayingRef.current = isAutoTour;
+    tourWaitRef.current = 0;
+
+    const wps: Array<{ x: number; y?: number; z: number }> = targetZone.navWaypoints && targetZone.navWaypoints.length > 0
+      ? targetZone.navWaypoints.map((pt) => ({
+          x: pt.x,
+          z: pt.z,
+          y: getTerrainFloorElevation(pt.x, pt.z, targetZone.pos.y ?? 0.42),
+        }))
+      : [{
+          x: targetZone.pos.x,
+          z: targetZone.pos.z,
+          y: getTerrainFloorElevation(targetZone.pos.x, targetZone.pos.z, targetZone.pos.y ?? 0.42),
+        }];
+
+    tourNavQueueRef.current = [...wps];
+    const firstWp = tourNavQueueRef.current.shift()!;
+    setTargetPos(firstWp.x, firstWp.y ?? 0.42, firstWp.z);
 
     if (destinationMarkerRef.current) {
-      destinationMarkerRef.current.position.set(zone.pos.x, floorY + 0.08, zone.pos.z);
+      destinationMarkerRef.current.position.set(
+        targetZone.pos.x,
+        (targetZone.pos.y ?? 0.42) + 0.08,
+        targetZone.pos.z
+      );
       destinationMarkerRef.current.visible = true;
     }
+  };
+
+  // Navigate character to a specific zone (Silent on click)
+  const navigateToZone = (zone: TempleZoneInfo) => {
+    const idx = TEMPLE_ZONES.findIndex((z) => z.id === zone.id);
+    const targetIdx = idx !== -1 ? idx : 0;
+    startNavigatingToZone(targetIdx, false);
   };
 
   const toggleTour = () => {
@@ -971,22 +995,18 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     if (isPlaying) {
       useZenBridge.getState().setIsTourPlaying(false);
       isTourPlayingRef.current = false;
+      tourNavQueueRef.current = [];
+      clearTargetPos();
     } else {
-      const nextIdx = (tourIndexRef.current + 1) % TEMPLE_ZONES.length;
-      tourIndexRef.current = nextIdx;
-      useZenBridge.getState().setIsTourPlaying(true, nextIdx);
-      isTourPlayingRef.current = true;
-      const nextZone = TEMPLE_ZONES[nextIdx];
-      const floorY = getTerrainFloorElevation(nextZone.pos.x, nextZone.pos.z, nextZone.pos.y ?? 0.42);
-      setTargetPos(nextZone.pos.x, floorY, nextZone.pos.z);
-      if (destinationMarkerRef.current) {
-        destinationMarkerRef.current.position.set(nextZone.pos.x, floorY + 0.08, nextZone.pos.z);
-        destinationMarkerRef.current.visible = true;
-      }
+      const currentIdx = tourIndexRef.current >= 0 && tourIndexRef.current < TEMPLE_ZONES.length
+        ? tourIndexRef.current
+        : 0;
+      startNavigatingToZone(currentIdx, true);
     }
   };
 
   const restartFromGate = () => {
+    tourNavQueueRef.current = [];
     playerPosRef.current = { x: 0, y: 0.42, z: 80 };
     setTargetPos(0, 0.42, 66);
     tourIndexRef.current = 0;
@@ -1010,6 +1030,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
   const handleDirectionStart = (dir: 'up' | 'down' | 'left' | 'right') => {
     keysPressedRef.current[dir] = true;
+    tourNavQueueRef.current = [];
+    if (isTourPlayingRef.current) {
+      isTourPlayingRef.current = false;
+      useZenBridge.getState().setIsTourPlaying(false);
+    }
     clearTargetPos();
     if (destinationMarkerRef.current) destinationMarkerRef.current.visible = false;
   };
@@ -2407,6 +2432,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         const resolved = resolveMonkCollision(rawTargetX, currentPy, rawTargetZ);
         const floorY = getTerrainFloorElevation(resolved.x, resolved.z, currentPy);
 
+        tourNavQueueRef.current = [];
+        if (isTourPlayingRef.current) {
+          isTourPlayingRef.current = false;
+          useZenBridge.getState().setIsTourPlaying(false);
+        }
         setTargetPos(resolved.x, floorY, resolved.z);
         stuckCountRef.current = 0;
         if (monkPoseRef.current !== 'STAND') {
@@ -2620,13 +2650,64 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             targetVx = (dx / dist) * clickSpeed;
             targetVz = (dz / dist) * clickSpeed;
           } else {
-            // Arrived cleanly at target
-            clearTargetPos();
-            if (destinationMarkerRef.current) {
-              destinationMarkerRef.current.visible = false;
-            }
-            if (isTourPlayingRef.current && tourWaitRef.current === 0) {
-              tourWaitRef.current = 140;
+            // Arrived at current target position
+            if (tourNavQueueRef.current.length > 0) {
+              const nextWp = tourNavQueueRef.current.shift()!;
+              const targetY = nextWp.y ?? getTerrainFloorElevation(nextWp.x, nextWp.z, currentP.y);
+              setTargetPos(nextWp.x, targetY, nextWp.z);
+            } else {
+              // Arrived cleanly at final scenic viewpoint!
+              clearTargetPos();
+              if (destinationMarkerRef.current) {
+                destinationMarkerRef.current.visible = false;
+              }
+
+              const currentZone = TEMPLE_ZONES[tourIndexRef.current];
+              if (currentZone) {
+                // 1. Cinematic Camera Framing
+                if (currentZone.camera) {
+                  cameraYawRef.current = currentZone.camera.yaw;
+                  cameraPitchRef.current = currentZone.camera.pitch;
+                  cameraDistRef.current = currentZone.camera.dist;
+                  if (currentZone.camera.mode && currentZone.camera.mode !== cameraModeRef.current) {
+                    cameraModeRef.current = currentZone.camera.mode;
+                    useZenBridge.getState().setCameraMode(currentZone.camera.mode);
+                  }
+                }
+
+                // 2. Character Pose & Orientation
+                if (currentZone.tourAction) {
+                  monkPoseRef.current = currentZone.tourAction;
+                  useZenBridge.getState().setMonkPose(currentZone.tourAction);
+                }
+                if (monkGroupRef.current && currentZone.facingAngle !== undefined) {
+                  monkGroupRef.current.rotation.y = currentZone.facingAngle;
+                }
+
+                // 3. Atmospheric Audio
+                if (currentZone.tourSound === 'bell') {
+                  soundEngine.playBell();
+                } else if (currentZone.tourSound === 'bowl') {
+                  soundEngine.playSingingBowl();
+                } else if (currentZone.tourSound === 'woodfish') {
+                  soundEngine.playWoodenFish();
+                } else if (currentZone.tourSound === 'chime') {
+                  soundEngine.playWindChime();
+                } else if (currentZone.tourSound === 'tea') {
+                  soundEngine.playTeaPour();
+                }
+
+                if (currentZone.actionKey === 'NIGHT') {
+                  setIsNightMode(true);
+                }
+
+                useZenBridge.getState().setCurrentZone(currentZone);
+                useZenBridge.getState().setZoneBanner(currentZone);
+              }
+
+              if (isTourPlayingRef.current && tourWaitRef.current === 0) {
+                tourWaitRef.current = 240; // 4 seconds of peaceful contemplation
+              }
             }
           }
         }
@@ -3118,14 +3199,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         tourWaitRef.current--;
         if (tourWaitRef.current <= 0) {
           const nextIndex = (tourIndexRef.current + 1) % TEMPLE_ZONES.length;
-          tourIndexRef.current = nextIndex;
-          const targetZone = TEMPLE_ZONES[nextIndex];
-          setTargetPos(targetZone.pos.x, targetZone.pos.y ?? 0.42, targetZone.pos.z);
-
-          if (destinationMarkerRef.current) {
-            destinationMarkerRef.current.position.set(targetZone.pos.x, (targetZone.pos.y || 0) + 0.35, targetZone.pos.z);
-            destinationMarkerRef.current.visible = true;
-          }
+          startNavigatingToZone(nextIndex, true);
         }
       }
 
