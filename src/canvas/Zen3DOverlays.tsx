@@ -862,8 +862,8 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
           type="button"
           onClick={toggleSprint}
           className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 cursor-pointer shadow-xl border ${isSprintActive
-              ? 'bg-amber-500/40 border-amber-300 text-amber-200 shadow-amber-500/30 ring-2 ring-amber-400/50'
-              : 'anime-glass-panel border-pink-400/40 text-pink-200 hover:bg-pink-500/30'
+            ? 'bg-amber-500/40 border-amber-300 text-amber-200 shadow-amber-500/30 ring-2 ring-amber-400/50'
+            : 'anime-glass-panel border-pink-400/40 text-pink-200 hover:bg-pink-500/30'
             }`}
           title={isSprintActive ? 'Chế độ Chạy Nhanh (8.8 m/s) ĐANG BẬT - Nhấn để đi bộ' : 'Bật chế độ Chạy Nhanh Sprint (8.8 m/s)'}
         >

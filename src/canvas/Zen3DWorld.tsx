@@ -960,15 +960,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     const wps: Array<{ x: number; y?: number; z: number }> = targetZone.navWaypoints && targetZone.navWaypoints.length > 0
       ? targetZone.navWaypoints.map((pt) => ({
-          x: pt.x,
-          z: pt.z,
-          y: getTerrainFloorElevation(pt.x, pt.z, targetZone.pos.y ?? 0.42),
-        }))
+        x: pt.x,
+        z: pt.z,
+        y: getTerrainFloorElevation(pt.x, pt.z, targetZone.pos.y ?? 0.42),
+      }))
       : [{
-          x: targetZone.pos.x,
-          z: targetZone.pos.z,
-          y: getTerrainFloorElevation(targetZone.pos.x, targetZone.pos.z, targetZone.pos.y ?? 0.42),
-        }];
+        x: targetZone.pos.x,
+        z: targetZone.pos.z,
+        y: getTerrainFloorElevation(targetZone.pos.x, targetZone.pos.z, targetZone.pos.y ?? 0.42),
+      }];
 
     tourNavQueueRef.current = [...wps];
     const firstWp = tourNavQueueRef.current.shift()!;
@@ -1122,7 +1122,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     if (!container) return;
 
     // Nạp sẵn giọng đọc Chú Tiểu Tuệ Tâm vào bộ nhớ đệm Web Audio
-    preloadTueTamVoice().catch(() => {});
+    preloadTueTamVoice().catch(() => { });
 
     // Register WebGL command bus on bridge
     const unregisterBridge = zenWorldBridge.registerCommands({
