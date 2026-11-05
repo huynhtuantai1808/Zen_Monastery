@@ -125,15 +125,24 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: -26.0, z: -20.0, r: 1.35, name: 'Great Bell of Wisdom' },
   { type: 'box', minX: -26.4, maxX: -25.6, minZ: -18.2, maxZ: -16.8, name: 'Bell Striking Beam' },
 
-  // 5. Hiên Nước & Suối Ngọc (Zone 5 Tatami Deck at X: -38.5 to -26, Z: 26.5 to 45.5)
-  // Outer water stream / pond perimeter
-  { type: 'box', minX: -42.0, maxX: -38.5, minZ: 24.0, maxZ: 48.0, name: 'Pond Outer Edge' },
-  { type: 'box', minX: -38.5, maxX: -24.0, minZ: 45.5, maxZ: 49.0, name: 'Pond North Edge' },
-  { type: 'box', minX: -38.5, maxX: -24.0, minZ: 23.0, maxZ: 26.5, name: 'Pond South Edge' },
-  // Low tea table, cushion & bamboo screen on tatami deck
-  { type: 'box', minX: -34.5, maxX: -31.5, minZ: 33.5, maxZ: 36.5, name: 'Tatami Low Table' },
-  { type: 'circle', x: -33.0, z: 38.5, r: 0.8, name: 'Watermelon Tray Table' },
-  { type: 'circle', x: -28.5, z: 42.0, r: 0.65, name: 'Lotus Water Jar' },
+  // 5. Hồ Sen Linh Chiểu & Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // Cột đá Chùa Một Cột uy nghiêm (ngăn đi xuyên vật thể vào lõi trụ)
+  { type: 'circle', x: -26.0, z: 37.2, r: 1.45, name: 'One Pillar Pagoda Stone Column' },
+  // Lòng hồ sen nước sâu - Vịnh phía Tây cầu đá
+  { type: 'box', minX: -40.5, maxX: -28.0, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin West' },
+  // Lòng hồ sen nước sâu - Vịnh phía Đông cầu đá
+  { type: 'box', minX: -24.0, maxX: -11.8, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin East' },
+  // Vùng nước sâu phía Bắc sau lưng Chùa Một Cột
+  { type: 'box', minX: -40.5, maxX: -11.8, minZ: 38.6, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin North' },
+  // Lan can đá búp sen dọc 2 bên cầu nối ra Chùa Một Cột
+  { type: 'box', minX: -28.3, maxX: -27.5, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing West' },
+  { type: 'box', minX: -24.5, maxX: -23.7, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing East' },
+  // Án thờ & lư hương đá dâng hương tại điểm bắt đầu bước lên cầu
+  { type: 'box', minX: -27.4, maxX: -24.6, minZ: 21.4, maxZ: 22.4, name: 'Lotus Pond Incense Altar Base' },
+  // Bờ kè đá nguyên khối bao bọc chu vi hồ sen (Tây, Bắc, Đông)
+  { type: 'box', minX: -42.0, maxX: -39.5, minZ: 22.0, maxZ: 50.5, name: 'Lotus Pond Outer Wall West' },
+  { type: 'box', minX: -40.5, maxX: -11.5, minZ: 49.2, maxZ: 51.5, name: 'Lotus Pond Outer Wall North' },
+  { type: 'box', minX: -12.5, maxX: -10.0, minZ: 22.0, maxZ: 50.5, name: 'Lotus Pond Outer Wall East' },
 
   // 6. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor at X: 15 to 21, Z: -3 to 30)
   // East wall boundary behind the open corridor

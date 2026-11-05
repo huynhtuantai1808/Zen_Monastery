@@ -72,6 +72,14 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
     'Cầu cho Cha Mẹ bình an, tăng long phước thọ'
   );
   const [isSprintActive, setIsSprintActive] = useState<boolean>(false);
+  const [feedKoiCooldown, setFeedKoiCooldown] = useState<number>(0);
+
+  useEffect(() => {
+    if (feedKoiCooldown > 0) {
+      const timer = setTimeout(() => setFeedKoiCooldown((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedKoiCooldown]);
 
   const toggleSprint = () => {
     setIsSprintActive((prev) => {
@@ -240,9 +248,26 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
         </div>
       )}
 
-      {/* ON RAINY DAYS INTERACTIVE POSE CONTROLLER */}
+      {/* ON RAINY DAYS & LOTUS POND INTERACTIVE CONTROLLER */}
       {isAtPond && (
         <div className="absolute top-18 sm:top-20 right-3 sm:right-6 z-30 pointer-events-auto flex items-center gap-1.5 bg-stone-900/92 backdrop-blur-md p-1.5 rounded-2xl border border-emerald-500/40 shadow-2xl">
+          <button
+            onClick={() => {
+              if (feedKoiCooldown > 0) return;
+              zenWorldBridge.commands.feedKoiFish();
+              setFeedKoiCooldown(3);
+            }}
+            disabled={feedKoiCooldown > 0}
+            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg ${
+              feedKoiCooldown > 0
+                ? 'bg-stone-700/60 text-stone-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-amber-500/30 active:scale-95'
+            }`}
+            title="Rải mồi nuôi dưỡng đàn cá Koi (Hồi chiêu 3s)"
+          >
+            <span>🐟 Cho Cá Ăn {feedKoiCooldown > 0 ? `(${feedKoiCooldown}s)` : ''}</span>
+          </button>
+          <div className="w-[1px] h-5 bg-stone-700 mx-1 hidden sm:block" />
           <span className="text-[11px] font-serif text-emerald-300 px-2 font-bold hidden md:inline">Tư thế:</span>
           <button
             onClick={() => zenWorldBridge.commands.setMonkPose('LIE_DOWN')}

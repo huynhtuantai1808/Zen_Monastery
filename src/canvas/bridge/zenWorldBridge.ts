@@ -110,6 +110,15 @@ export interface ZenWebGlCommands {
   stopTueTamVoice: () => void;
 }
 
+/**
+ * Giao ước tương tác Hồ Sen & Chùa Một Cột
+ */
+export interface LotusPondInteractionContract {
+  feedKoiFish: (originX?: number, originZ?: number) => boolean;
+  lightLotusPondIncense: () => void;
+  releaseLotusLantern: (wishText: string, lanternType: string) => void;
+}
+
 export const useZenBridge = create<ZenBridgeState>((set) => ({
   currentZone: null,
   zoneBanner: null,
