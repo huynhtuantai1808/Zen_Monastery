@@ -68,6 +68,15 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
   const [customWishText, setCustomWishText] = useState<string>(
     'Cầu cho Cha Mẹ bình an, tăng long phước thọ'
   );
+  const [isSprintActive, setIsSprintActive] = useState<boolean>(false);
+
+  const toggleSprint = () => {
+    setIsSprintActive((prev) => {
+      const next = !prev;
+      zenWorldBridge.commands.setSprintMode(next);
+      return next;
+    });
+  };
 
   const handleDrawFortune = () => {
     zenWorldBridge.commands.drawFortune();
@@ -723,52 +732,73 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
         </button>
       </div>
 
-      {/* ON-SCREEN DIRECTIONAL D-PAD CONTROLLER (Direct WebGL Input Bridge) */}
-      <div className="absolute bottom-20 sm:bottom-18 left-3 sm:left-6 z-30 pointer-events-auto flex flex-col items-center">
-        <button
-          onPointerDown={() => zenWorldBridge.commands.setMovementDirection('up', true)}
-          onPointerUp={() => zenWorldBridge.commands.setMovementDirection('up', false)}
-          onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('up', false)}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-          title="Tiến thẳng theo hướng nhìn (W hoặc Mũi tên lên)"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
-
-        <div className="flex items-center gap-1 sm:gap-1.5 my-1">
+      {/* ON-SCREEN DIRECTIONAL D-PAD CONTROLLER & SPRINT TOGGLE (Direct WebGL Input Bridge) */}
+      <div className="absolute bottom-20 sm:bottom-18 left-3 sm:left-6 z-30 pointer-events-auto flex items-end gap-2">
+        <div className="flex flex-col items-center">
           <button
-            onPointerDown={() => zenWorldBridge.commands.setMovementDirection('left', true)}
-            onPointerUp={() => zenWorldBridge.commands.setMovementDirection('left', false)}
-            onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('left', false)}
+            type="button"
+            onPointerDown={() => zenWorldBridge.commands.setMovementDirection('up', true)}
+            onPointerUp={() => zenWorldBridge.commands.setMovementDirection('up', false)}
+            onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('up', false)}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-            title="Rẽ trái (A hoặc Mũi tên trái)"
+            title="Tiến thẳng theo hướng nhìn (W hoặc Mũi tên lên)"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronUp className="w-6 h-6" />
           </button>
 
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-950/60 border border-pink-400/30 flex items-center justify-center text-pink-400 text-xs sm:text-sm select-none shadow-inner font-bold" title="WASD / Phím Mũi Tên">
-            ✦
+          <div className="flex items-center gap-1 sm:gap-1.5 my-1">
+            <button
+              type="button"
+              onPointerDown={() => zenWorldBridge.commands.setMovementDirection('left', true)}
+              onPointerUp={() => zenWorldBridge.commands.setMovementDirection('left', false)}
+              onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('left', false)}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
+              title="Rẽ trái (A hoặc Mũi tên trái)"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-950/60 border border-pink-400/30 flex items-center justify-center text-pink-400 text-xs sm:text-sm select-none shadow-inner font-bold" title="WASD / Phím Mũi Tên">
+              ✦
+            </div>
+
+            <button
+              type="button"
+              onPointerDown={() => zenWorldBridge.commands.setMovementDirection('right', true)}
+              onPointerUp={() => zenWorldBridge.commands.setMovementDirection('right', false)}
+              onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('right', false)}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
+              title="Rẽ phải (D hoặc Mũi tên phải)"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
 
           <button
-            onPointerDown={() => zenWorldBridge.commands.setMovementDirection('right', true)}
-            onPointerUp={() => zenWorldBridge.commands.setMovementDirection('right', false)}
-            onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('right', false)}
+            type="button"
+            onPointerDown={() => zenWorldBridge.commands.setMovementDirection('down', true)}
+            onPointerUp={() => zenWorldBridge.commands.setMovementDirection('down', false)}
+            onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('down', false)}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-            title="Rẽ phải (D hoặc Mũi tên phải)"
+            title="Lùi lại (S hoặc Mũi tên xuống)"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronDown className="w-6 h-6" />
           </button>
         </div>
 
+        {/* SPRINT RUN TOGGLE BUTTON */}
         <button
-          onPointerDown={() => zenWorldBridge.commands.setMovementDirection('down', true)}
-          onPointerUp={() => zenWorldBridge.commands.setMovementDirection('down', false)}
-          onPointerLeave={() => zenWorldBridge.commands.setMovementDirection('down', false)}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl anime-glass-panel hover:bg-pink-500/30 active:bg-pink-500 border border-pink-400/40 text-pink-200 active:text-white shadow-xl flex items-center justify-center transition active:scale-95 cursor-pointer"
-          title="Lùi lại (S hoặc Mũi tên xuống)"
+          type="button"
+          onClick={toggleSprint}
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 cursor-pointer shadow-xl border ${
+            isSprintActive
+              ? 'bg-amber-500/40 border-amber-300 text-amber-200 shadow-amber-500/30 ring-2 ring-amber-400/50'
+              : 'anime-glass-panel border-pink-400/40 text-pink-200 hover:bg-pink-500/30'
+          }`}
+          title={isSprintActive ? 'Chế độ Chạy Nhanh (8.8 m/s) ĐANG BẬT - Nhấn để đi bộ' : 'Bật chế độ Chạy Nhanh Sprint (8.8 m/s)'}
         >
-          <ChevronDown className="w-6 h-6" />
+          <span className="text-base sm:text-lg">🏃</span>
+          <span className="text-[8px] sm:text-[9px] font-bold tracking-tighter leading-none">{isSprintActive ? 'CHẠY' : 'ĐI'}</span>
         </button>
       </div>
 

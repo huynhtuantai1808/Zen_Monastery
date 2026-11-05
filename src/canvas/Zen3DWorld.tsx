@@ -1035,6 +1035,19 @@ function createIncenseSignTexture(): THREE.CanvasTexture {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CẤU HÌNH ĐỘNG HỌC DI CHUYỂN NHÂN VẬT CHÍNH (RESPONSIVE MOVEMENT CONFIG)
+// ══════════════════════════════════════════════════════════════════════════════
+const BASE_SPEED = 5.8; // m/s - Vận tốc đi bộ cơ bản (+61% so với 3.6 cũ)
+const SPRINT_SPEED = 8.8; // m/s - Vận tốc chạy nhanh bứt tốc (+144% so với 3.6 cũ)
+const ACCEL_RATE = 26.0; // Hệ số gia tốc nhạy (đạt 90% vận tốc tối đa trong < 88ms)
+const BRAKE_RATE = 32.0; // Hệ số ma sát phanh dừng dứt khoát (dừng < 75ms, trượt < 0.12m)
+const STOP_THRESHOLD = 0.05; // m/s - Ngưỡng triệt tiêu vận tốc dư thừa tránh rung lắc
+const TURN_RATE = 28.0; // Tốc độ xoay bám hướng tức thì
+const QUICK_TURN = 36.0; // Gia tốc xoay tăng cường khi góc đổi chiều > 140 độ
+const STRIDE_STEP_DIST = 0.75; // Mét / bước chân thực tế cho âm thanh & bụi chân
+const CLICK_ARRIVE_DIST = 0.18; // Bán kính tới đích nhấp chuột để phanh dừng dứt khoát
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HỆ THỐNG ĐIỂM TUẦN TRA & NGHI THỨC CHO CÁC NPC ĐỘNG (ZERO-ALLOCATION CONSTANTS)
 // ══════════════════════════════════════════════════════════════════════════════
 interface TeaServerPatrolWaypoint {
@@ -1211,6 +1224,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     left: false,
     right: false,
   });
+
+  // Player Dynamic Movement State (Zero-Allocation Buffers)
+  const currentVelocityRef = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
+  const isSprintingRef = useRef<boolean>(false);
+  const strideAccumulatorRef = useRef<number>(0);
 
   // Roof Groups for Indoor Occlusion Fading
   const sanctuaryRoofsRef = useRef<THREE.Group[]>([]);
@@ -1982,6 +2000,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       if (code === 'KeyS' || code === 'ArrowDown') handleDirectionStart('down');
       if (code === 'KeyA' || code === 'ArrowLeft') handleDirectionStart('left');
       if (code === 'KeyD' || code === 'ArrowRight') handleDirectionStart('right');
+      if (code === 'ShiftLeft' || code === 'ShiftRight') isSprintingRef.current = true;
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       const code = e.code;
@@ -1989,6 +2008,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       if (code === 'KeyS' || code === 'ArrowDown') handleDirectionEnd('down');
       if (code === 'KeyA' || code === 'ArrowLeft') handleDirectionEnd('left');
       if (code === 'KeyD' || code === 'ArrowRight') handleDirectionEnd('right');
+      if (code === 'ShiftLeft' || code === 'ShiftRight') isSprintingRef.current = false;
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -2066,6 +2086,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       setMovementDirection: (dir, pressed) => {
         if (pressed) handleDirectionStart(dir);
         else handleDirectionEnd(dir);
+      },
+      setSprintMode: (active: boolean) => {
+        isSprintingRef.current = active;
       },
       tiltCameraUp: () => {
         cameraPitchRef.current = Math.min(Math.PI / 2.2, cameraPitchRef.current + 0.15);
@@ -3508,7 +3531,6 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const animate = () => {
       stepCount++;
       const delta = Math.min(clock.getDelta(), 0.05);
-      const moveDist = 3.6 * delta; // Grounded natural walking speed
 
       // Floating spirit particles hover (throttled to every 2 frames for GPU efficiency)
       if (spiritParticlesRef.current && stepCount % 2 === 0) {
@@ -3520,7 +3542,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         spiritParticlesRef.current.geometry.attributes.position.needsUpdate = true;
       }
 
-      // Check Directional Keyboard / D-Pad Movement
+      // Check Directional Keyboard / D-Pad Movement Inputs
       const kp = keysPressedRef.current;
       let forwardInput = 0;
       let strafeInput = 0;
@@ -3534,18 +3556,16 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
       if (monkGroupRef.current) {
         const currentP = playerPosRef.current;
-        let isCurrentlyWalking = false;
+        const curVel = currentVelocityRef.current;
+        const targetSpeed = isSprintingRef.current ? SPRINT_SPEED : BASE_SPEED;
+
+        // Calculate Target Velocity (Camera-Relative for Manual, or Direct for Click-to-Move)
+        let targetVx = 0;
+        let targetVz = 0;
+        let hasTargetInput = false;
 
         if (isManualMoving) {
-          if (monkPoseRef.current !== 'STAND') {
-            monkPoseRef.current = 'STAND';
-            useZenBridge.getState().setMonkPose('STAND');
-            soundEngine.stopWoodenFishRhythm();
-            stopAbbotVoice();
-          }
-          isCurrentlyWalking = true;
-          isWalkingStateRef.current = true;
-
+          hasTargetInput = true;
           // Camera-Relative Movement Direction
           const yaw = cameraYawRef.current;
           const forwardX = -Math.sin(yaw);
@@ -3553,50 +3573,94 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           const rightX = Math.cos(yaw);
           const rightZ = -Math.sin(yaw);
 
-          let moveX = forwardX * forwardInput + rightX * strafeInput;
-          let moveZ = forwardZ * forwardInput + rightZ * strafeInput;
+          const moveX = forwardX * forwardInput + rightX * strafeInput;
+          const moveZ = forwardZ * forwardInput + rightZ * strafeInput;
           const len = Math.hypot(moveX, moveZ);
 
           if (len > 0.001) {
-            const nextX = currentP.x + (moveX / len) * moveDist;
-            const nextZ = currentP.z + (moveZ / len) * moveDist;
-
-            const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
-            currentP.x = resolved.x;
-            currentP.z = resolved.z;
-
-            let targetAngle = Math.atan2(moveX, moveZ);
-            playerRotationRef.current = targetAngle;
-            let diff = targetAngle - monkGroupRef.current.rotation.y;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            monkGroupRef.current.rotation.y += diff * Math.min(1.0, 12.0 * delta);
-          }
-
-          if (stepCount % 16 === 0) {
-            spawnPooledFootstep(currentP.x, currentP.y, currentP.z);
+            targetVx = (moveX / len) * targetSpeed;
+            targetVz = (moveZ / len) * targetSpeed;
           }
         } else if (targetPosRef.current.active) {
-          const targetP = targetPosRef.current;
-          const dx = targetP.x - currentP.x;
-          const dz = targetP.z - currentP.z;
+          const dx = targetPosRef.current.x - currentP.x;
+          const dz = targetPosRef.current.z - currentP.z;
           const dist = Math.hypot(dx, dz);
 
-          if (dist > 0.15) {
-            isCurrentlyWalking = true;
-            isWalkingStateRef.current = true;
+          if (dist > CLICK_ARRIVE_DIST) {
+            hasTargetInput = true;
+            // Arrival deceleration: smooth ease-out within 1.2m
+            const arriveFactor = Math.min(1.0, dist / 1.2);
+            const clickSpeed = targetSpeed * Math.max(0.35, arriveFactor);
+            targetVx = (dx / dist) * clickSpeed;
+            targetVz = (dz / dist) * clickSpeed;
+          } else {
+            // Arrived cleanly at target
+            clearTargetPos();
+            if (destinationMarkerRef.current) {
+              destinationMarkerRef.current.visible = false;
+            }
+            if (isTourPlayingRef.current && tourWaitRef.current === 0) {
+              tourWaitRef.current = 140;
+            }
+          }
+        }
 
-            const stepDist = Math.min(moveDist, dist);
-            const nextX = currentP.x + (dx / dist) * stepDist;
-            const nextZ = currentP.z + (dz / dist) * stepDist;
+        // Exponential Velocity Acceleration & Rapid Braking Deceleration (Zero-Allocation)
+        const accelRate = hasTargetInput ? ACCEL_RATE : BRAKE_RATE;
+        const blend = 1 - Math.exp(-accelRate * delta);
+        curVel.x += (targetVx - curVel.x) * blend;
+        curVel.z += (targetVz - curVel.z) * blend;
 
-            const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
-            const actualMoved = Math.hypot(resolved.x - currentP.x, resolved.z - currentP.z);
-            currentP.x = resolved.x;
-            currentP.z = resolved.z;
+        let currentSpeed = Math.hypot(curVel.x, curVel.z);
+        if (!hasTargetInput && currentSpeed < STOP_THRESHOLD) {
+          curVel.x = 0;
+          curVel.z = 0;
+          currentSpeed = 0;
+        }
 
-            // Prevent running against obstacles indefinitely
-            if (actualMoved < 0.001) {
+        const isCurrentlyWalking = currentSpeed > STOP_THRESHOLD;
+
+        if (isCurrentlyWalking) {
+          if (monkPoseRef.current !== 'STAND') {
+            monkPoseRef.current = 'STAND';
+            useZenBridge.getState().setMonkPose('STAND');
+            soundEngine.stopWoodenFishRhythm();
+            stopAbbotVoice();
+          }
+          isWalkingStateRef.current = true;
+
+          // Attempt movement displacement
+          const dispX = curVel.x * delta;
+          const dispZ = curVel.z * delta;
+          const nextX = currentP.x + dispX;
+          const nextZ = currentP.z + dispZ;
+
+          // Resolve Collision with World Colliders
+          const resolved = resolveMonkCollision(nextX, currentP.y, nextZ);
+          const actualMovedX = resolved.x - currentP.x;
+          const actualMovedZ = resolved.z - currentP.z;
+          const actualMovedDist = Math.hypot(actualMovedX, actualMovedZ);
+
+          currentP.x = resolved.x;
+          currentP.z = resolved.z;
+
+          // Tangential Wall Sliding: project remaining velocity onto actual free movement vector
+          const attemptedDist = Math.hypot(dispX, dispZ);
+          if (attemptedDist > 0.0001 && actualMovedDist < attemptedDist * 0.95) {
+            if (actualMovedDist > 0.0005) {
+              const nx = actualMovedX / actualMovedDist;
+              const nz = actualMovedZ / actualMovedDist;
+              const dot = curVel.x * nx + curVel.z * nz;
+              curVel.x = nx * dot;
+              curVel.z = nz * dot;
+            } else {
+              curVel.x = 0;
+              curVel.z = 0;
+              currentSpeed = 0;
+            }
+
+            // Click-to-move stuck prevention
+            if (targetPosRef.current.active) {
               stuckCountRef.current = (stuckCountRef.current || 0) + 1;
               if (stuckCountRef.current > 40) {
                 clearTargetPos();
@@ -3605,49 +3669,52 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
                   destinationMarkerRef.current.visible = false;
                 }
               }
-            } else {
-              stuckCountRef.current = 0;
             }
+          } else if (targetPosRef.current.active) {
+            stuckCountRef.current = 0;
+          }
 
-            const targetAngle = Math.atan2(dx, dz);
-            playerRotationRef.current = targetAngle;
-            let diff = targetAngle - monkGroupRef.current.rotation.y;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            monkGroupRef.current.rotation.y += diff * Math.min(1.0, 12.0 * delta);
+          // Responsive Orientation & Quick Turn Boost (> 140 deg)
+          let targetAngle = playerRotationRef.current;
+          if (hasTargetInput) {
+            if (isManualMoving && (targetVx !== 0 || targetVz !== 0)) {
+              targetAngle = Math.atan2(targetVx, targetVz);
+            } else if (targetPosRef.current.active) {
+              const dx = targetPosRef.current.x - currentP.x;
+              const dz = targetPosRef.current.z - currentP.z;
+              if (Math.hypot(dx, dz) > 0.01) {
+                targetAngle = Math.atan2(dx, dz);
+              }
+            }
+          } else if (currentSpeed > 0.1) {
+            targetAngle = Math.atan2(curVel.x, curVel.z);
+          }
 
-            if (stepCount % 16 === 0) {
-              spawnPooledFootstep(currentP.x, currentP.y, currentP.z);
-            }
-          } else {
-            isWalkingStateRef.current = false;
-            clearTargetPos();
-            if (destinationMarkerRef.current) {
-              destinationMarkerRef.current.visible = false;
-            }
+          playerRotationRef.current = targetAngle;
+          let diff = targetAngle - monkGroupRef.current.rotation.y;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
 
-            if (isTourPlayingRef.current && tourWaitRef.current === 0) {
-              tourWaitRef.current = 140;
-            }
+          // Apply quick turn rate (36.0) for large directional reversal (> 140° = 2.44 rad)
+          const turnSpeed = Math.abs(diff) > 2.44 ? QUICK_TURN : TURN_RATE;
+          monkGroupRef.current.rotation.y += diff * Math.min(1.0, turnSpeed * delta);
+
+          // Distance-based stride accumulator (STRIDE_STEP_DIST = 0.75m)
+          strideAccumulatorRef.current += actualMovedDist;
+          if (strideAccumulatorRef.current >= STRIDE_STEP_DIST) {
+            strideAccumulatorRef.current -= STRIDE_STEP_DIST;
+            spawnPooledFootstep(currentP.x, currentP.y, currentP.z);
+          }
+
+          // Limb swing frequency dynamically scaled with actual ground velocity
+          if (charActionsRef.current?.walk) {
+            const speedRatio = Math.max(0.65, Math.min(2.2, currentSpeed / BASE_SPEED));
+            charActionsRef.current.walk.setEffectiveTimeScale(speedRatio * 1.15);
           }
         } else {
           isWalkingStateRef.current = false;
-
-          // Idle: Monk smoothly turns towards cursor point on ground
-          if (hasGroundTargetRef.current) {
-            const dx = cursorGroundPosRef.current.x - currentP.x;
-            const dz = cursorGroundPosRef.current.z - currentP.z;
-            const dist = Math.hypot(dx, dz);
-            if (dist > 0.8) {
-              const targetAngle = Math.atan2(dx, dz);
-              playerRotationRef.current = targetAngle;
-              let diff = targetAngle - monkGroupRef.current.rotation.y;
-              while (diff < -Math.PI) diff += Math.PI * 2;
-              while (diff > Math.PI) diff -= Math.PI * 2;
-              monkGroupRef.current.rotation.y += diff * Math.min(1.0, 8.0 * delta);
-
-            }
-          }
+          strideAccumulatorRef.current = 0;
+          // IDLE STATE: Keep current facing direction without unwanted cursor drift
         }
 
         // Dynamic Ground Elevation & Anti-Sink Calculation

@@ -95,6 +95,7 @@ export interface ZenWebGlCommands {
   releaseLantern: (prayerText: string, prayerType: string) => void;
   toggleAutoBell: () => void;
   setMovementDirection: (direction: 'up' | 'down' | 'left' | 'right', pressed: boolean) => void;
+  setSprintMode: (active: boolean) => void;
   tiltCameraUp: () => void;
   setDayNight: (isNight: boolean) => void;
   setGraphicsQuality: (quality: GraphicsQuality) => void;
@@ -184,6 +185,7 @@ const defaultCommands: ZenWebGlCommands = {
   releaseLantern: () => {},
   toggleAutoBell: () => {},
   setMovementDirection: () => {},
+  setSprintMode: () => {},
   tiltCameraUp: () => {},
   setDayNight: () => {},
   setGraphicsQuality: () => {},
