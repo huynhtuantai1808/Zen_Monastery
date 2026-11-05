@@ -2686,18 +2686,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
                   monkGroupRef.current.rotation.y = currentZone.facingAngle;
                 }
 
-                // 3. Atmospheric Audio
-                if (currentZone.tourSound === 'bell') {
-                  soundEngine.playBell();
-                } else if (currentZone.tourSound === 'bowl') {
+                // 3. Atmospheric Audio (Tắt âm ting ting / chuông khi di chuyển đến điểm chỉ định)
+                if (currentZone.tourSound === 'bowl') {
                   soundEngine.playSingingBowl();
                 } else if (currentZone.tourSound === 'woodfish') {
                   soundEngine.playWoodenFish();
-                } else if (currentZone.tourSound === 'chime') {
-                  soundEngine.playWindChime();
                 } else if (currentZone.tourSound === 'tea') {
                   soundEngine.playTeaPour();
                 }
+                // 'chime' (chuông gió ting ting) và 'bell' đã được tắt khi đến điểm chỉ định theo yêu cầu
 
                 if (currentZone.actionKey === 'NIGHT') {
                   setIsNightMode(true);

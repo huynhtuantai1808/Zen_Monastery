@@ -476,7 +476,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       alert(`Khu vực này yêu cầu Cấp độ Tâm Cảnh ${ZONES[zone].minLevel}! Hãy tiếp tục tu tập tích phước.`);
       return;
     }
-    soundEngine.playWindChime();
+    // Tắt âm ting ting khi di chuyển / chuyển đổi đến điểm chỉ định
     set({
       stats: {
         ...stats,
