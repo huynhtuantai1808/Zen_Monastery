@@ -1382,10 +1382,18 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const courtyardGroup = new THREE.Group();
     courtyardGroup.position.set(0, 0, 20);
 
-    const courtFloor = new THREE.Mesh(new THREE.BoxGeometry(50, 0.35, 36), matTileBrick);
-    courtFloor.position.set(0, 0.18, 0);
-    courtFloor.receiveShadow = true;
-    courtyardGroup.add(courtFloor);
+    // Sàn gạch sân chùa lát gạch tàu ấm cúng (được giới hạn chuẩn xác, không lấn vào hồ sen)
+    // Sàn trung tâm nối từ Chánh Điện ra thềm sân
+    const courtFloorMain = new THREE.Mesh(new THREE.BoxGeometry(27.0, 0.35, 36.0), matTileBrick);
+    courtFloorMain.position.set(1.0, 0.18, 0);
+    courtFloorMain.receiveShadow = true;
+    courtyardGroup.add(courtFloorMain);
+
+    // Sàn gạch phía Nam mở rộng đón khách từ Cổng Tam Quan và lối rẽ vào Cầu Hồ Sen
+    const courtFloorSouth = new THREE.Mesh(new THREE.BoxGeometry(32.0, 0.35, 14.0), matTileBrick);
+    courtFloorSouth.position.set(-6.0, 0.18, -10.0);
+    courtFloorSouth.receiveShadow = true;
+    courtyardGroup.add(courtFloorSouth);
 
     // Stylized Tripod Bronze Censer (Đại Lư Hương Tam Bảo)
     const censerGroup = new THREE.Group();
@@ -1415,8 +1423,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     }
     courtyardGroup.add(censerGroup);
 
-    // Puffy Stylized Bonsai Trees around courtyard
-    const bonsaiCoords = [[-20, 13], [-20, -5], [20, 13], [20, -5], [-12, 15], [12, 15]];
+    // Puffy Stylized Bonsai Trees around courtyard (đã di dời khỏi lòng hồ sen để thông thoáng tầm nhìn)
+    const bonsaiCoords = [[-10.5, 2], [-20, -5], [20, 13], [20, -5], [-10.5, -12], [12, 15]];
     bonsaiCoords.forEach(([bx, bz]) => {
       const pot = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.1, 1.1, 10), matStoneGrey);
       pot.position.set(bx, 0.85, bz);

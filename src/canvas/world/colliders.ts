@@ -129,17 +129,20 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   // Cột đá Chùa Một Cột uy nghiêm (ngăn đi xuyên vật thể vào lõi trụ)
   { type: 'circle', x: -26.0, z: 37.2, r: 1.45, name: 'One Pillar Pagoda Stone Column' },
   // Lòng hồ sen nước sâu - Vịnh phía Tây cầu đá
-  { type: 'box', minX: -40.5, maxX: -28.0, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin West' },
+  { type: 'box', minX: -40.5, maxX: -28.2, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin West' },
   // Lòng hồ sen nước sâu - Vịnh phía Đông cầu đá
-  { type: 'box', minX: -24.0, maxX: -11.8, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin East' },
+  { type: 'box', minX: -23.8, maxX: -11.8, minZ: 22.8, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin East' },
   // Vùng nước sâu phía Bắc sau lưng Chùa Một Cột
   { type: 'box', minX: -40.5, maxX: -11.8, minZ: 38.6, maxZ: 49.5, maxY: 3.0, name: 'Lotus Pond Basin North' },
   // Lan can đá búp sen dọc 2 bên cầu nối ra Chùa Một Cột
-  { type: 'box', minX: -28.3, maxX: -27.5, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing West' },
-  { type: 'box', minX: -24.5, maxX: -23.7, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing East' },
-  // Án thờ & lư hương đá dâng hương tại điểm bắt đầu bước lên cầu
-  { type: 'box', minX: -27.4, maxX: -24.6, minZ: 21.4, maxZ: 22.4, name: 'Lotus Pond Incense Altar Base' },
-  // Bờ kè đá nguyên khối bao bọc chu vi hồ sen (Tây, Bắc, Đông)
+  { type: 'box', minX: -28.6, maxX: -27.6, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing West' },
+  { type: 'box', minX: -24.4, maxX: -23.4, minZ: 22.5, maxZ: 35.2, name: 'Lotus Bridge Railing East' },
+  // Lan can mây đá hai bên bậc tam cấp lối bước lên cầu (Z: 20.6 đến 22.5)
+  { type: 'box', minX: -28.6, maxX: -27.8, minZ: 20.6, maxZ: 22.5, name: 'Bridge Entrance Railing West' },
+  { type: 'box', minX: -24.2, maxX: -23.4, minZ: 20.6, maxZ: 22.5, name: 'Bridge Entrance Railing East' },
+  // Án thờ & lư hương đá dâng hương tại cánh tả đầu cầu (không chắn lối đi chính)
+  { type: 'circle', x: -28.8, z: 21.8, r: 0.85, name: 'Lotus Pond Incense Altar Base' },
+  // Bờ kè đá chu vi bao bọc hồ sen (Tây, Bắc, Đông)
   { type: 'box', minX: -42.0, maxX: -39.5, minZ: 22.0, maxZ: 50.5, name: 'Lotus Pond Outer Wall West' },
   { type: 'box', minX: -40.5, maxX: -11.5, minZ: 49.2, maxZ: 51.5, name: 'Lotus Pond Outer Wall North' },
   { type: 'box', minX: -12.5, maxX: -10.0, minZ: 22.0, maxZ: 50.5, name: 'Lotus Pond Outer Wall East' },
@@ -365,15 +368,26 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.89;
   }
 
-  // 4. Hiên Nước & Suối Ngọc (Zone 5 On Rainy Days Tatami Deck & Bridge)
-  // Wooden Engawa Tatami Deck (matching On Rainy Days reference)
-  if (x >= -38.5 && x <= -26.0 && z >= 26.5 && z <= 45.5) {
-    return 0.89;
+  // 4. Hồ Sen Linh Chiểu & Cầu Đá Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // 4.1. Lối Cầu Đá Dẫn Lên Chùa Một Cột (Dọc trục X: -26, từ thềm sân chùa Z: 20.6 đến chân chùa Z: 35.5)
+  if (Math.abs(x - (-26.0)) <= 2.2 && z >= 20.6 && z <= 35.5) {
+    // Bậc tam cấp bước lên cầu từ sân chùa (Z: 20.6 đến 22.6)
+    if (z >= 20.6 && z <= 22.6) {
+      const t = Math.max(0.0, Math.min(1.0, (z - 20.6) / 2.0));
+      return 0.42 + t * (0.93 - 0.42);
+    }
+    // Bản mặt cầu đá và sàn tiếp cận trước chân Chùa Một Cột
+    return 0.93;
   }
-  // Stone Bridge connecting to courtyard
-  if (x >= -26.0 && x <= -13.0 && z >= 34.0 && z <= 38.0) {
-    const arch = Math.max(0.0, 1.0 - Math.abs(x - (-19.5)) / 6.5);
-    return 0.65 + arch * 0.24;
+
+  // 4.2. Bệ thờ lư hương đá dâng hương cánh tả đầu cầu
+  if (Math.hypot(x - (-28.8), z - 21.8) <= 1.2) {
+    return 0.65;
+  }
+
+  // 4.3. Hiên Nước & Suối Ngọc Phía Tây (Tatami Deck ven bờ Tây)
+  if (x >= -38.5 && x <= -28.0 && z >= 26.5 && z <= 45.5) {
+    return 0.89;
   }
 
   // 5. Phòng Thiền Nguyệt Môn (Zone 8 Meditation Hall at -24, 6)
