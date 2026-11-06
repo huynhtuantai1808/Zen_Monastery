@@ -178,7 +178,7 @@ export function createLotusPondEnsemble(
   for (let wr = 0; wr < 4; wr++) {
     const ripple = new THREE.Mesh(new THREE.RingGeometry(1.5 + wr * 0.85, 1.68 + wr * 0.85, 28), matWaterRipple);
     ripple.rotateX(-Math.PI / 2);
-    ripple.position.set(0, 0.552 + wr * 0.001, 1.2);
+    ripple.position.set(-4.05, 0.552 + wr * 0.001, 0);
     pondGroup.add(ripple);
   }
 
@@ -199,8 +199,8 @@ export function createLotusPondEnsemble(
         const targetH = 10.8;
         const s = targetH / (size.y || 1);
         pagoda.scale.setScalar(s);
-        pagoda.position.set(-center.x * s, -box.min.y * s + 0.05, -center.z * s + 1.2);
-        pagoda.rotation.y = 0; // Bậc thang hướng ra lối cầu phía Nam
+        pagoda.position.set(-center.x * s, -box.min.y * s + 0.05, -center.z * s);
+        pagoda.rotation.y = 0; // Bậc thang rồng hướng thẳng bờ Đông nối trực tiếp vào cầu đá
 
         pagoda.traverse((child: THREE.Object3D) => {
           if ((child as THREE.Mesh).isMesh) {

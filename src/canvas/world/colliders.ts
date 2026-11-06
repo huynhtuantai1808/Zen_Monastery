@@ -125,27 +125,33 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: -26.0, z: -20.0, r: 1.35, name: 'Great Bell of Wisdom' },
   { type: 'box', minX: -26.4, maxX: -25.6, minZ: -18.2, maxZ: -16.8, name: 'Bell Striking Beam' },
 
-      // 5. Hồ Sen Linh Chiểu & Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
-  // Cột đá Chùa Một Cột uy nghiêm (ngăn đi xuyên vật thể vào lõi trụ)
-  { type: 'circle', x: -26.0, z: 36.0, r: 1.45, name: 'One Pillar Pagoda Stone Column' },
-  // Lòng hồ sen nước sâu phía Bắc cầu Đông (Z: 22.8 đến 33.8)
-  { type: 'box', minX: -39.5, maxX: -13.0, minZ: 22.8, maxZ: 33.8, maxY: 3.0, name: 'Lotus Pond Basin North' },
-  // Lòng hồ sen nước sâu phía Nam cầu Đông (Z: 38.2 đến 49.2)
-  { type: 'box', minX: -39.5, maxX: -13.0, minZ: 38.2, maxZ: 49.2, maxY: 3.0, name: 'Lotus Pond Basin South' },
+        // 5. Hồ Sen Linh Chiểu & Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // Toàn bộ nửa Tây hồ sen & thân điện thờ Chùa Một Cột (ngăn tuyệt đối đi xuyên chùa ra sau hồ)
+  { type: 'box', minX: -41.0, maxX: -23.6, minZ: 21.5, maxZ: 50.5, name: 'Lotus Pond West & Pagoda Shrine Barrier' },
+  // Cột đá Chùa Một Cột uy nghiêm
+  { type: 'circle', x: -30.05, z: 36.0, r: 1.5, name: 'One Pillar Pagoda Stone Column' },
 
-  // Lan can đá búp sen dọc 2 bên cầu hoa sen phía Đông (X: -20.5 đến -11.5)
-  { type: 'box', minX: -20.5, maxX: -11.5, minZ: 37.5, maxZ: 38.4, name: 'East Bridge Railing North' },
-  { type: 'box', minX: -20.5, maxX: -11.5, minZ: 33.6, maxZ: 34.5, name: 'East Bridge Railing South' },
+  // Lòng hồ sen nước sâu phía Bắc cầu Đông (Z: 21.5 đến 34.4)
+  { type: 'box', minX: -23.8, maxX: -11.8, minZ: 21.5, maxZ: 34.4, maxY: 3.0, name: 'Lotus Pond Basin North' },
+  // Lòng hồ sen nước sâu phía Nam cầu Đông (Z: 37.6 đến 50.5)
+  { type: 'box', minX: -23.8, maxX: -11.8, minZ: 37.6, maxZ: 50.5, maxY: 3.0, name: 'Lotus Pond Basin South' },
+
+  // Lan can đá búp sen dọc 2 bên cầu hoa sen phía Đông (X: -18.5 đến -11.5)
+  { type: 'box', minX: -18.5, maxX: -11.5, minZ: 37.4, maxZ: 38.6, name: 'East Bridge Railing North' },
+  { type: 'box', minX: -18.5, maxX: -11.5, minZ: 33.4, maxZ: 34.6, name: 'East Bridge Railing South' },
+  // Lan can hai bên bậc thang rồng đá bước lên chùa (X: -23.8 đến -18.5)
+  { type: 'box', minX: -23.8, maxX: -18.5, minZ: 37.0, maxZ: 38.0, name: 'Stairs Dragon Railing North' },
+  { type: 'box', minX: -23.8, maxX: -18.5, minZ: 34.0, maxZ: 35.0, name: 'Stairs Dragon Railing South' },
   // Án thờ & lư hương đá dâng hương tại đầu cầu phía Đông (hướng sân chùa)
   { type: 'circle', x: -11.2, z: 38.8, r: 0.85, name: 'East Lotus Pond Incense Altar Base' },
 
   // Bờ kè đá chu vi bao bọc hồ sen (Tây, Bắc, Nam đóng kín; Đông mở cổng vào cầu)
-  { type: 'box', minX: -40.5, maxX: -38.5, minZ: 22.0, maxZ: 50.0, name: 'Lotus Pond Outer Wall West' },
-  { type: 'box', minX: -40.5, maxX: -11.5, minZ: 21.5, maxZ: 23.2, name: 'Lotus Pond Outer Wall North' },
-  { type: 'box', minX: -40.5, maxX: -11.5, minZ: 48.8, maxZ: 50.5, name: 'Lotus Pond Outer Wall South' },
-  // Bờ kè phía Đông (chừa cổng mở thông thủy ở giữa: Z in [33.8, 38.2])
-  { type: 'box', minX: -13.2, maxX: -11.5, minZ: 22.0, maxZ: 33.8, name: 'Lotus Pond Outer Wall East North' },
-  { type: 'box', minX: -13.2, maxX: -11.5, minZ: 38.2, maxZ: 50.0, name: 'Lotus Pond Outer Wall East South' },
+  { type: 'box', minX: -41.0, maxX: -38.5, minZ: 21.5, maxZ: 50.5, name: 'Lotus Pond Outer Wall West' },
+  { type: 'box', minX: -41.0, maxX: -11.5, minZ: 21.5, maxZ: 23.2, name: 'Lotus Pond Outer Wall North' },
+  { type: 'box', minX: -41.0, maxX: -11.5, minZ: 48.8, maxZ: 50.5, name: 'Lotus Pond Outer Wall South' },
+  // Bờ kè phía Đông (chừa cổng mở thông thủy ở giữa: Z in [34.4, 37.6])
+  { type: 'box', minX: -13.2, maxX: -11.5, minZ: 21.5, maxZ: 34.4, name: 'Lotus Pond Outer Wall East North' },
+  { type: 'box', minX: -13.2, maxX: -11.5, minZ: 37.6, maxZ: 50.5, name: 'Lotus Pond Outer Wall East South' },
 
   // 6. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor at X: 15 to 21, Z: -3 to 30)
   // East wall boundary behind the open corridor
@@ -308,6 +314,33 @@ export function resolveMonkCollision(
     }
   }
 
+    // ───────────────────────────────────────────────────────────────────────────
+  // STRICT PATH CONFINEMENT: KHU VỰC HỒ SEN & CHÙA MỘT CỘT (X in [-41.0, -12.0], Z in [21.5, 50.5])
+  // Khóa cứng nhân vật chỉ được phép di chuyển trên hành lang lối đi cho phép (cầu đá, sàn đệm, bậc thang rồng)
+  // Tuyệt đối không cho phép đi xuyên qua điện thờ Chùa Một Cột, không lọt xuống lòng hồ sen
+  // ───────────────────────────────────────────────────────────────────────────
+  if (curX <= -12.0 && curX >= -41.0 && curZ >= 21.5 && curZ <= 50.5) {
+    // 1. Phía Tây: Chặn đứng tuyệt đối tại bệ đứng chiêm bái Chùa Một Cột (không đi xuyên chùa ra sau)
+    curX = Math.max(-23.6, curX);
+
+    // 2. Kiểm tra nếu nhân vật nằm trong hành lang lối vào cầu đá và Chùa Một Cột
+    if (curZ >= 34.0 && curZ <= 38.0) {
+      if (curX >= -18.5) {
+        // Trên thân cầu đá hoa sen phía Đông (X: -18.5 đến -12.0): Khóa chặt trong lòng mặt cầu
+        curZ = Math.max(34.6, Math.min(37.4, curZ));
+      } else if (curX >= -20.0) {
+        // Trên sàn tiếp cận ngắm cảnh trước chân chùa (X: -20.0 đến -18.5): Rộng 3.0m
+        curZ = Math.max(34.5, Math.min(37.5, curZ));
+      } else {
+        // Đang bước trên cầu thang rồng đá (X: -23.6 đến -20.0): Khóa trong lòng cầu thang
+        curZ = Math.max(35.0, Math.min(37.0, curZ));
+      }
+    } else {
+      // Ngoài hành lang cầu đá: Đẩy lùi về thềm sân chùa
+      curX = -12.0;
+    }
+  }
+
   // Clamped Monastery Terrain Bounds
   curX = Math.max(-46.0, Math.min(46.0, curX));
   curZ = Math.max(-68.0, Math.min(86.0, curZ));
@@ -368,27 +401,27 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.89;
   }
 
-      // 4. Hồ Sen Linh Chiểu & Cầu Đá Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
-  // 4.1. LỐI CẦU ĐÁ PHÍA ĐÔNG DẪN TỪ SÂN CHÙA VÀO CHÂN CẦU THANG CHÙA MỘT CỘT
-  // Dọc trục Z = 36.0 (ngang X từ -10.6 thềm sân chùa vào -22.5 chân cầu thang)
-  if (Math.abs(z - 36.0) <= 2.2 && x >= -24.0 && x <= -10.6) {
-    // Bậc tam cấp bước lên cầu từ sân chùa (X từ -10.6 giảm dần vào -12.8)
+        // 4. Hồ Sen Linh Chiểu & Cầu Đá Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // 4.1. LỐI CẦU ĐÁ PHÍA ĐÔNG & BẬC THANG RỒNG CHÙA MỘT CỘT (Trục Z = 36.0, X từ -10.6 vào -23.6)
+  if (Math.abs(z - 36.0) <= 2.2 && x >= -23.8 && x <= -10.6) {
+    // A. Bậc tam cấp bước lên cầu từ sân chùa (X từ -10.6 giảm dần vào -12.8)
     if (x >= -12.8) {
       const t = Math.max(0.0, Math.min(1.0, (-10.6 - x) / 2.2));
       return 0.42 + t * (0.93 - 0.42);
     }
-    // Bản mặt cầu đá phía Đông và sàn tiếp cận trước chân cầu thang Chùa Một Cột
-    return 0.93;
+    // B. Bản mặt cầu đá phía Đông và sàn tiếp cận ngắm cảnh (X từ -12.8 đến -18.5)
+    if (x >= -18.5) {
+      return 0.93;
+    }
+    // C. Bậc thang rồng đá bước lên Chùa Một Cột (X từ -18.5 vào -23.6)
+    // Leo từ cao trình mặt cầu 0.93m lên hiên chiêm bái 3.20m
+    const tStairs = Math.max(0.0, Math.min(1.0, (-18.5 - x) / (23.6 - 18.5)));
+    return 0.93 + tStairs * (3.20 - 0.93);
   }
 
   // 4.2. Bệ thờ lư hương đá dâng hương tại đầu cầu phía Đông (hướng sân chùa)
   if (Math.hypot(x - (-11.2), z - 38.8) <= 1.2) {
     return 0.65;
-  }
-
-  // 4.3. Bệ đài sen và chân thềm Chùa Một Cột
-  if (Math.hypot(x - (-26.0), z - 36.0) <= 3.6) {
-    return 0.93;
   }
 
   // 4.3. Hiên Nước & Suối Ngọc Phía Tây (Tatami Deck ven bờ Tây)
