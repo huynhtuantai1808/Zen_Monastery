@@ -641,13 +641,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-    playerPosRef.current.x = -26.0;
-    playerPosRef.current.z = 27.5;
+        playerPosRef.current.x = -26.0;
+    playerPosRef.current.z = 45.8;
     clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
-      monkGroupRef.current.position.set(-26.0, 0.89, 27.5);
+      monkGroupRef.current.position.set(-26.0, 0.93, 45.8);
       monkGroupRef.current.rotation.set(0, 0, 0);
     }
 
@@ -677,13 +677,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
 
-    playerPosRef.current.x = -26.0;
-    playerPosRef.current.z = 23.0;
+        playerPosRef.current.x = -26.0;
+    playerPosRef.current.z = 49.8;
     clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
-      monkGroupRef.current.position.set(-26.0, 0.89, 23.0);
+      monkGroupRef.current.position.set(-26.0, 0.93, 49.8);
       monkGroupRef.current.rotation.set(0, 0, 0);
     }
 
@@ -1382,18 +1382,24 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const courtyardGroup = new THREE.Group();
     courtyardGroup.position.set(0, 0, 20);
 
-    // Sàn gạch sân chùa lát gạch tàu ấm cúng (được giới hạn chuẩn xác, không lấn vào hồ sen)
-    // Sàn trung tâm nối từ Chánh Điện ra thềm sân
-    const courtFloorMain = new THREE.Mesh(new THREE.BoxGeometry(27.0, 0.35, 36.0), matTileBrick);
-    courtFloorMain.position.set(1.0, 0.18, 0);
+        // Sàn gạch sân chùa lát gạch Bát Tràng ấm áp (mở rộng toàn diện khớp bằng diện tích hồ sen)
+    // 1. Sàn trung tâm nối từ Chánh Điện (Z=2) xuyên suốt chiều dài sân chùa đến ngang tầm hồ sen (Z=52)
+    const courtFloorMain = new THREE.Mesh(new THREE.BoxGeometry(28.0, 0.35, 50.0), matTileBrick);
+    courtFloorMain.position.set(1.5, 0.18, 7.0);
     courtFloorMain.receiveShadow = true;
     courtyardGroup.add(courtFloorMain);
 
-    // Sàn gạch phía Nam mở rộng đón khách từ Cổng Tam Quan và lối rẽ vào Cầu Hồ Sen
-    const courtFloorSouth = new THREE.Mesh(new THREE.BoxGeometry(32.0, 0.35, 14.0), matTileBrick);
-    courtFloorSouth.position.set(-6.0, 0.18, -10.0);
-    courtFloorSouth.receiveShadow = true;
-    courtyardGroup.add(courtFloorSouth);
+    // 2. Sàn gạch quảng trường phía trước Hồ Sen & lối vào Cầu Chùa Một Cột (khớp bằng diện tích hồ sen)
+    const courtFloorPondFront = new THREE.Mesh(new THREE.BoxGeometry(26.0, 0.35, 12.0), matTileBrick);
+    courtFloorPondFront.position.set(-25.0, 0.18, 33.0);
+    courtFloorPondFront.receiveShadow = true;
+    courtyardGroup.add(courtFloorPondFront);
+
+    // 3. Sàn gạch liên kết phía Tây nối sang hành lang Thiền Trà Quán (Z: 6 đến 20)
+    const courtFloorWestLink = new THREE.Mesh(new THREE.BoxGeometry(12.0, 0.35, 14.0), matTileBrick);
+    courtFloorWestLink.position.set(-18.0, 0.18, -7.0);
+    courtFloorWestLink.receiveShadow = true;
+    courtyardGroup.add(courtFloorWestLink);
 
     // Stylized Tripod Bronze Censer (Đại Lư Hương Tam Bảo)
     const censerGroup = new THREE.Group();
