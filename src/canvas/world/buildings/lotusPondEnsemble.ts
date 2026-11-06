@@ -27,102 +27,98 @@ export function createLotusPondEnsemble(
 
   // =========================================================================
   // 1. KÈ HỒ ĐÁ XANH CHU VI (4 BỜ KÈ RỖNG) & BỜ THÀNH HOA SEN (28m x 28m)
-  // Lòng hồ hoàn toàn thông thoáng, không dùng khối đặc để lộ rõ mặt nước xanh ngọc
+  // Lòng hồ hoàn toàn thông thoáng, mở cổng thông thủy 4.4m ở bờ Đông (hướng bên sân vào)
   // =========================================================================
-    // Bờ kè thành hồ phía Nam (South Wall hướng ra Cổng Tam Quan & Sân Chùa - mở cổng thông thủy 4.4m ở giữa cho cầu thẳng)
-  const pondRimSW_South = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.8, 1.4), matStoneGrey);
-  pondRimSW_South.position.set(-8.1, 0.4, 13.3);
-  pondRimSW_South.receiveShadow = true;
-  pondGroup.add(pondRimSW_South);
+  // Bờ kè thành hồ phía Bắc (North Wall: Z = -13.3)
+  const pondRimN = new THREE.Mesh(new THREE.BoxGeometry(28.0, 0.8, 1.4), matStoneGrey);
+  pondRimN.position.set(0, 0.4, -13.3);
+  pondRimN.receiveShadow = true;
+  pondGroup.add(pondRimN);
 
-  const pondRimSE_South = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.8, 1.4), matStoneGrey);
-  pondRimSE_South.position.set(8.1, 0.4, 13.3);
-  pondRimSE_South.receiveShadow = true;
-  pondGroup.add(pondRimSE_South);
+  // Bờ kè thành hồ phía Nam (South Wall: Z = +13.3)
+  const pondRimS = new THREE.Mesh(new THREE.BoxGeometry(28.0, 0.8, 1.4), matStoneGrey);
+  pondRimS.position.set(0, 0.4, 13.3);
+  pondRimS.receiveShadow = true;
+  pondGroup.add(pondRimS);
 
-  // Bờ kè thành hồ phía Tây (West Wall)
+  // Bờ kè thành hồ phía Tây (West Wall: X = -13.3)
   const pondRimW = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 28.0), matStoneGrey);
   pondRimW.position.set(-13.3, 0.4, 0);
   pondRimW.receiveShadow = true;
   pondGroup.add(pondRimW);
 
-  // Bờ kè thành hồ phía Đông (East Wall)
-  const pondRimE = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 28.0), matStoneGrey);
-  pondRimE.position.set(13.3, 0.4, 0);
-  pondRimE.receiveShadow = true;
-  pondGroup.add(pondRimE);
+  // Bờ kè thành hồ phía Đông (East Wall: X = +13.3, hướng bên sân vào - chừa cổng mở thông thủy 4.4m ở giữa)
+  const pondRimE_North = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 11.8), matStoneGrey);
+  pondRimE_North.position.set(13.3, 0.4, -8.1);
+  pondRimE_North.receiveShadow = true;
+  pondGroup.add(pondRimE_North);
 
-  // Bờ kè thành hồ phía Nam (South Wall - chừa khoảng mở thông thủy 4.4m ở giữa cho lối cầu đá)
-  const pondRimSW = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.8, 1.4), matStoneGrey);
-  pondRimSW.position.set(-8.1, 0.4, -13.3);
-  pondRimSW.receiveShadow = true;
-  pondGroup.add(pondRimSW);
+  const pondRimE_South = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 11.8), matStoneGrey);
+  pondRimE_South.position.set(13.3, 0.4, 8.1);
+  pondRimE_South.receiveShadow = true;
+  pondGroup.add(pondRimE_South);
 
-  const pondRimSE = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.8, 1.4), matStoneGrey);
-  pondRimSE.position.set(8.1, 0.4, -13.3);
-  pondRimSE.receiveShadow = true;
-  pondGroup.add(pondRimSE);
+  // Gờ đá chạm hoa sen bao quanh các bờ kè
+  const rimTrimN = new THREE.Mesh(new THREE.BoxGeometry(28.2, 0.12, 1.4), matLotusPlinth);
+  rimTrimN.position.set(0, 0.86, -13.3);
+  pondGroup.add(rimTrimN);
 
-    // Gờ đá chạm hoa sen bao quanh các bờ kè
-  const rimTrimSW_South = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.12, 1.4), matLotusPlinth);
-  rimTrimSW_South.position.set(-8.1, 0.86, 13.3);
-  pondGroup.add(rimTrimSW_South);
-
-  const rimTrimSE_South = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.12, 1.4), matLotusPlinth);
-  rimTrimSE_South.position.set(8.1, 0.86, 13.3);
-  pondGroup.add(rimTrimSE_South);
-
-  const rimTrimSW = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.12, 1.4), matLotusPlinth);
-  rimTrimSW.position.set(-8.1, 0.86, -13.3);
-  pondGroup.add(rimTrimSW);
-
-  const rimTrimSE = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.12, 1.4), matLotusPlinth);
-  rimTrimSE.position.set(8.1, 0.86, -13.3);
-  pondGroup.add(rimTrimSE);
+  const rimTrimS = new THREE.Mesh(new THREE.BoxGeometry(28.2, 0.12, 1.4), matLotusPlinth);
+  rimTrimS.position.set(0, 0.86, 13.3);
+  pondGroup.add(rimTrimS);
 
   const rimTrimW = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 28.2), matLotusPlinth);
   rimTrimW.position.set(-13.3, 0.86, 0);
   pondGroup.add(rimTrimW);
 
-  const rimTrimE = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 28.2), matLotusPlinth);
-  rimTrimE.position.set(13.3, 0.86, 0);
-  pondGroup.add(rimTrimE);
+  const rimTrimE_North = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 11.8), matLotusPlinth);
+  rimTrimE_North.position.set(13.3, 0.86, -8.1);
+  pondGroup.add(rimTrimE_North);
 
-  // Lan can đá chạm mây & búp sen bao bọc chu vi bờ hồ
-  for (let side = -1; side <= 1; side += 2) {
-    for (let pz = -12; pz <= 12; pz += 4) {
-      const post = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
-      post.position.set(side * 13.3, 1.3, pz);
-      pondGroup.add(post);
+  const rimTrimE_South = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 11.8), matLotusPlinth);
+  rimTrimE_South.position.set(13.3, 0.86, 8.1);
+  pondGroup.add(rimTrimE_South);
 
-      const bud = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
-      bud.position.set(side * 13.3, 1.88, pz);
-      pondGroup.add(bud);
-    }
+  // Lan can đá chạm mây & búp sen bao bọc chu vi bờ Tây, Bắc, Nam
+  // Bờ Tây (X = -13.3)
+  for (let pz = -12; pz <= 12; pz += 4) {
+    const postW = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
+    postW.position.set(-13.3, 1.3, pz);
+    pondGroup.add(postW);
+    const budW = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
+    budW.position.set(-13.3, 1.88, pz);
+    pondGroup.add(budW);
   }
 
-    // Lan can bờ chu vi (chừa lối vào cầu đá ở giữa |px| > 2.5 cho cả 2 phía Nam & Bắc)
+  // Bờ Bắc (Z = -13.3) & Bờ Nam (Z = 13.3)
   for (let px = -12; px <= 12; px += 4) {
-    if (Math.abs(px) > 2.5) {
-      // Bờ Nam (hướng ra sân chùa chính và cầu thẳng)
-      const postS = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
-      postS.position.set(px, 1.3, 13.3);
-      pondGroup.add(postS);
-      const budS = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
-      budS.position.set(px, 1.88, 13.3);
-      pondGroup.add(budS);
+    const postN = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
+    postN.position.set(px, 1.3, -13.3);
+    pondGroup.add(postN);
+    const budN = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
+    budN.position.set(px, 1.88, -13.3);
+    pondGroup.add(budN);
 
-      // Bờ Bắc (hướng về phía tháp chuông)
-      const postN = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
-      postN.position.set(px, 1.3, -13.3);
-      pondGroup.add(postN);
-      const budN = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
-      budN.position.set(px, 1.88, -13.3);
-      pondGroup.add(budN);
+    const postS = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
+    postS.position.set(px, 1.3, 13.3);
+    pondGroup.add(postS);
+    const budS = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
+    budS.position.set(px, 1.88, 13.3);
+    pondGroup.add(budS);
+  }
+
+  // Bờ Đông (X = 13.3): chừa lối cổng cầu đá ở giữa (|pz| > 2.5 mới dựng lan can)
+  for (let pz = -12; pz <= 12; pz += 4) {
+    if (Math.abs(pz) > 2.5) {
+      const postE = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.95, 0.32), matStoneGrey);
+      postE.position.set(13.3, 1.3, pz);
+      pondGroup.add(postE);
+      const budE = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
+      budE.position.set(13.3, 1.88, pz);
+      pondGroup.add(budE);
     }
   }
 
-  // =========================================================================
   // 2. LÒNG HỒ RÊU PHONG & MẶT NƯỚC XANH NGỌC BÍCH TRONG SUỐT (JADE EMERALD)
   // =========================================================================
   const riverbed = new THREE.Mesh(
@@ -234,228 +230,92 @@ export function createLotusPondEnsemble(
   }
 
   // =========================================================================
-  // 4. LỐI CẦU ĐÁ THANH TÔN CAO & BẬC TAM CẤP DẪN THẲNG LÊN CHÂN CHÙA (13m)
-  // Cao trình mặt cầu y = 0.93m nổi bật trên làn nước xanh ngọc (y = 0.55m)
-  // Kết nối liền mạch từ sân chùa (Z_local = -15.4) đến chân cầu thang Chùa Một Cột (Z_local = -1.5)
+  // 4. LỐI CẦU ĐÁ HOA SEN TÔN CAO TỪ PHÍA BỜ ĐÔNG (HƯỚNG BÊN SÂN VÀO)
+  // Kết nối trực diện theo đúng chiều cầu thang rồng bên trong mô hình Chùa Một Cột
+  // Khởi đầu từ sân chùa (X_local = 15.4, world X = -10.6) dẫn thẳng vào chân cầu thang (X_local = 7.2)
+  // Cao trình mặt cầu y = 0.93m nổi bật trên làn nước xanh ngọc
   // =========================================================================
   const bridgeGroup = new THREE.Group();
 
-  // A. BẬC TAM CẤP DẪN TỪ SÂN CHÙA LÊN CẦU ĐÁ (Z_local: -15.2 đến -13.4, world Z: 20.8 đến 22.6)
+  // A. BẬC TAM CẤP ĐÓN TỪ SÂN CHÙA BƯỚC LÊN CẦU ĐÁ PHÍA ĐÔNG (X_local: 15.4 đến 13.4)
   const stepConfigs = [
-    { y: 0.40, z: -14.75, w: 4.2, d: 0.70 },
-    { y: 0.60, z: -14.10, w: 3.9, d: 0.70 },
-    { y: 0.80, z: -13.45, w: 3.6, d: 0.70 },
+    { y: 0.40, x: 14.85, w: 0.70, d: 4.4 },
+    { y: 0.60, x: 14.15, w: 0.70, d: 4.1 },
+    { y: 0.80, x: 13.45, w: 0.70, d: 3.8 },
   ];
   stepConfigs.forEach((st) => {
     const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(st.w, 0.20, st.d), matStoneGrey);
-    stepMesh.position.set(0, st.y, st.z);
+    stepMesh.position.set(st.x, st.y, 0);
     stepMesh.receiveShadow = true;
     bridgeGroup.add(stepMesh);
 
-    // Gờ đá chạm cánh sen trên mép bậc
-    const stepTrim = new THREE.Mesh(new THREE.BoxGeometry(st.w + 0.05, 0.04, 0.12), matLotusPlinth);
-    stepTrim.position.set(0, st.y + 0.11, st.z + st.d / 2 - 0.06);
+    const stepTrim = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, st.d + 0.05), matLotusPlinth);
+    stepTrim.position.set(st.x - st.w / 2 + 0.06, st.y + 0.11, 0);
     bridgeGroup.add(stepTrim);
   });
 
-  // Lan can mây đá vát chéo hai bên bậc tam cấp
-  for (const sSide of [-2.1, 2.1]) {
-    const ramp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.65, 2.1), matLotusPlinth);
-    ramp.position.set(sSide, 0.75, -14.1);
-    ramp.rotation.x = -Math.PI / 10;
+  // Lan can mây đá hai bên bậc tam cấp phía Đông (dọc theo trục Z = ±2.2)
+  for (const sSide of [-2.2, 2.2]) {
+    const ramp = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.65, 0.24), matLotusPlinth);
+    ramp.position.set(14.1, 0.75, sSide);
+    ramp.rotation.z = -Math.PI / 10;
     bridgeGroup.add(ramp);
 
-    // Trụ búp sen đầu lối vào bậc tam cấp
     const entryPost = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.85, 0.32), matStoneGrey);
-    entryPost.position.set(sSide, 0.65, -15.1);
+    entryPost.position.set(15.2, 0.65, sSide);
     bridgeGroup.add(entryPost);
 
     const entryBud = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
-    entryBud.position.set(sSide, 1.20, -15.1);
+    entryBud.position.set(15.2, 1.20, sSide);
     bridgeGroup.add(entryBud);
   }
 
-  // B. BẢN MẶT CẦU ĐÁ THANH (Z_local: -13.4 đến -2.4, dài 11m, rộng 3.4m, cao y = 0.93m)
-  const bridgeLength = 11.0;
-  const bridgeCenterZ = -7.9;
+  // B. THÂN CẦU ĐÁ HOA SEN BẮC QUA LÒNG HỒ PHÍA ĐÔNG (X_local: 13.4 đến 7.6, dài 5.8m, rộng 3.4m)
+  const bridgeLength = 5.8;
+  const bridgeCenterX = 10.5;
   const bridgeWidth = 3.4;
 
-  const bridgeDeck = new THREE.Mesh(new THREE.BoxGeometry(bridgeWidth, 0.22, bridgeLength), matStoneGrey);
-  bridgeDeck.position.set(0, 0.82, bridgeCenterZ);
+  const bridgeDeck = new THREE.Mesh(new THREE.BoxGeometry(bridgeLength, 0.22, bridgeWidth), matStoneGrey);
+  bridgeDeck.position.set(bridgeCenterX, 0.82, 0);
   bridgeDeck.receiveShadow = true;
   bridgeGroup.add(bridgeDeck);
 
-  // 4 cặp mố trụ đá chịu lực cắm sâu xuống đáy hồ
-  for (let pierZ = -12.0; pierZ <= -3.0; pierZ += 3.0) {
+  // Mố trụ đá chịu lực cắm sâu xuống đáy hồ
+  for (const px of [9.0, 12.0]) {
     for (const pSide of [-1.35, 1.35]) {
       const pier = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.85, 8), matStoneGrey);
-      pier.position.set(pSide, 0.40, pierZ);
+      pier.position.set(px, 0.40, pSide);
       pier.receiveShadow = true;
       bridgeGroup.add(pier);
     }
   }
 
-  // Gờ viền hoa sen và lan can búp sen hai bên mép cầu
+  // Gờ đá hoa sen và lan can búp sen hai bên mép cầu (dọc theo Z = ±1.75)
   for (const bSide of [-1.75, 1.75]) {
-    const bTrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, bridgeLength), matLotusPlinth);
-    bTrim.position.set(bSide, 0.98, bridgeCenterZ);
+    const bTrim = new THREE.Mesh(new THREE.BoxGeometry(bridgeLength, 0.16, 0.18), matLotusPlinth);
+    bTrim.position.set(bridgeCenterX, 0.98, bSide);
     bridgeGroup.add(bTrim);
 
-    // Trụ lan can đá chạm búp sen phân bổ đều dọc chiều dài cầu
-    for (let bz = -13.0; bz <= -2.5; bz += 1.75) {
+    for (let bx = 8.0; bx <= 13.0; bx += 1.6) {
       const bPost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), matStoneGrey);
-      bPost.position.set(bSide, 1.35, bz);
+      bPost.position.set(bx, 1.35, bSide);
       bridgeGroup.add(bPost);
 
       const bBud = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 6), matLotusPlinth);
-      bBud.position.set(bSide, 1.78, bz);
+      bBud.position.set(bx, 1.78, bSide);
       bridgeGroup.add(bBud);
     }
 
-    // Tay vịn đá lan can nối liền suốt chiều dài cầu
-    const bRail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, bridgeLength), matLotusPlinth);
-    bRail.position.set(bSide, 1.65, bridgeCenterZ);
+    const bRail = new THREE.Mesh(new THREE.BoxGeometry(bridgeLength, 0.12, 0.16), matLotusPlinth);
+    bRail.position.set(bridgeCenterX, 1.65, bSide);
     bridgeGroup.add(bRail);
   }
 
-  // Đèn đá cổ hoa sen thắp sáng trên các trụ cầu chính
-  const bridgeLanternOffsets = [-11.0, -7.5, -4.0];
-  bridgeLanternOffsets.forEach((lz, idx) => {
-    for (const lSide of [-1.75, 1.75]) {
-      const lanternBase = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.34), matLotusPlinth);
-      lanternBase.position.set(lSide, 1.82, lz);
-      bridgeGroup.add(lanternBase);
-
-      const lanternGlowMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12, 0.12, 0.24, 6),
-        new THREE.MeshStandardMaterial({
-          color: 0xfef08a,
-          emissive: 0xf59e0b,
-          emissiveIntensity: 0.6,
-        })
-      );
-      lanternGlowMesh.position.set(lSide, 2.02, lz);
-      bridgeGroup.add(lanternGlowMesh);
-
-      if (idx === 1) {
-        const bridgeLight = new THREE.PointLight(0xf59e0b, 0.6, 6.0);
-        bridgeLight.position.set(lSide, 2.2, lz);
-        nightLightsRef.current.push(bridgeLight);
-        bridgeGroup.add(bridgeLight);
-      }
-    }
-  });
-
-  // C. SÀN TIẾP CẬN & KẾT NỐI LIỀN MẠCH VÀO CHÂN CẦU THANG CHÙA MỘT CỘT (Z_local: -2.4 đến -0.6)
-  const arrivalDeck = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.22, 1.8), matStoneGrey);
-  arrivalDeck.position.set(0, 0.82, -1.5);
-  arrivalDeck.receiveShadow = true;
-  bridgeGroup.add(arrivalDeck);
-
-  // Lan can an toàn bao bọc hai bên sân dừng chân ngắm cảnh
-  for (const aSide of [-2.35, 2.35]) {
-    const aRail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 1.8), matLotusPlinth);
-    aRail.position.set(aSide, 1.65, -1.5);
-    bridgeGroup.add(aRail);
-
-    const aPost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), matStoneGrey);
-    aPost.position.set(aSide, 1.35, -0.65);
-    bridgeGroup.add(aPost);
-
-    const aBud = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.24, 6), matLotusPlinth);
-    aBud.position.set(aSide, 1.78, -0.65);
-    bridgeGroup.add(aBud);
-  }
-
-    pondGroup.add(bridgeGroup);
-
-  // =========================================================================
-  // 4B. LỐI CẦU ĐÁ THẲNG TRỰC DIỆN PHÍA NAM DẪN THẲNG VÀO CHÙA MỘT CỘT
-  // Nối thẳng từ sân chùa (Z_local: 15.4, world Z: 51.4) vào thềm rồng Chùa Một Cột (Z_local: 9.8)
-  // Cao trình mặt cầu y = 0.93m nổi bật trên làn nước xanh ngọc
-  // =========================================================================
-  const frontBridgeGroup = new THREE.Group();
-
-  // A. Bậc tam cấp đón từ sân chùa bước lên cầu phía Nam (Z_local: 15.4 đến 13.4, world Z: 51.4 đến 49.4)
-  const frontStepConfigs = [
-    { y: 0.40, z: 14.85, w: 4.4, d: 0.70 },
-    { y: 0.60, z: 14.15, w: 4.1, d: 0.70 },
-    { y: 0.80, z: 13.45, w: 3.8, d: 0.70 },
-  ];
-  frontStepConfigs.forEach((st) => {
-    const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(st.w, 0.20, st.d), matStoneGrey);
-    stepMesh.position.set(0, st.y, st.z);
-    stepMesh.receiveShadow = true;
-    frontBridgeGroup.add(stepMesh);
-
-    const stepTrim = new THREE.Mesh(new THREE.BoxGeometry(st.w + 0.05, 0.04, 0.12), matLotusPlinth);
-    stepTrim.position.set(0, st.y + 0.11, st.z - st.d / 2 + 0.06);
-    frontBridgeGroup.add(stepTrim);
-  });
-
-  // Lan can mây đá hai bên bậc tam cấp phía Nam
-  for (const sSide of [-2.2, 2.2]) {
-    const ramp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.65, 2.1), matLotusPlinth);
-    ramp.position.set(sSide, 0.75, 14.1);
-    ramp.rotation.x = Math.PI / 10;
-    frontBridgeGroup.add(ramp);
-
-    const entryPost = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.85, 0.32), matStoneGrey);
-    entryPost.position.set(sSide, 0.65, 15.2);
-    frontBridgeGroup.add(entryPost);
-
-    const entryBud = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 6), matLotusPlinth);
-    entryBud.position.set(sSide, 1.20, 15.2);
-    frontBridgeGroup.add(entryBud);
-  }
-
-  // B. Thân cầu đá thẳng bắc qua hồ (Z_local: 13.4 đến 9.8, dài 3.8m, rộng 3.4m, cao y = 0.82m)
-  const frontBridgeLen = 3.8;
-  const frontBridgeCenterZ = 11.6;
-  const frontBridgeWidth = 3.4;
-
-  const frontBridgeDeck = new THREE.Mesh(
-    new THREE.BoxGeometry(frontBridgeWidth, 0.22, frontBridgeLen),
-    matStoneGrey
-  );
-  frontBridgeDeck.position.set(0, 0.82, frontBridgeCenterZ);
-  frontBridgeDeck.receiveShadow = true;
-  frontBridgeGroup.add(frontBridgeDeck);
-
-  // Mố trụ đá chịu lực cắm sâu xuống đáy hồ
-  for (const pSide of [-1.35, 1.35]) {
-    const pier = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.85, 8), matStoneGrey);
-    pier.position.set(pSide, 0.40, frontBridgeCenterZ);
-    pier.receiveShadow = true;
-    frontBridgeGroup.add(pier);
-  }
-
-  // Gờ đá hoa sen và lan can búp sen hai bên thân cầu thẳng
-  for (const bSide of [-1.75, 1.75]) {
-    const bTrim = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, frontBridgeLen), matLotusPlinth);
-    bTrim.position.set(bSide, 0.98, frontBridgeCenterZ);
-    frontBridgeGroup.add(bTrim);
-
-    for (let bz = 10.2; bz <= 13.0; bz += 1.4) {
-      const bPost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), matStoneGrey);
-      bPost.position.set(bSide, 1.35, bz);
-      frontBridgeGroup.add(bPost);
-
-      const bBud = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 6), matLotusPlinth);
-      bBud.position.set(bSide, 1.78, bz);
-      frontBridgeGroup.add(bBud);
-    }
-
-    const bRail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, frontBridgeLen), matLotusPlinth);
-    bRail.position.set(bSide, 1.65, frontBridgeCenterZ);
-    frontBridgeGroup.add(bRail);
-  }
-
-  // Đèn lồng đá hoa sen thắp sáng hai bên lối vào cầu thẳng
+  // Đèn đá cổ hoa sen thắp sáng trên lan can cầu Đông
   for (const lSide of [-1.75, 1.75]) {
     const lanternBase = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.34), matLotusPlinth);
-    lanternBase.position.set(lSide, 1.82, 12.0);
-    frontBridgeGroup.add(lanternBase);
+    lanternBase.position.set(11.0, 1.82, lSide);
+    bridgeGroup.add(lanternBase);
 
     const lanternGlowMesh = new THREE.Mesh(
       new THREE.CylinderGeometry(0.12, 0.12, 0.24, 6),
@@ -465,85 +325,54 @@ export function createLotusPondEnsemble(
         emissiveIntensity: 0.6,
       })
     );
-    lanternGlowMesh.position.set(lSide, 2.02, 12.0);
-    frontBridgeGroup.add(lanternGlowMesh);
+    lanternGlowMesh.position.set(11.0, 2.02, lSide);
+    bridgeGroup.add(lanternGlowMesh);
 
     const bridgeLight = new THREE.PointLight(0xf59e0b, 0.6, 6.0);
-    bridgeLight.position.set(lSide, 2.2, 12.0);
+    bridgeLight.position.set(11.0, 2.2, lSide);
     nightLightsRef.current.push(bridgeLight);
-    frontBridgeGroup.add(bridgeLight);
+    bridgeGroup.add(bridgeLight);
   }
 
-  // C. Sàn tiếp cận nối trực tiếp vào thềm rồng đá Chùa Một Cột (Z_local: 9.8 đến 8.6)
-  const frontArrivalDeck = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.22, 1.4), matStoneGrey);
-  frontArrivalDeck.position.set(0, 0.82, 9.2);
-  frontArrivalDeck.receiveShadow = true;
-  frontBridgeGroup.add(frontArrivalDeck);
+  // C. SÀN TIẾP CẬN NỐI THẲNG VÀO CHÂN CẦU THANG RỒNG CHÙA MỘT CỘT (X_local: 7.6 đến 6.2, rộng 4.2m)
+  const arrivalDeck = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.22, 4.2), matStoneGrey);
+  arrivalDeck.position.set(6.9, 0.82, 0);
+  arrivalDeck.receiveShadow = true;
+  bridgeGroup.add(arrivalDeck);
 
-  // Lan can an toàn hai bên sàn tiếp cận
+  // Lan can hai bên sàn tiếp cận (dọc Z = ±2.1)
   for (const aSide of [-2.1, 2.1]) {
-    const aRail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 1.4), matLotusPlinth);
-    aRail.position.set(aSide, 1.65, 9.2);
-    frontBridgeGroup.add(aRail);
+    const aRail = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.16), matLotusPlinth);
+    aRail.position.set(6.9, 1.65, aSide);
+    bridgeGroup.add(aRail);
 
     const aPost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), matStoneGrey);
-    aPost.position.set(aSide, 1.35, 8.6);
-    frontBridgeGroup.add(aPost);
+    aPost.position.set(6.3, 1.35, aSide);
+    bridgeGroup.add(aPost);
 
     const aBud = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.24, 6), matLotusPlinth);
-    aBud.position.set(aSide, 1.78, 8.6);
-    frontBridgeGroup.add(aBud);
+    aBud.position.set(6.3, 1.78, aSide);
+    bridgeGroup.add(aBud);
   }
 
-  pondGroup.add(frontBridgeGroup);
+  pondGroup.add(bridgeGroup);
 
   // =========================================================================
-  // 4C. ÁN THỜ & LƯ HƯƠNG ĐÁ DÂNG HƯƠNG TẠI LỐI VÀO CẦU THẲNG PHÍA NAM
-  // Bố trí tại cánh tả lối vào (local X = -2.8, Z = 14.5; world X = -28.8, Z = 50.5)
-  // =========================================================================
-  const frontCenserGroup = new THREE.Group();
-  frontCenserGroup.position.set(-2.8, 0.40, 14.5);
-
-  const frontCenserBase = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 1.6), matLotusPlinth);
-  frontCenserBase.position.set(0, 0.175, 0);
-  frontCenserBase.receiveShadow = true;
-  frontCenserGroup.add(frontCenserBase);
-
-  const frontStoneCenser = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.36, 0.52, 14), matStoneGrey);
-  frontStoneCenser.position.set(0, 0.60, 0);
-  frontCenserGroup.add(frontStoneCenser);
-
-  const frontIncenseStick = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.38, 6), matGold);
-  frontIncenseStick.position.set(0, 0.95, 0);
-  frontCenserGroup.add(frontIncenseStick);
-
-  const frontCenserGlow = new THREE.PointLight(0xf97316, 0.65, 4.0);
-  frontCenserGlow.position.set(0, 1.15, 0);
-  nightLightsRef.current.push(frontCenserGlow);
-  frontCenserGroup.add(frontCenserGlow);
-
-  pondGroup.add(frontCenserGroup);
-
-  // =========================================================================
-  // 5. ÁN THỜ & LƯ HƯƠNG ĐÁ DÂNG HƯƠNG TẠI ĐẦU CẦU ĐÁ (BẢO TOÀN TÍNH NĂNG CŨ)
-  // Bố trí tại cánh tả lối vào cầu đá (local X = -2.8, Z = -14.2; world X = -28.8, Z = 21.8)
-  // Đảm bảo thông thủy lối đi chính (|X| <= 1.6m) hoàn toàn thông suốt
+  // 5. ÁN THỜ & LƯ HƯƠNG ĐÁ DÂNG HƯƠNG TẠI ĐẦU CẦU PHÍA ĐÔNG (HƯỚNG SÂN CHÙA)
+  // Bố trí tại cánh tả lối vào cầu từ sân chùa (local X = 14.8, Z = 2.8; world X = -11.2, Z = 38.8)
   // =========================================================================
   const pondCenserGroup = new THREE.Group();
-  pondCenserGroup.position.set(-2.8, 0.40, -14.2);
+  pondCenserGroup.position.set(14.8, 0.40, 2.8);
 
-  // Bệ đá tam cấp đặt lư hương
-  const pondCenserBase = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 1.6), matLotusPlinth);
+  const pondCenserBase = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 2.4), matLotusPlinth);
   pondCenserBase.position.set(0, 0.175, 0);
   pondCenserBase.receiveShadow = true;
   pondCenserGroup.add(pondCenserBase);
 
-  // Lư hương đá tròn quai mây cổ kính
   const stoneCenser = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.36, 0.52, 14), matStoneGrey);
   stoneCenser.position.set(0, 0.60, 0);
   pondCenserGroup.add(stoneCenser);
 
-  // Nén hương trầm vàng son phát sáng ấm cúng
   const incenseStick = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.38, 6), matGold);
   incenseStick.position.set(0, 0.95, 0);
   pondCenserGroup.add(incenseStick);
@@ -555,7 +384,6 @@ export function createLotusPondEnsemble(
 
   pondGroup.add(pondCenserGroup);
 
-  // =========================================================================
   // 6. CẢNH QUAN SEN DÀY ĐẶC (68+ LÁ SEN, 34+ HOA SEN HỒNG & TRẮNG, 18+ BÚP SEN)
   // =========================================================================
   const lotusGroup = new THREE.Group();

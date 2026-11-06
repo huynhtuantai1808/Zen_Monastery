@@ -641,14 +641,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-        playerPosRef.current.x = -26.0;
-    playerPosRef.current.z = 45.8;
+            playerPosRef.current.x = -19.5;
+    playerPosRef.current.z = 36.0;
     clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
-      monkGroupRef.current.position.set(-26.0, 0.93, 45.8);
-      monkGroupRef.current.rotation.set(0, 0, 0);
+      monkGroupRef.current.position.set(-19.5, 0.93, 36.0);
+      monkGroupRef.current.rotation.set(0, -Math.PI / 2, 0);
     }
 
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
@@ -677,14 +677,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
 
-        playerPosRef.current.x = -26.0;
-    playerPosRef.current.z = 49.8;
+            playerPosRef.current.x = -12.0;
+    playerPosRef.current.z = 36.0;
     clearTargetPos();
     isWalkingStateRef.current = false;
 
     if (monkGroupRef.current) {
-      monkGroupRef.current.position.set(-26.0, 0.93, 49.8);
-      monkGroupRef.current.rotation.set(0, 0, 0);
+      monkGroupRef.current.position.set(-12.0, 0.42, 36.0);
+      monkGroupRef.current.rotation.set(0, -Math.PI / 2, 0);
     }
 
     if (chibiIncenseBundleRef.current) {
@@ -734,9 +734,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       monkPoseRef.current = 'STAND';
     }, 2500);
 
-    if (pondGroupRef.current) {
+        if (pondGroupRef.current) {
       const lanternG = new THREE.Group();
-      lanternG.position.set((Math.random() - 0.5) * 1.5, 0.56, -9.2);
+      const localPx = playerPosRef.current.x - (-26.0);
+      const localPz = playerPosRef.current.z - 36.0;
+      lanternG.position.set(
+        localPx + (Math.random() - 0.5) * 1.5,
+        0.56,
+        localPz + (Math.random() > 0.5 ? 1.9 : -1.9)
+      );
 
       const lanternColors: Record<string, number> = {
         pink: 0xf472b6,
@@ -833,10 +839,12 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         emissiveIntensity: 0.5,
         roughness: 0.3,
       });
+            const localPx = playerPosRef.current.x - (-26.0);
+      const localPz = playerPosRef.current.z - 36.0;
       for (let i = 0; i < 12; i++) {
         const pellet = new THREE.Mesh(new THREE.DodecahedronGeometry(0.045), pelletMat);
-        const px = (Math.random() - 0.5) * 2.8;
-        const pz = -2.2 + (Math.random() - 0.5) * 2.2;
+        const px = localPx + (Math.random() - 0.5) * 2.0;
+        const pz = localPz + (Math.random() > 0.5 ? 1.85 : -1.85) + (Math.random() - 0.5) * 0.8;
         const py = 1.35 + Math.random() * 0.4;
         pellet.position.set(px, py, pz);
         pondGroupRef.current.add(pellet);
@@ -1382,24 +1390,20 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const courtyardGroup = new THREE.Group();
     courtyardGroup.position.set(0, 0, 20);
 
-        // Sàn gạch sân chùa lát gạch Bát Tràng ấm áp (mở rộng toàn diện khớp bằng diện tích hồ sen)
-    // 1. Sàn trung tâm nối từ Chánh Điện (Z=2) xuyên suốt chiều dài sân chùa đến ngang tầm hồ sen (Z=52)
-    const courtFloorMain = new THREE.Mesh(new THREE.BoxGeometry(28.0, 0.35, 50.0), matTileBrick);
-    courtFloorMain.position.set(1.5, 0.18, 7.0);
-    courtFloorMain.receiveShadow = true;
-    courtyardGroup.add(courtFloorMain);
+            // ĐẠI SÂN CHÙA BÁT TRÀNG ĐỒNG BỘ & ĐỀU ĐẶN (QUY HOẠCH VUÔNG VẮN CÂN ĐỐI)
+    // 1. Đại sân trung tâm phẳng phiu (30m x 52m) nối từ Chánh Điện (Z=2) đến trước Cổng Tam Quan (Z=54)
+    // Mép Tây (X = -12) tiếp giáp chuẩn xác với bờ kè Đông Hồ Sen & lối lên Cầu Chùa Một Cột (Z = 36)
+    // Mép Đông (X = 18) tiếp giáp thẳng hàng với Dãy Hành Lang Cột Gỗ Lim
+    const courtFloorGrand = new THREE.Mesh(new THREE.BoxGeometry(30.0, 0.35, 52.0), matTileBrick);
+    courtFloorGrand.position.set(3.0, 0.18, 8.0);
+    courtFloorGrand.receiveShadow = true;
+    courtyardGroup.add(courtFloorGrand);
 
-    // 2. Sàn gạch quảng trường phía trước Hồ Sen & lối vào Cầu Chùa Một Cột (khớp bằng diện tích hồ sen)
-    const courtFloorPondFront = new THREE.Mesh(new THREE.BoxGeometry(26.0, 0.35, 12.0), matTileBrick);
-    courtFloorPondFront.position.set(-25.0, 0.18, 33.0);
-    courtFloorPondFront.receiveShadow = true;
-    courtyardGroup.add(courtFloorPondFront);
-
-    // 3. Sàn gạch liên kết phía Tây nối sang hành lang Thiền Trà Quán (Z: 6 đến 20)
-    const courtFloorWestLink = new THREE.Mesh(new THREE.BoxGeometry(12.0, 0.35, 14.0), matTileBrick);
-    courtFloorWestLink.position.set(-18.0, 0.18, -7.0);
-    courtFloorWestLink.receiveShadow = true;
-    courtyardGroup.add(courtFloorWestLink);
+    // 2. Trục đường lát gạch nung dẫn từ Cổng Tam Quan (Z: 54 đến 66, rộng 14m cân xứng trục trung đạo X=0)
+    const courtFloorAvenue = new THREE.Mesh(new THREE.BoxGeometry(14.0, 0.35, 12.0), matTileBrick);
+    courtFloorAvenue.position.set(0.0, 0.18, 40.0);
+    courtFloorAvenue.receiveShadow = true;
+    courtyardGroup.add(courtFloorAvenue);
 
     // Stylized Tripod Bronze Censer (Đại Lư Hương Tam Bảo)
     const censerGroup = new THREE.Group();
