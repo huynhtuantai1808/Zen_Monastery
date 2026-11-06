@@ -54,6 +54,7 @@ import {
   getSharedTexture,
   disposeSharedTextures
 } from './world/textures';
+import { createMapleTreeEnsemble } from './world/environment';
 
 import type { TeaServerPatrolWaypoint } from './world/npcs/patrolNpcs';
 import {
@@ -1386,6 +1387,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     const monasteryPerimeterWalls = createMonasteryPerimeterWalls(perimeterMaterials);
     scene.add(monasteryPerimeterWalls);
+
+    // [PERIMETER MAPLE TREES - 26 CÂY PHONG CỔ THỤ VEN TƯỜNG BAO & CỔNG]
+    const mapleEnsemble = createMapleTreeEnsemble();
+    scene.add(mapleEnsemble.group);
 
     // [ZONE 2: SÂN CHÙA & ĐẠI LƯ HƯƠNG]
     const courtyardGroup = new THREE.Group();
@@ -3528,6 +3533,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       disposeSharedTextures();
+      mapleEnsemble.dispose();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       renderer.domElement.removeEventListener('mousedown', handlePointerDown);
       window.removeEventListener('mousemove', handlePointerMove);

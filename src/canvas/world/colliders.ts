@@ -1,5 +1,8 @@
+import { getMapleTreeColliders } from './environment/mapleTreeEnsemble';
+
 // =======================================================================
 // MONASTERY COLLIDERS, ELEVATION LOGIC & ZONE DEFINITIONS
+
 // =======================================================================
 
 export interface TempleZoneCamera {
@@ -77,6 +80,9 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -53.2, maxX: 53.2, minZ: -59.2, maxZ: -57.3, maxY: 4.5, name: 'North Perimeter Wall' },
   // Tường Đông (East Wall: X = 52, Z từ -58 đến 66)
   { type: 'box', minX: 51.3, maxX: 53.2, minZ: -59.2, maxZ: 66.8, maxY: 4.5, name: 'East Perimeter Wall' },
+
+  // 0.1 HÀNG CÂY PHONG LÁ ĐỎ CỔ THỤ VEN TƯỜNG BAO & HAI BÊN CỔNG (26 cây phong - Zero-Clipping)
+  ...getMapleTreeColliders(),
 
   // 1. CỔNG TAM QUAN 3 GIAN CỔ TRUYỀN (Zone 1 Gate: 4 stone pillars + 3 open portals)
   // 4 trụ đá hoa cương bát giác Cổng Tam Quan (khoảng mở thông thủy > 3.5m cho mỗi gian)
