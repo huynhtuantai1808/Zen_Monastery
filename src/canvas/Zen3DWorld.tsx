@@ -642,7 +642,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     preloadMonkVoiceAudio();
     soundEngine.playSingingBowl();
 
-            playerPosRef.current.x = -19.5;
+    playerPosRef.current.x = -19.5;
     playerPosRef.current.z = 36.0;
     clearTargetPos();
     isWalkingStateRef.current = false;
@@ -678,7 +678,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
     monkPoseRef.current = 'INCENSE_BOW';
 
-            playerPosRef.current.x = -12.0;
+    playerPosRef.current.x = -12.0;
     playerPosRef.current.z = 36.0;
     clearTargetPos();
     isWalkingStateRef.current = false;
@@ -735,7 +735,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       monkPoseRef.current = 'STAND';
     }, 2500);
 
-        if (pondGroupRef.current) {
+    if (pondGroupRef.current) {
       const lanternG = new THREE.Group();
       const localPx = playerPosRef.current.x - (-26.0);
       const localPz = playerPosRef.current.z - 36.0;
@@ -840,7 +840,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         emissiveIntensity: 0.5,
         roughness: 0.3,
       });
-            const localPx = playerPosRef.current.x - (-26.0);
+      const localPx = playerPosRef.current.x - (-26.0);
       const localPz = playerPosRef.current.z - 36.0;
       for (let i = 0; i < 12; i++) {
         const pellet = new THREE.Mesh(new THREE.DodecahedronGeometry(0.045), pelletMat);
@@ -1391,7 +1391,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const courtyardGroup = new THREE.Group();
     courtyardGroup.position.set(0, 0, 20);
 
-            // ĐẠI SÂN CHÙA BÁT TRÀNG ĐỒNG BỘ & ĐỀU ĐẶN (QUY HOẠCH VUÔNG VẮN CÂN ĐỐI)
+    // ĐẠI SÂN CHÙA BÁT TRÀNG ĐỒNG BỘ & ĐỀU ĐẶN (QUY HOẠCH VUÔNG VẮN CÂN ĐỐI)
     // 1. Đại sân trung tâm phẳng phiu (30m x 52m) nối từ Chánh Điện (Z=2) đến trước Cổng Tam Quan (Z=54)
     // Mép Tây (X = -12) tiếp giáp chuẩn xác với bờ kè Đông Hồ Sen & lối lên Cầu Chùa Một Cột (Z = 36)
     // Mép Đông (X = 18) tiếp giáp thẳng hàng với Dãy Hành Lang Cột Gỗ Lim
@@ -1780,7 +1780,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     libGroup.add(libRoof);
     scene.add(libGroup);
 
-        // =========================================================================
+    // =========================================================================
     // [ZONE 10: HẬU VIỆN SƠN TỰ - MODULE KIẾN TRÚC MỚI]
     // Hương Tích Trù, Kho Củi Tiêu Phòng, Giếng Ngọc Cổ & Hàng Trúc Xanh
     // =========================================================================
@@ -3450,7 +3450,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         }
       }
 
-            // Bamboo Leaves Sway (Zero-Allocation loop)
+      // Bamboo Leaves Sway (Zero-Allocation loop)
       const bambooList = bambooLeavesRef.current;
       for (let bIdx = 0; bIdx < bambooList.length; bIdx++) {
         bambooList[bIdx].rotation.z = Math.sin(stepCount * 0.02 + bIdx) * 0.05;
@@ -3461,7 +3461,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         fanBladesRef.current.rotation.z += 0.28;
       }
 
-            // Incense Smoke (throttled to every 2 frames for GPU buffer optimization)
+      // Incense Smoke (throttled to every 2 frames for GPU buffer optimization)
       if (smokeParticlesRef.current && stepCount % 2 === 0) {
         const posAttr = smokeParticlesRef.current.geometry.attributes.position;
         const arr = posAttr.array as Float32Array;
