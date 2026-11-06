@@ -258,11 +258,10 @@ export const Zen3DOverlays: React.FC<Zen3DOverlaysProps> = ({
               setFeedKoiCooldown(3);
             }}
             disabled={feedKoiCooldown > 0}
-            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg ${
-              feedKoiCooldown > 0
+            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg ${feedKoiCooldown > 0
                 ? 'bg-stone-700/60 text-stone-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-amber-500/30 active:scale-95'
-            }`}
+              }`}
             title="Rải mồi nuôi dưỡng đàn cá Koi (Hồi chiêu 3s)"
           >
             <span>🐟 Cho Cá Ăn {feedKoiCooldown > 0 ? `(${feedKoiCooldown}s)` : ''}</span>
