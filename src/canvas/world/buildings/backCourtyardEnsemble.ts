@@ -85,7 +85,7 @@ export function createBackCourtyardEnsemble(
 
   // =========================================================================
   // 2. NHÀ BẾP CHÙA (HƯƠNG TÍCH TRÙ) - CÁNH TÂY BẮC (X_local: -16.5, Z_local: 1.0)
-  // Kích thước 11.5m x 8.0m, móng đá tôn cao 0.58m, bếp lò đỏ lửa, ống khói lam chiều
+  // Kích thước 12.0m x 8.5m, móng đá tôn cao 0.58m, cửa mở rộng 2.4m, nội thất ấm cúng
   // =========================================================================
   const kitchenGroup = new THREE.Group();
   kitchenGroup.position.set(-16.5, 0, 1.0);
@@ -99,31 +99,128 @@ export function createBackCourtyardEnsemble(
   kitchenBase.receiveShadow = true;
   kitchenGroup.add(kitchenBase);
 
-  // Bậc tam cấp đá đón bước vào nhà bếp phía trước
+  // Sàn gạch Bát Tràng nội thất bên trong nhà bếp
+  const kitchenInteriorFloor = new THREE.Mesh(
+    new THREE.BoxGeometry(10.8, 0.04, 7.2),
+    matTileBrick
+  );
+  kitchenInteriorFloor.position.set(0, 0.40, 0);
+  kitchenInteriorFloor.receiveShadow = true;
+  kitchenGroup.add(kitchenInteriorFloor);
+
+  // Bậc tam cấp đá đón bước vào cửa nhà bếp phía trước
   for (let st = 0; st < 2; st++) {
     const kStep = new THREE.Mesh(
-      new THREE.BoxGeometry(3.6, 0.18, 0.8),
+      new THREE.BoxGeometry(3.2, 0.18, 0.8),
       matStoneGrey
     );
-    kStep.position.set(0, 0.09 + st * 0.18, 4.4 + st * 0.6);
+    kStep.position.set(0, 0.09 + st * 0.18, 4.3 + st * 0.5);
     kStep.receiveShadow = true;
     kitchenGroup.add(kStep);
   }
 
-  // Khối tường gạch Bát Tràng cổ kính
+  // Khối tường gạch Bát Tràng cổ kính bao quanh có chừa cửa vào
   const matKitchenBrick = new THREE.MeshStandardMaterial({
     color: 0x9a3412, // Đỏ gạch nung ấm áp
     roughness: 0.85,
     metalness: 0.05,
   });
-  const kitchenWalls = new THREE.Mesh(
-    new THREE.BoxGeometry(11.2, 3.6, 7.6),
+
+  // Tường Hậu (phía Bắc)
+  const kitchenWallBack = new THREE.Mesh(
+    new THREE.BoxGeometry(11.2, 3.6, 0.38),
     matKitchenBrick
   );
-  kitchenWalls.position.set(0, 2.2, 0);
-  kitchenWalls.castShadow = true;
-  kitchenWalls.receiveShadow = true;
-  kitchenGroup.add(kitchenWalls);
+  kitchenWallBack.position.set(0, 2.2, -3.61);
+  kitchenWallBack.castShadow = true;
+  kitchenWallBack.receiveShadow = true;
+  kitchenGroup.add(kitchenWallBack);
+
+  // Tường Hồi (phía Tây)
+  const kitchenWallWest = new THREE.Mesh(
+    new THREE.BoxGeometry(0.38, 3.6, 7.22),
+    matKitchenBrick
+  );
+  kitchenWallWest.position.set(-5.41, 2.2, 0);
+  kitchenWallWest.castShadow = true;
+  kitchenWallWest.receiveShadow = true;
+  kitchenGroup.add(kitchenWallWest);
+
+  // Tường Hồi (phía Đông)
+  const kitchenWallEast = new THREE.Mesh(
+    new THREE.BoxGeometry(0.38, 3.6, 7.22),
+    matKitchenBrick
+  );
+  kitchenWallEast.position.set(5.41, 2.2, 0);
+  kitchenWallEast.castShadow = true;
+  kitchenWallEast.receiveShadow = true;
+  kitchenGroup.add(kitchenWallEast);
+
+  // Tường Mặt Tiền (phía Nam) có chừa cửa đi rộng 2.4m, cao 2.8m
+  // Vách mặt tiền phía Tây (trái cửa)
+  const kitchenWallFrontWest = new THREE.Mesh(
+    new THREE.BoxGeometry(4.4, 3.6, 0.38),
+    matKitchenBrick
+  );
+  kitchenWallFrontWest.position.set(-3.4, 2.2, 3.61);
+  kitchenWallFrontWest.castShadow = true;
+  kitchenWallFrontWest.receiveShadow = true;
+  kitchenGroup.add(kitchenWallFrontWest);
+
+  // Vách mặt tiền phía Đông (phải cửa)
+  const kitchenWallFrontEast = new THREE.Mesh(
+    new THREE.BoxGeometry(4.4, 3.6, 0.38),
+    matKitchenBrick
+  );
+  kitchenWallFrontEast.position.set(3.4, 2.2, 3.61);
+  kitchenWallFrontEast.castShadow = true;
+  kitchenWallFrontEast.receiveShadow = true;
+  kitchenGroup.add(kitchenWallFrontEast);
+
+  // Lanh-tô trán cửa phía trên (Door Lintel)
+  const kitchenDoorLintel = new THREE.Mesh(
+    new THREE.BoxGeometry(2.4, 0.8, 0.38),
+    matKitchenBrick
+  );
+  kitchenDoorLintel.position.set(0, 3.6, 3.61);
+  kitchenDoorLintel.castShadow = true;
+  kitchenGroup.add(kitchenDoorLintel);
+
+  // Khung khuôn cửa gỗ lim (Door jambs & header beam)
+  for (const djx of [-1.2, 1.2]) {
+    const jamb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 2.8, 0.42),
+      matWoodLim
+    );
+    jamb.position.set(djx, 1.8, 3.61);
+    jamb.castShadow = true;
+    kitchenGroup.add(jamb);
+  }
+  const doorHeader = new THREE.Mesh(
+    new THREE.BoxGeometry(2.52, 0.14, 0.44),
+    matWoodLim
+  );
+  doorHeader.position.set(0, 3.2, 3.61);
+  kitchenGroup.add(doorHeader);
+
+  // Hai cánh cửa gỗ lim mở xếp đón khách vào trong gian bếp
+  const doorL = new THREE.Mesh(
+    new THREE.BoxGeometry(1.05, 2.65, 0.08),
+    matWoodLim
+  );
+  doorL.position.set(-1.05, 1.75, 3.2);
+  doorL.rotation.y = 1.25; // mở gập vào trong
+  doorL.castShadow = true;
+  kitchenGroup.add(doorL);
+
+  const doorR = new THREE.Mesh(
+    new THREE.BoxGeometry(1.05, 2.65, 0.08),
+    matWoodLim
+  );
+  doorR.position.set(1.05, 1.75, 3.2);
+  doorR.rotation.y = -1.25; // mở gập vào trong
+  doorR.castShadow = true;
+  kitchenGroup.add(doorR);
 
   // Cột hiên gỗ lim mặt tiền nhà bếp
   for (const cx of [-4.8, -1.8, 1.8, 4.8]) {
@@ -148,12 +245,65 @@ export function createBackCourtyardEnsemble(
   kitchenRoof.position.set(0, 4.3, 0);
   kitchenGroup.add(kitchenRoof);
 
-  // Gian bếp lò củi đỏ lửa (Hearth) ở góc hiên bếp phía Đông
+  // --- NỘI THẤT BÊN TRONG NHÀ BẾP (KITCHEN INTERIOR) ---
+  // Bàn gỗ sơ chế thức ăn chay thanh tịnh (Vegetable Prep Table)
+  const prepTable = new THREE.Mesh(
+    new THREE.BoxGeometry(2.6, 0.85, 1.2),
+    matWoodLim
+  );
+  prepTable.position.set(-3.2, 0.825, -1.5);
+  prepTable.castShadow = true;
+  kitchenGroup.add(prepTable);
+
+  // Thớt gỗ và rổ tre sơ chế đậu phụ, nấm hương
+  const kitchenBoard = new THREE.Mesh(
+    new THREE.BoxGeometry(0.65, 0.08, 0.45),
+    matWoodLim
+  );
+  kitchenBoard.position.set(-3.4, 1.29, -1.5);
+  kitchenGroup.add(kitchenBoard);
+
+  const vegBasket = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.28, 0.22, 10),
+    new THREE.MeshStandardMaterial({ color: 0xca8a04, roughness: 0.85 })
+  );
+  vegBasket.position.set(-2.4, 1.36, -1.5);
+  kitchenGroup.add(vegBasket);
+
+  // Chạn bát đĩa & giá gia vị mộc mạc bên vách Tây
+  const cupboard = new THREE.Mesh(
+    new THREE.BoxGeometry(0.65, 2.2, 2.6),
+    matWoodLim
+  );
+  cupboard.position.set(-4.9, 1.5, 0.8);
+  cupboard.castShadow = true;
+  kitchenGroup.add(cupboard);
+
+  // Các bát gốm tráng men mộc trên giá
+  for (let b = 0; b < 3; b++) {
+    const bowl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.12, 0.12, 8),
+      matLotusPlinth
+    );
+    bowl.position.set(-4.5, 1.6 + b * 0.45, 0.4 + b * 0.4);
+    kitchenGroup.add(bowl);
+  }
+
+  // Ghế băng dài gỗ mộc cho sư huynh đệ ngồi lặt rau
+  const monkBench = new THREE.Mesh(
+    new THREE.BoxGeometry(2.0, 0.45, 0.4),
+    matWoodLim
+  );
+  monkBench.position.set(-3.2, 0.625, 0.2);
+  monkBench.castShadow = true;
+  kitchenGroup.add(monkBench);
+
+  // Gian bếp lò củi đỏ lửa (Hearth) ở góc Đông bên trong gian bếp
   const hearthBase = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 0.85, 1.8),
+    new THREE.BoxGeometry(2.2, 0.85, 2.0),
     new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 })
   );
-  hearthBase.position.set(3.8, 0.825, 3.2);
+  hearthBase.position.set(3.8, 0.825, -1.2);
   kitchenGroup.add(hearthBase);
 
   // Chảo gang đen đặt trên bếp
@@ -161,7 +311,7 @@ export function createBackCourtyardEnsemble(
     new THREE.SphereGeometry(0.55, 12, 8, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5),
     new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.4, metalness: 0.8 })
   );
-  wok.position.set(3.8, 1.25, 3.2);
+  wok.position.set(3.8, 1.25, -1.2);
   wok.rotation.x = Math.PI;
   kitchenGroup.add(wok);
 
@@ -174,20 +324,26 @@ export function createBackCourtyardEnsemble(
       emissiveIntensity: 0.85,
     })
   );
-  fireGlow.position.set(3.8, 0.95, 3.9);
+  fireGlow.position.set(3.8, 0.95, -0.2);
   kitchenGroup.add(fireGlow);
 
   const kitchenFireLight = new THREE.PointLight(0xf97316, 0.8, 7.0);
-  kitchenFireLight.position.set(3.8, 1.2, 3.9);
+  kitchenFireLight.position.set(3.8, 1.2, -0.2);
   nightLightsRef.current.push(kitchenFireLight);
   kitchenGroup.add(kitchenFireLight);
+
+  // Đèn lồng ấm áp thắp sáng bên trong gian bếp
+  const kitchenInteriorLight = new THREE.PointLight(0xfef08a, 0.65, 8.5);
+  kitchenInteriorLight.position.set(0, 2.8, 0);
+  nightLightsRef.current.push(kitchenInteriorLight);
+  kitchenGroup.add(kitchenInteriorLight);
 
   // Ống khói bếp lò bằng đất nung vươn cao qua mái
   const chimney = new THREE.Mesh(
     new THREE.CylinderGeometry(0.32, 0.38, 4.8, 10),
     new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.85 })
   );
-  chimney.position.set(3.8, 4.6, 2.0);
+  chimney.position.set(3.8, 4.6, -1.2);
   chimney.castShadow = true;
   kitchenGroup.add(chimney);
 
@@ -196,7 +352,7 @@ export function createBackCourtyardEnsemble(
     new THREE.ConeGeometry(0.58, 0.35, 8),
     new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.8 })
   );
-  chimneyCap.position.set(3.8, 7.15, 2.0);
+  chimneyCap.position.set(3.8, 7.15, -1.2);
   kitchenGroup.add(chimneyCap);
 
   // Dãy chum gốm sành Bát Tràng muối dưa cà cạnh thềm bếp
@@ -219,15 +375,16 @@ export function createBackCourtyardEnsemble(
   backGardenGroup.add(kitchenGroup);
 
   // =========================================================================
-  // 3. NHÀ KHO CỦI (TIÊU PHÒNG) & BÃI CHẺ CỦI THIỀN MÔN (X_local: -4.0, Z_local: 0.0)
+  // 3. NHÀ KHO CỦI (TIÊU PHÒNG) & BÃI CHẺ CỦI THIỀN MÔN (X_local: -6.5, Z_local: 0.0)
   // Khung cột gỗ nan thưa, chồng củi gỗ xếp ngăn nắp, bệ gỗ chẻ củi và rìu ghim
+  // World bounds: X in [-9.2, -3.8], Z in [-52.8, -47.2]
   // =========================================================================
   const woodShedGroup = new THREE.Group();
-  woodShedGroup.position.set(-4.0, 0, 0.0);
+  woodShedGroup.position.set(-6.5, 0, 0.0);
 
   // Bệ móng kho củi tôn cao 0.50m
   const woodShedBase = new THREE.Mesh(
-    new THREE.BoxGeometry(9.5, 0.30, 6.8),
+    new THREE.BoxGeometry(5.4, 0.30, 5.6),
     matStoneGrey
   );
   woodShedBase.position.set(0, 0.15, 0);
@@ -236,21 +393,21 @@ export function createBackCourtyardEnsemble(
 
   // Sàn gỗ mộc kho củi
   const woodShedFloor = new THREE.Mesh(
-    new THREE.BoxGeometry(9.0, 0.12, 6.4),
+    new THREE.BoxGeometry(5.0, 0.12, 5.2),
     matWoodLim
   );
   woodShedFloor.position.set(0, 0.36, 0);
   woodShedFloor.receiveShadow = true;
   woodShedGroup.add(woodShedFloor);
 
-  // Khung 6 cột gỗ lim đỡ mái kho củi
+  // Khung các cột gỗ lim đỡ mái kho củi
   const shedColCoords = [
-    [-4.0, -2.8], [0.0, -2.8], [4.0, -2.8],
-    [-4.0, 2.8], [4.0, 2.8],
+    [-2.4, -2.4], [0.0, -2.4], [2.4, -2.4],
+    [-2.4, 2.4], [2.4, 2.4],
   ];
   shedColCoords.forEach(([cx, cz]) => {
     const col = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.22, 0.24, 3.4, 8),
+      new THREE.CylinderGeometry(0.20, 0.22, 3.4, 8),
       matWoodLim
     );
     col.position.set(cx, 2.0, cz);
@@ -258,23 +415,23 @@ export function createBackCourtyardEnsemble(
     woodShedGroup.add(col);
   });
 
-  // Vách nan gỗ thông thoáng ở 3 mặt (Bắc, Tây, Đông)
+  // Vách nan gỗ thông thoáng ở 2 mặt (Bắc sau, Tây trái)
   const matLathWood = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
   // Vách Bắc (sau)
   for (let lz = 0.8; lz <= 3.2; lz += 0.45) {
-    const lathBack = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.18, 0.08), matLathWood);
-    lathBack.position.set(0, lz, -2.8);
+    const lathBack = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.18, 0.08), matLathWood);
+    lathBack.position.set(0, lz, -2.4);
     woodShedGroup.add(lathBack);
   }
   // Vách Tây (trái)
   for (let lz = 0.8; lz <= 3.2; lz += 0.45) {
-    const lathWest = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 5.6), matLathWood);
-    lathWest.position.set(-4.0, lz, 0);
+    const lathWest = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 4.8), matLathWood);
+    lathWest.position.set(-2.4, lz, 0);
     woodShedGroup.add(lathWest);
   }
 
   // Mái che dốc lợp ngói
-  const woodShedRoof = createStylizedCurvedRoof(10.6, 7.8, matRoofTile);
+  const woodShedRoof = createStylizedCurvedRoof(6.6, 6.8, matRoofTile);
   woodShedRoof.position.set(0, 3.8, 0);
   woodShedGroup.add(woodShedRoof);
 
@@ -282,12 +439,12 @@ export function createBackCourtyardEnsemble(
   const matLogWood = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.9 });
   const matLogCut = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.75 });
 
-  // Chồng củi lớn gian phía sau và phía tây
+  // Chồng củi lớn gian phía sau
   for (let layer = 0; layer < 4; layer++) {
-    for (let lx = -3.2; lx <= 3.2; lx += 0.65) {
-      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.2, 8), matLogWood);
+    for (let lx = -1.8; lx <= 1.8; lx += 0.65) {
+      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.8, 8), matLogWood);
       log.rotateZ(Math.PI / 2);
-      log.position.set(lx, 0.6 + layer * 0.34, -1.8);
+      log.position.set(lx, 0.6 + layer * 0.34, -1.6);
       log.castShadow = true;
       woodShedGroup.add(log);
     }
@@ -295,21 +452,21 @@ export function createBackCourtyardEnsemble(
 
   // Chồng củi bổ khúc gian bên hông
   for (let layer = 0; layer < 3; layer++) {
-    for (let lz = -0.6; lz <= 1.8; lz += 0.6) {
+    for (let lz = -0.6; lz <= 1.2; lz += 0.6) {
       const logSide = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.8, 8), matLogWood);
       logSide.rotateX(Math.PI / 2);
-      logSide.position.set(-2.8, 0.58 + layer * 0.32, lz);
+      logSide.position.set(-1.8, 0.58 + layer * 0.32, lz);
       woodShedGroup.add(logSide);
     }
   }
 
   // BÃI CHẺ CỦI THIỀN MÔN (CHOPPING STATION PROP)
-  // Bệ thớt gỗ đại thụ chẻ củi (định vị tại local Z = 5.0, tức world X = -4.0, Z = -45.0)
+  // Bệ thớt gỗ đại thụ chẻ củi (định vị tại local X = 2.5, Z = 5.0 -> world X = -4.0, Z = -45.0)
   const choppingBlock = new THREE.Mesh(
     new THREE.CylinderGeometry(0.65, 0.72, 0.75, 12),
     matLogWood
   );
-  choppingBlock.position.set(0, 0.55, 5.0);
+  choppingBlock.position.set(2.5, 0.55, 5.0);
   choppingBlock.castShadow = true;
   woodShedGroup.add(choppingBlock);
 
@@ -318,7 +475,7 @@ export function createBackCourtyardEnsemble(
     new THREE.CylinderGeometry(0.63, 0.63, 0.05, 12),
     matLogCut
   );
-  choppingFace.position.set(0, 0.93, 5.0);
+  choppingFace.position.set(2.5, 0.93, 5.0);
   woodShedGroup.add(choppingFace);
 
   // Khúc củi dựng đứng trên thớt chuẩn bị chẻ
@@ -326,7 +483,7 @@ export function createBackCourtyardEnsemble(
     new THREE.CylinderGeometry(0.18, 0.19, 0.65, 8),
     matLogWood
   );
-  targetLog.position.set(0, 1.28, 5.0);
+  targetLog.position.set(2.5, 1.28, 5.0);
   woodShedGroup.add(targetLog);
 
   // Rìu sắt cán gỗ ghim sâu trên đầu khúc củi
@@ -335,33 +492,34 @@ export function createBackCourtyardEnsemble(
     matWoodLim
   );
   axeHandle.rotation.z = Math.PI / 4;
-  axeHandle.position.set(0.25, 1.75, 5.0);
+  axeHandle.position.set(2.75, 1.75, 5.0);
   woodShedGroup.add(axeHandle);
 
   const axeBlade = new THREE.Mesh(
     new THREE.BoxGeometry(0.26, 0.14, 0.06),
     new THREE.MeshStandardMaterial({ color: 0x4b5563, metalness: 0.85, roughness: 0.3 })
   );
-  axeBlade.position.set(0.02, 1.58, 5.0);
+  axeBlade.position.set(2.52, 1.58, 5.0);
   woodShedGroup.add(axeBlade);
 
   // Vài mảnh củi chẻ văng quanh chân thớt
   for (let sp = 0; sp < 4; sp++) {
     const ang = (sp / 4) * Math.PI * 2;
     const splitWood = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.45), matLogCut);
-    splitWood.position.set(Math.cos(ang) * 1.1, 0.24, 5.0 + Math.sin(ang) * 0.9);
+    splitWood.position.set(2.5 + Math.cos(ang) * 1.1, 0.24, 5.0 + Math.sin(ang) * 0.9);
     splitWood.rotation.y = ang + 0.3;
     woodShedGroup.add(splitWood);
   }
 
-  // Đèn lồng treo hiên kho củi thắp sáng ban đêm
+  // Đèn lồng treo góc kho củi thắp sáng ban đêm
   const shedLantern = createStylizedStoneLantern(matStoneGrey);
-  shedLantern.position.set(3.8, 0.4, 3.8);
+  shedLantern.position.set(2.4, 0.4, 2.5);
   woodShedGroup.add(shedLantern);
 
   const shedLight = new THREE.PointLight(0xf59e0b, 0.6, 6.0);
-  shedLight.position.set(3.8, 1.8, 3.8);
+  shedLight.position.set(2.4, 1.8, 2.5);
   nightLightsRef.current.push(shedLight);
+  woodShedGroup.add(shedLight);
   woodShedGroup.add(shedLight);
 
   backGardenGroup.add(woodShedGroup);
@@ -574,14 +732,16 @@ export function createBackCourtyardEnsemble(
     bambooCulms.push(clumpGroup);
   };
 
-  // Trồng rặng trúc thẳng tắp hai bên trục đường chính
+  // Trồng rặng trúc hai bên trục đường chính, mở lối thông thoáng ở giữa dẫn sang Bếp và Giếng
   let seed = 0;
-  // Hàng Tây (X_local = -5.2, cách đều mỗi khóm 2.2m)
+  // Hàng Tây (X_local = -5.2): Chừa lối ngang Z_local in [1.0, 5.2] (5m) dẫn vào Bếp Chùa & Kho Củi
   for (let zPos = -3.0; zPos <= 15.0; zPos += 2.4) {
+    if (zPos >= 1.0 && zPos <= 5.2) continue; // Mở cổng thông thoáng dẫn sang cánh Tây
     createBambooClump(-5.2, zPos, seed++);
   }
-  // Hàng Đông (X_local = +5.2, cách đều mỗi khóm 2.2m)
+  // Hàng Đông (X_local = +5.2): Chừa lối ngang Z_local in [1.0, 5.2] (5m) dẫn vào Giếng Ngọc Cổ
   for (let zPos = -3.0; zPos <= 15.0; zPos += 2.4) {
+    if (zPos >= 1.0 && zPos <= 5.2) continue; // Mở cổng thông thoáng dẫn sang cánh Đông
     createBambooClump(5.2, zPos, seed++);
   }
 
@@ -591,28 +751,66 @@ export function createBackCourtyardEnsemble(
     createBambooClump(fx, -5.5, seed++);
   });
 
-  // Đèn đá sân vườn hoa sen xen kẽ giữa hai hàng trúc
-  const lanternZ = [0.0, 6.0, 12.0];
-  lanternZ.forEach((lz) => {
-    // Bên tả
-    const lLantern = createStylizedStoneLantern(matStoneGrey);
-    lLantern.position.set(-3.6, 0.19, lz);
-    backGardenGroup.add(lLantern);
+  // LỐI ĐI BƯỚC DẠO GIỮA CÁC HÀNG TRE TRÚC (STEPPING STONE TRAILS THROUGH BAMBOO GROVES)
+  // Tuyến đá cuội tự nhiên dạo bước luồn lách giữa rặng trúc bên Tây (X = -7.2)
+  for (let zWalk = -3.0; zWalk <= 15.0; zWalk += 2.2) {
+    if (zWalk >= 1.2 && zWalk <= 5.0) continue; // Chừa giao lộ đường ngang
+    const stepStone = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.56, 0.64, 0.08, 9),
+      matStoneGrey
+    );
+    stepStone.position.set(-7.2 + Math.sin(zWalk * 0.8) * 0.35, 0.22, zWalk);
+    stepStone.receiveShadow = true;
+    backGardenGroup.add(stepStone);
+  }
 
-    const lLight = new THREE.PointLight(0xf59e0b, 0.55, 5.5);
-    lLight.position.set(-3.6, 1.5, lz);
-    nightLightsRef.current.push(lLight);
-    backGardenGroup.add(lLight);
+  // Tuyến đá cuội tự nhiên dạo bước luồn lách giữa rặng trúc bên Đông (X = +7.2)
+  for (let zWalk = -3.0; zWalk <= 15.0; zWalk += 2.2) {
+    if (zWalk >= 1.2 && zWalk <= 5.0) continue; // Chừa giao lộ đường ngang
+    const stepStone = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.56, 0.64, 0.08, 9),
+      matStoneGrey
+    );
+    stepStone.position.set(7.2 + Math.sin(zWalk * 0.8) * 0.35, 0.22, zWalk);
+    stepStone.receiveShadow = true;
+    backGardenGroup.add(stepStone);
+  }
 
-    // Bên hữu
-    const rLantern = createStylizedStoneLantern(matStoneGrey);
-    rLantern.position.set(3.6, 0.19, lz);
-    backGardenGroup.add(rLantern);
+  // Lối dạo phụ bằng đá bước dạo ngang qua trục trung tâm ở phía Nam (Z_local = 11.0, World Z = -39.0)
+  for (let sx = -7.2; sx <= 7.2; sx += 1.8) {
+    if (Math.abs(sx) < 2.2) continue; // Tránh đè lên trục đường chính
+    const crossStep = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.54, 0.62, 0.08, 8),
+      matStoneGrey
+    );
+    crossStep.position.set(sx, 0.22, 11.0);
+    crossStep.receiveShadow = true;
+    backGardenGroup.add(crossStep);
+  }
 
-    const rLight = new THREE.PointLight(0xf59e0b, 0.55, 5.5);
-    rLight.position.set(3.6, 1.5, lz);
-    nightLightsRef.current.push(rLight);
-    backGardenGroup.add(rLight);
+  // Đèn đá sân vườn hoa sen thắp sáng lối đi dạo và các ngã rẽ vào Bếp & Giếng
+  const lanternConfigs = [
+    // Lối đi chính trục Nam
+    { x: -3.6, z: 12.0 },
+    { x: 3.6, z: 12.0 },
+    // Trụ cổng ngã rẽ sang Bếp Chùa & Giếng Cổ
+    { x: -3.8, z: 5.4 },
+    { x: -3.8, z: 0.8 },
+    { x: 3.8, z: 5.4 },
+    { x: 3.8, z: 0.8 },
+    // Sâu phía Bắc
+    { x: -3.6, z: -2.0 },
+    { x: 3.6, z: -2.0 },
+  ];
+  lanternConfigs.forEach((cfg) => {
+    const lantern = createStylizedStoneLantern(matStoneGrey);
+    lantern.position.set(cfg.x, 0.19, cfg.z);
+    backGardenGroup.add(lantern);
+
+    const light = new THREE.PointLight(0xf59e0b, 0.55, 5.5);
+    light.position.set(cfg.x, 1.5, cfg.z);
+    nightLightsRef.current.push(light);
+    backGardenGroup.add(light);
   });
 
   // =========================================================================
@@ -624,7 +822,7 @@ export function createBackCourtyardEnsemble(
   for (let s = 0; s < smokeCount; s++) {
     smokePos[s * 3] = -12.7 + (Math.random() - 0.5) * 0.8;
     smokePos[s * 3 + 1] = 7.2 + Math.random() * 6.5;
-    smokePos[s * 3 + 2] = 3.0 + (Math.random() - 0.5) * 0.8;
+    smokePos[s * 3 + 2] = -0.2 + (Math.random() - 0.5) * 0.8;
   }
   smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3));
   const kitchenSmoke = new THREE.Points(
@@ -646,3 +844,4 @@ export function createBackCourtyardEnsemble(
     wellStationAnchor: new THREE.Vector3(12.0, 0.46, -43.5),
   };
 }
+

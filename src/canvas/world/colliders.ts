@@ -229,12 +229,23 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
 
     // 10. Hậu Viện Sơn Tự (Zone 10 Back Garden: X in [-28, 28], Z in [-58, -34])
   // 10.1. Nhà Bếp Chùa (Hương Tích Trù: X in [-22.8, -10.5], Z in [-53.5, -44.5])
-  { type: 'box', minX: -22.8, maxX: -10.5, minZ: -53.5, maxZ: -44.5, name: 'Kitchen House Main Body' },
+  // Tường Hậu (phía Bắc)
+  { type: 'box', minX: -22.3, maxX: -10.7, minZ: -53.0, maxZ: -52.4, name: 'Kitchen North Wall' },
+  // Tường Hồi (phía Tây)
+  { type: 'box', minX: -22.3, maxX: -21.7, minZ: -52.4, maxZ: -45.4, name: 'Kitchen West Wall' },
+  // Tường Hồi (phía Đông)
+  { type: 'box', minX: -11.3, maxX: -10.7, minZ: -52.4, maxZ: -45.4, name: 'Kitchen East Wall' },
+  // Tường Mặt Tiền cánh Tây (trái cửa)
+  { type: 'box', minX: -22.3, maxX: -17.7, minZ: -45.6, maxZ: -45.0, name: 'Kitchen Front Wall West' },
+  // Tường Mặt Tiền cánh Đông (phải cửa)
+  { type: 'box', minX: -15.3, maxX: -10.7, minZ: -45.6, maxZ: -45.0, name: 'Kitchen Front Wall East' },
+  // Nội thất bên trong: Bàn sơ chế thức ăn chay
+  { type: 'box', minX: -21.0, maxX: -18.4, minZ: -51.1, maxZ: -49.9, name: 'Kitchen Prep Table' },
   // Gian bếp lò & ống khói đất nung
-  { type: 'box', minX: -14.2, maxX: -11.5, minZ: -47.5, maxZ: -44.8, name: 'Kitchen Hearth & Stove' },
+  { type: 'box', minX: -13.8, maxX: -11.6, minZ: -51.2, maxZ: -49.2, name: 'Kitchen Stove Hearth' },
 
   // 10.2. Nhà Kho Củi (Tiêu Phòng: X in [-9.0, 1.0], Z in [-53.8, -46.8])
-  { type: 'box', minX: -9.0, maxX: 1.0, minZ: -53.8, maxZ: -46.8, name: 'Wood Storage Shed' },
+  { type: 'box', minX: -9.2, maxX: -3.8, minZ: -52.8, maxZ: -47.2, name: 'Wood Storage Shed' },
   // Bệ thớt gỗ đại thụ chẻ củi
   { type: 'circle', x: -4.0, z: -45.0, r: 0.85, name: 'Chopping Block Dais' },
 
@@ -245,10 +256,14 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: 14.4, z: -44.8, r: 0.75, name: 'Water Tub Dais' },
 
   // 10.4. Hàng Trúc Xanh (Thanh Trúc Uyển: hai dải trúc dày đặc hai bên lối đi lát đá)
-  { type: 'box', minX: -6.4, maxX: -4.0, minZ: -53.5, maxZ: -34.5, name: 'Bamboo Alley West Wall' },
-  { type: 'box', minX: 4.0, maxX: 6.4, minZ: -53.5, maxZ: -34.5, name: 'Bamboo Alley East Wall' },
+  // Hàng Tây: Tách đoạn Bắc & Đoạn Nam mở lối ngang 4.8m sang Bếp và Kho Củi
+  { type: 'box', minX: -6.0, maxX: -4.4, minZ: -53.5, maxZ: -49.0, name: 'Bamboo Alley West North' },
+  { type: 'box', minX: -6.0, maxX: -4.4, minZ: -44.2, maxZ: -34.5, name: 'Bamboo Alley West South' },
+  // Hàng Đông: Tách đoạn Bắc & Đoạn Nam mở lối ngang 4.8m sang Giếng Ngọc Cổ
+  { type: 'box', minX: 4.4, maxX: 6.0, minZ: -53.5, maxZ: -49.0, name: 'Bamboo Alley East North' },
+  { type: 'box', minX: 4.4, maxX: 6.0, minZ: -44.2, maxZ: -34.5, name: 'Bamboo Alley East South' },
   // Rặng trúc chắn gió phía sau kho và tường bao Bắc
-  { type: 'box', minX: -14.0, maxX: -6.5, minZ: -57.5, maxZ: -54.0, name: 'Back Bamboo Fringe West' },
+  { type: 'box', minX: -14.0, maxX: -9.5, minZ: -57.5, maxZ: -54.0, name: 'Back Bamboo Fringe West' },
   { type: 'box', minX: 16.0, maxX: 24.0, minZ: -57.5, maxZ: -54.0, name: 'Back Bamboo Fringe East' },
 ];
 
@@ -361,8 +376,8 @@ export function resolveMonkCollision(
   }
 
   // Clamped Monastery Terrain Bounds
-  curX = Math.max(-46.0, Math.min(46.0, curX));
-  curZ = Math.max(-68.0, Math.min(86.0, curZ));
+  curX = Math.max(-49.5, Math.min(49.5, curX));
+  curZ = Math.max(-56.5, Math.min(64.5, curZ));
 
   out.x = curX;
   out.z = curZ;
@@ -460,12 +475,12 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
 
     // 6.5. Hậu Viện Sơn Tự (Zone 10 Back Courtyard at Z <= -34.0)
   if (z <= -34.0) {
-    // Thềm móng đá Nhà Bếp Chùa (X: -22.5 đến -10.5, Z: -54.0 đến -44.0)
+    // Thềm móng đá & Sàn nội thất Nhà Bếp Chùa (X: -22.5 đến -10.5, Z: -54.0 đến -44.0)
     if (x >= -22.5 && x <= -10.5 && z >= -54.0 && z <= -44.0) {
       return 0.58;
     }
     // Sàn gỗ Nhà Kho Củi (X: -9.0 đến 1.0, Z: -54.0 đến -46.0)
-    if (x >= -9.0 && x <= 1.0 && z >= -54.0 && z <= -46.0) {
+    if (x >= -9.2 && x <= -3.8 && z >= -53.0 && z <= -47.0) {
       return 0.50;
     }
     // Thềm đá Giếng Ngọc Cổ (Tâm 12, -46)
