@@ -78,6 +78,7 @@ import { createAuthenticTeaPavilion } from './world/buildings/teaPavilion';
 import { createRedesignedTempleGate, createMonasteryPerimeterWalls, type PerimeterWallMaterials } from './world/buildings/perimeterWall';
 import { createLotusPondEnsemble, type KoiFishData } from './world/buildings/lotusPondEnsemble';
 import { createBackCourtyardEnsemble } from './world/buildings/backCourtyardEnsemble';
+import { findSmartPath, hasLineOfSight } from './world/navigation';
 
 // CẤU HÌNH ĐỘNG HỌC DI CHUYỂN NHÂN VẬT CHÍNH (RESPONSIVE MOVEMENT CONFIG)
 const BASE_SPEED = 5.8; // m/s - Vận tốc đi bộ cơ bản (+61% so với 3.6 cũ)
@@ -1001,17 +1002,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     isTourPlayingRef.current = isAutoTour;
     tourWaitRef.current = 0;
 
-    const wps: Array<{ x: number; y?: number; z: number }> = targetZone.navWaypoints && targetZone.navWaypoints.length > 0
-      ? targetZone.navWaypoints.map((pt) => ({
-        x: pt.x,
-        z: pt.z,
-        y: getTerrainFloorElevation(pt.x, pt.z, targetZone.pos.y ?? 0.42),
-      }))
-      : [{
-        x: targetZone.pos.x,
-        z: targetZone.pos.z,
-        y: getTerrainFloorElevation(targetZone.pos.x, targetZone.pos.z, targetZone.pos.y ?? 0.42),
-      }];
+    const currentPx = playerPosRef.current.x;
+    const currentPy = playerPosRef.current.y || 0.42;
+    const currentPz = playerPosRef.current.z;
+    const smartWps = findSmartPath(currentPx, currentPz, targetZone.pos.x, targetZone.pos.z, currentPy);
+    const wps: Array<{ x: number; y?: number; z: number }> = smartWps.map((pt) => ({
+      x: pt.x,
+      z: pt.z,
+      y: getTerrainFloorElevation(pt.x, pt.z, targetZone.pos.y ?? 0.42),
+    }));
+
+
 
     tourNavQueueRef.current = [...wps];
     const firstWp = tourNavQueueRef.current.shift()!;
@@ -1952,23 +1953,35 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const handlePointerUp = (e: MouseEvent) => {
       isDraggingOrbitRef.current = false;
 
-      // Click on ground to move (Point & Click with Obstacle & Elevation Resolution)
+      // Click on ground to move (Point & Click with Smart Obstacle Avoidance & Elevation Resolution)
       const distMoved = Math.hypot(e.clientX - lastPointerDownPosRef.current.x, e.clientY - lastPointerDownPosRef.current.y);
       if (distMoved < 6 && hasGroundTargetRef.current) {
         const rawTargetX = cursorGroundPosRef.current.x;
         const rawTargetZ = cursorGroundPosRef.current.z;
         const currentPy = playerPosRef.current.y || 0.42;
+        const currentPx = playerPosRef.current.x;
+        const currentPz = playerPosRef.current.z;
         const resolved = resolveMonkCollision(rawTargetX, currentPy, rawTargetZ);
         const floorY = getTerrainFloorElevation(resolved.x, resolved.z, currentPy);
 
-        tourNavQueueRef.current = [];
         stopTueTamVoice();
         useZenBridge.getState().setTueTamVoice(false, 0);
         if (isTourPlayingRef.current) {
           isTourPlayingRef.current = false;
           useZenBridge.getState().setIsTourPlaying(false);
         }
-        setTargetPos(resolved.x, floorY, resolved.z);
+
+        // TÍNH TOÁN LỘ TRÌNH THÔNG MINH NÉ CHƯỚNG NGẠI VẬT TỰ ĐỘNG
+        const smartWps = findSmartPath(currentPx, currentPz, resolved.x, resolved.z, currentPy);
+        const navQueue: Array<{ x: number; y?: number; z: number }> = smartWps.map((pt) => ({
+          x: pt.x,
+          z: pt.z,
+          y: getTerrainFloorElevation(pt.x, pt.z, currentPy),
+        }));
+
+        tourNavQueueRef.current = navQueue;
+        const firstWp = tourNavQueueRef.current.shift()!;
+        setTargetPos(firstWp.x, firstWp.y ?? floorY, firstWp.z);
         stuckCountRef.current = 0;
         if (monkPoseRef.current !== 'STAND') {
           monkPoseRef.current = 'STAND';
@@ -2178,8 +2191,47 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             // Arrival deceleration: smooth ease-out within 1.2m
             const arriveFactor = Math.min(1.0, dist / 1.2);
             const clickSpeed = targetSpeed * Math.max(0.35, arriveFactor);
-            targetVx = (dx / dist) * clickSpeed;
-            targetVz = (dz / dist) * clickSpeed;
+
+            // CƠ CHẾ NÉ VẬT THỂ THỜI GIAN THỰC (DYNAMIC WHISKER STEERING)
+            const forwardX = dx / dist;
+            const forwardZ = dz / dist;
+            const probeDist = Math.min(1.4, dist * 0.9);
+            const testX = currentP.x + forwardX * probeDist;
+            const testZ = currentP.z + forwardZ * probeDist;
+
+            let steerVx = forwardX;
+            let steerVz = forwardZ;
+
+            // Nếu phía trước có vật cản ngắn (cột, đèn đá, chậu cảnh, mép tường)
+            if (probeDist > 0.4 && !hasLineOfSight(currentP.x, currentP.z, testX, testZ, MONK_COLLISION_RADIUS + 0.08, currentP.y)) {
+              // Phóng 2 tia cảm biến râu dò (whiskers) ở góc +45 độ (phải) và -45 độ (trái)
+              const cosA = 0.7071;
+              const sinA = 0.7071;
+
+              // Tia phải (Right whisker)
+              const rWx = forwardX * cosA - forwardZ * sinA;
+              const rWz = forwardX * sinA + forwardZ * cosA;
+              const rOpen = hasLineOfSight(currentP.x, currentP.z, currentP.x + rWx * probeDist, currentP.z + rWz * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
+
+              // Tia trái (Left whisker)
+              const lWx = forwardX * cosA + forwardZ * sinA;
+              const lWz = -forwardX * sinA + forwardZ * cosA;
+              const lOpen = hasLineOfSight(currentP.x, currentP.z, currentP.x + lWx * probeDist, currentP.z + lWz * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
+
+              if (rOpen && !lOpen) {
+                steerVx = rWx;
+                steerVz = rWz;
+              } else if (lOpen && !rOpen) {
+                steerVx = lWx;
+                steerVz = lWz;
+              } else if (rOpen && lOpen) {
+                steerVx = rWx;
+                steerVz = rWz;
+              }
+            }
+
+            targetVx = steerVx * clickSpeed;
+            targetVz = steerVz * clickSpeed;
           } else {
             // Arrived at current target position
             if (tourNavQueueRef.current.length > 0) {
@@ -2294,15 +2346,26 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               currentSpeed = 0;
             }
 
-            // Click-to-move stuck prevention
+            // Click-to-move stuck prevention: Tiến bước sang waypoint kế tiếp nếu bị nghẽn
             if (targetPosRef.current.active) {
-              stuckCountRef.current = (stuckCountRef.current || 0) + 1;
-              if (stuckCountRef.current > 40) {
-                clearTargetPos();
-                stuckCountRef.current = 0;
-                if (destinationMarkerRef.current) {
-                  destinationMarkerRef.current.visible = false;
+              if (actualMovedDist < 0.01) {
+                stuckCountRef.current = (stuckCountRef.current || 0) + 1;
+                if (stuckCountRef.current > 25) {
+                  if (tourNavQueueRef.current.length > 0) {
+                    const nextWp = tourNavQueueRef.current.shift()!;
+                    const targetY = nextWp.y ?? getTerrainFloorElevation(nextWp.x, nextWp.z, currentP.y);
+                    setTargetPos(nextWp.x, targetY, nextWp.z);
+                    stuckCountRef.current = 0;
+                  } else {
+                    clearTargetPos();
+                    stuckCountRef.current = 0;
+                    if (destinationMarkerRef.current) {
+                      destinationMarkerRef.current.visible = false;
+                    }
+                  }
                 }
+              } else {
+                stuckCountRef.current = 0;
               }
             }
           } else if (targetPosRef.current.active) {
