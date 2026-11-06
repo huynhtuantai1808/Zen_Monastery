@@ -65,10 +65,8 @@ import {
 
 import {
   createStylizedPuffyTree,
-  createStylizedCurvedRoof,
   createAuthenticLongCorridorRoof,
   createJadeCurvedRoof,
-  createStylizedStoneArch,
   createStylizedStoneLantern,
   createStylizedSilkLantern
 } from './world/buildings/environmentProps';
@@ -79,6 +77,7 @@ import { createAuthenticBellTower } from './world/buildings/bellTower';
 import { createAuthenticTeaPavilion } from './world/buildings/teaPavilion';
 import { createRedesignedTempleGate, createMonasteryPerimeterWalls, type PerimeterWallMaterials } from './world/buildings/perimeterWall';
 import { createLotusPondEnsemble, type KoiFishData } from './world/buildings/lotusPondEnsemble';
+import { createBackCourtyardEnsemble } from './world/buildings/backCourtyardEnsemble';
 
 // CẤU HÌNH ĐỘNG HỌC DI CHUYỂN NHÂN VẬT CHÍNH (RESPONSIVE MOVEMENT CONFIG)
 const BASE_SPEED = 5.8; // m/s - Vận tốc đi bộ cơ bản (+61% so với 3.6 cũ)
@@ -369,6 +368,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const foodPelletsRef = useRef<{ mesh: THREE.Mesh; posX: number; posZ: number; posY: number; velY: number; targetY: number; life: number }[]>([]);
   const waterRipplesRef = useRef<{ mesh: THREE.Mesh; posX: number; posZ: number; scale: number; maxScale: number; opacity: number }[]>([]);
   const bambooLeavesRef = useRef<THREE.Group[]>([]);
+  const kitchenSmokeRef = useRef<THREE.Points | null>(null);
   const destinationMarkerRef = useRef<THREE.Group | null>(null);
   const nightLightsRef = useRef<THREE.PointLight[]>([]);
   const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
@@ -1779,46 +1779,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     libGroup.add(libRoof);
     scene.add(libGroup);
 
-    // [ZONE 10: SÂN SAU & RỪNG TRÚC]
-    const backGardenGroup = new THREE.Group();
-    backGardenGroup.position.set(0, 0, -50);
-
-    const stoneArch = createStylizedStoneArch(matStoneGrey);
-    stoneArch.position.set(0, 0, 20);
-    backGardenGroup.add(stoneArch);
-
-    bambooLeavesRef.current = [];
-    for (let b = 0; b < 24; b++) {
-      const bG = new THREE.Group();
-      const bx = (Math.random() - 0.5) * 32;
-      const bz = (Math.random() - 0.5) * 22;
-      if (Math.abs(bx) < 4 && Math.abs(bz) < 8) continue;
-
-      const culm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9.0, 6), new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.6 }));
-      culm.position.set(0, 4.5, 0);
-      bG.add(culm);
-
-      const leafBall = new THREE.Mesh(new THREE.SphereGeometry(1.6, 6, 6), new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.7 }));
-      leafBall.scale.set(1.3, 0.65, 1.3);
-      leafBall.position.set(0, 8.2, 0);
-      bG.add(leafBall);
-      bG.position.set(bx, 0, bz);
-      backGardenGroup.add(bG);
-      bambooLeavesRef.current.push(bG);
-    }
-
-    const well = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1.1, 10, 1, true), matStoneGrey);
-    well.position.set(11, 0.55, 4);
-    backGardenGroup.add(well);
-
-    const kitchenWall = new THREE.Mesh(new THREE.BoxGeometry(11, 4.2, 7.5), matStoneGrey);
-    kitchenWall.position.set(-16, 2.1, 2);
-    backGardenGroup.add(kitchenWall);
-
-    const kitchenRoof = createStylizedCurvedRoof(13, 9.5, matRoofTile);
-    kitchenRoof.position.set(-16, 5.0, 2);
-    backGardenGroup.add(kitchenRoof);
-    scene.add(backGardenGroup);
+        // =========================================================================
+    // [ZONE 10: HẬU VIỆN SƠN TỰ - MODULE KIẾN TRÚC MỚI]
+    // Hương Tích Trù, Kho Củi Tiêu Phòng, Giếng Ngọc Cổ & Hàng Trúc Xanh
+    // =========================================================================
+    const backCourtyardData = createBackCourtyardEnsemble(
+      { matStoneGrey, matRoofTile, matWoodLim, matTileBrick, matLotusPlinth, matBronze },
+      nightLightsRef
+    );
+    bambooLeavesRef.current = backCourtyardData.bambooCulms;
+    kitchenSmokeRef.current = backCourtyardData.kitchenSmoke;
+    scene.add(backCourtyardData.group);
 
     // [ZONE 12: ĐƯỜNG LÊN TẦNG TRÊN (CẦU THANG ĐÁ)]
     const stairsGroup = new THREE.Group();
@@ -2633,7 +2604,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
               actionsList.push({ title: 'Đọc Kinh Bát Nhã & Pháp Cú', action: p.onOpenDharma, icon: '📜' });
             } else if (zKey === 'BACK_GARDEN') {
               actionsList.push({ title: 'Chẻ Củi Bếp Chùa', action: p.onOpenWoodChopping, icon: '🪓' });
-              actionsList.push({ title: 'Gánh Nước Suối Tiên', action: p.onOpenWaterCarrying, icon: '🪵' });
+              actionsList.push({ title: 'Gánh Nước Giếng Ngọc', action: p.onOpenWaterCarrying, icon: '🪣' });
             } else if (zKey === 'BALCONY') {
               actionsList.push({ title: 'Ngắm Cảnh Mây Núi Lầu Cao', action: () => p.onAddMerit(20, 50, 40, 'An Nhiên Vọng Cảnh'), icon: '🪟' });
             }
@@ -3427,7 +3398,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         fanBladesRef.current.rotation.z += 0.28;
       }
 
-      // Incense Smoke (throttled to every 2 frames for GPU buffer optimization)
+            // Incense Smoke (throttled to every 2 frames for GPU buffer optimization)
       if (smokeParticlesRef.current && stepCount % 2 === 0) {
         const posAttr = smokeParticlesRef.current.geometry.attributes.position;
         const arr = posAttr.array as Float32Array;
@@ -3440,6 +3411,21 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           }
         }
         posAttr.needsUpdate = true;
+      }
+
+      // Kitchen Chimney Smoke
+      if (kitchenSmokeRef.current && stepCount % 2 === 0) {
+        const kPosAttr = kitchenSmokeRef.current.geometry.attributes.position;
+        const kArr = kPosAttr.array as Float32Array;
+        for (let s = 0; s < 45; s++) {
+          kArr[s * 3 + 1] += 0.07;
+          kArr[s * 3] += Math.sin(stepCount * 0.03 + s) * 0.018;
+          if (kArr[s * 3 + 1] > 14.0) {
+            kArr[s * 3 + 1] = 7.2;
+            kArr[s * 3] = -12.7 + (Math.random() - 0.5) * 0.8;
+          }
+        }
+        kPosAttr.needsUpdate = true;
       }
 
       renderer.render(scene, camera);
