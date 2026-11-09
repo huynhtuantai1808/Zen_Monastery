@@ -107,11 +107,10 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
             type="button"
             onClick={onLightIncense}
             disabled={activeRitual !== 'NONE'}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeRitual === 'LIGHT_INCENSE'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeRitual === 'LIGHT_INCENSE'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/50 scale-105'
                 : 'bg-stone-800 hover:bg-amber-900/60 text-amber-100 hover:text-white border border-stone-700/60 hover:border-amber-500/50 active:scale-95'
-            } ${activeRitual !== 'NONE' && activeRitual !== 'LIGHT_INCENSE' ? 'opacity-40 cursor-not-allowed' : ''}`}
+              } ${activeRitual !== 'NONE' && activeRitual !== 'LIGHT_INCENSE' ? 'opacity-40 cursor-not-allowed' : ''}`}
             title="Dâng hương trầm thanh khiết trước đại lư đồng tam bảo"
           >
             <span className="text-lg">🪔</span>
@@ -123,11 +122,10 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
             type="button"
             onClick={onProstrateBow}
             disabled={activeRitual !== 'NONE'}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeRitual === 'PROSTRATE_BOW'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeRitual === 'PROSTRATE_BOW'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/50 scale-105'
                 : 'bg-stone-800 hover:bg-amber-900/60 text-amber-100 hover:text-white border border-stone-700/60 hover:border-amber-500/50 active:scale-95'
-            } ${activeRitual !== 'NONE' && activeRitual !== 'PROSTRATE_BOW' ? 'opacity-40 cursor-not-allowed' : ''}`}
+              } ${activeRitual !== 'NONE' && activeRitual !== 'PROSTRATE_BOW' ? 'opacity-40 cursor-not-allowed' : ''}`}
             title="Quỳ trên bồ đoàn hoa sen chí thành đảnh lễ tam bái"
           >
             <span className="text-lg">🙏</span>
@@ -139,11 +137,10 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
             type="button"
             onClick={onMeditationPray}
             disabled={activeRitual !== 'NONE'}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeRitual === 'MEDITATION_PRAY'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeRitual === 'MEDITATION_PRAY'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/50 scale-105'
                 : 'bg-stone-800 hover:bg-amber-900/60 text-amber-100 hover:text-white border border-stone-700/60 hover:border-amber-500/50 active:scale-95'
-            } ${activeRitual !== 'NONE' && activeRitual !== 'MEDITATION_PRAY' ? 'opacity-40 cursor-not-allowed' : ''}`}
+              } ${activeRitual !== 'NONE' && activeRitual !== 'MEDITATION_PRAY' ? 'opacity-40 cursor-not-allowed' : ''}`}
             title="Chắp tay hiệp chưởng cầu nguyện từ bi & nhận kệ chúc phúc"
           >
             <span className="text-lg">✨</span>

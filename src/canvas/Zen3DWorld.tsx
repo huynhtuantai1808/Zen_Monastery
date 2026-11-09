@@ -3576,7 +3576,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       // QUÁN ÂM ĐẠI ĐIỆN: KIỂM TRA CỰ LY CHIÊM BÁI & CẬP NHẬT HOẠT ẢNH
       // ──────────────────────────────────────────────────────────────────
       const inShrine = playerPosRef.current.x >= 18.0 && playerPosRef.current.x <= 48.0 &&
-                       playerPosRef.current.z >= 28.0 && playerPosRef.current.z <= 56.0;
+        playerPosRef.current.z >= 28.0 && playerPosRef.current.z <= 56.0;
       if (inShrine !== inGuanyinShrineRange) {
         setInGuanyinShrineRange(inShrine);
       }

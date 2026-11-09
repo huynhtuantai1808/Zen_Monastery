@@ -341,3 +341,4 @@ export function createShrineNpcEnsemble(): ShrineNpcEnsembleResult {
     dispose,
   };
 }
+
