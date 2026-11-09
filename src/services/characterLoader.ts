@@ -443,6 +443,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
 
   // 3. 8 Tia hào quang Bát Chánh Đạo (Eightfold Path Sunburst Rays)
   const raysGroup = new THREE.Group();
+  raysGroup.name = 'RaysGroup';
   const rayGeo = new THREE.BoxGeometry(0.024, 0.16, 0.005);
   for (let ri = 0; ri < 8; ri++) {
     const rayMesh = new THREE.Mesh(rayGeo, matHaloInner);
@@ -711,7 +712,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   // ==========================================
   const leftArm = new THREE.Group();
   leftArm.name = 'LeftArm';
-  leftArm.position.set(-0.25, 0.32, 0);
+  leftArm.position.set(-0.28, 0.33, 0.02);
   torso.add(leftArm);
 
   // Tay áo lam xắn 3/4
@@ -772,7 +773,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
   // Cánh tay phải (Right Arm)
   const rightArm = new THREE.Group();
   rightArm.name = 'RightArm';
-  rightArm.position.set(0.25, 0.32, 0);
+  rightArm.position.set(0.28, 0.33, 0.02);
   torso.add(rightArm);
 
   const rightSleeve = new THREE.Mesh(sleeveGeo, matShirt);
@@ -1085,75 +1086,75 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
         'LeftArm.quaternion',
         [0, 1.2, 2.4],
         [
-          0.38, 0.22, 0.28, 0.85,
-          0.39, 0.23, 0.29, 0.84,
-          0.38, 0.22, 0.28, 0.85,
+          0.30, 0.16, 0.20, 0.92,
+          0.31, 0.17, 0.21, 0.91,
+          0.30, 0.16, 0.20, 0.92,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'LeftForearm.quaternion',
         [0, 1.2, 2.4],
         [
-          0.20, -0.15, 0.52, 0.81,
-          0.22, -0.16, 0.53, 0.80,
-          0.20, -0.15, 0.52, 0.81,
+          0.18, -0.12, 0.44, 0.86,
+          0.20, -0.13, 0.45, 0.85,
+          0.18, -0.12, 0.44, 0.86,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'RightArm.quaternion',
         [0, 1.2, 2.4],
         [
-          0, 0, -0.06, 0.998,
-          0, 0, -0.03, 0.999,
-          0, 0, -0.06, 0.998,
+          0.12, -0.06, -0.18, 0.97,
+          0.13, -0.07, -0.19, 0.96,
+          0.12, -0.06, -0.18, 0.97,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'RightForearm.quaternion',
         [0, 2.4],
         [
-          0, 0, 0, 1,
-          0, 0, 0, 1,
+          0.05, 0, -0.15, 0.98,
+          0.05, 0, -0.15, 0.98,
         ]
       )
     );
   } else {
-    // NAM: Tay phải chắp nửa ấn chào cung kính chánh niệm, tay trái chống hông tự tin
+    // NAM: Tay phải chắp nửa ấn chào cung kính chánh niệm, tay trái buông tự nhiên không đâm vào thân áo
     idleTracks.push(
       // Tay phải chắp chào trước ngực
       new THREE.QuaternionKeyframeTrack(
         'RightArm.quaternion',
         [0, 1.2, 2.4],
         [
-          0.36, -0.25, -0.28, 0.85,
-          0.38, -0.26, -0.29, 0.84,
-          0.36, -0.25, -0.28, 0.85,
+          0.26, -0.15, -0.18, 0.93,
+          0.28, -0.16, -0.19, 0.92,
+          0.26, -0.15, -0.18, 0.93,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'RightForearm.quaternion',
         [0, 1.2, 2.4],
         [
-          0.18, 0.15, -0.54, 0.81,
-          0.20, 0.16, -0.55, 0.80,
-          0.18, 0.15, -0.54, 0.81,
+          0.12, 0.10, -0.42, 0.89,
+          0.14, 0.11, -0.43, 0.88,
+          0.12, 0.10, -0.42, 0.89,
         ]
       ),
-      // Tay trái chống hông
+      // Tay trái buông tự nhiên thoải mái bên hông
       new THREE.QuaternionKeyframeTrack(
         'LeftArm.quaternion',
         [0, 2.4],
         [
-          0.18, 0.12, 0.35, 0.91,
-          0.18, 0.12, 0.35, 0.91,
+          0.12, 0.08, 0.22, 0.96,
+          0.12, 0.08, 0.22, 0.96,
         ]
       ),
       new THREE.QuaternionKeyframeTrack(
         'LeftForearm.quaternion',
         [0, 2.4],
         [
-          0.1, 0, 0.52, 0.84,
-          0.1, 0, 0.52, 0.84,
+          0.05, 0, 0.25, 0.97,
+          0.05, 0, 0.25, 0.97,
         ]
       )
     );

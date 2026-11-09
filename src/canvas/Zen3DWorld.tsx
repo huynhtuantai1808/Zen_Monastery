@@ -63,6 +63,7 @@ import {
   createSweepingMonkNpc,
   createWalkingMonkNpc
 } from './world/npcs/patrolNpcs';
+import { createLaborNpcEnsemble, type LaborEnsembleResult } from './world/npcs/laborNpcs';
 
 import {
   createStylizedPuffyTree,
@@ -359,6 +360,9 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     direction: 1,
     walkCycle: 0,
   });
+
+  // Monastery Labor NPCs in Back Courtyard (6 Chú Tiểu & Phật Tử Lao Tác Hậu Viện)
+  const laborEnsembleRef = useRef<LaborEnsembleResult | null>(null);
 
   const smokeParticlesRef = useRef<THREE.Points | null>(null);
   const spiritParticlesRef = useRef<THREE.Points | null>(null);
@@ -1797,6 +1801,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     kitchenSmokeRef.current = backCourtyardData.kitchenSmoke;
     scene.add(backCourtyardData.group);
 
+    // 6 Chú Tiểu & Phật Tử Lao Tác Hậu Viện (Đầu Bếp, Phụ Bếp, Chẻ Củi, Xếp Củi, Múc Nước, Gánh Nước)
+    const laborEnsemble = createLaborNpcEnsemble();
+    scene.add(laborEnsemble.group);
+    laborEnsembleRef.current = laborEnsemble;
+
     // [ZONE 12: ĐƯỜNG LÊN TẦNG TRÊN (CẦU THANG ĐÁ)]
     const stairsGroup = new THREE.Group();
     stairsGroup.position.set(28, 0, -6);
@@ -2001,7 +2010,12 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       }
     };
 
+    const handleMouseLeave = () => {
+      hasGroundTargetRef.current = false;
+    };
+
     renderer.domElement.addEventListener('mousedown', handlePointerDown);
+    renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
     window.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseup', handlePointerUp);
 
@@ -2197,10 +2211,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             const arriveFactor = Math.min(1.0, dist / 1.2);
             const clickSpeed = targetSpeed * Math.max(0.35, arriveFactor);
 
-            // CƠ CHẾ NÉ VẬT THỂ THỜI GIAN THỰC (DYNAMIC WHISKER STEERING)
+            // CƠ CHẾ NÉ VẬT THỂ THỜI GIAN THỰC (5-RAY DYNAMIC WHISKER STEERING)
             const forwardX = dx / dist;
             const forwardZ = dz / dist;
-            const probeDist = Math.min(1.4, dist * 0.9);
+            const probeDist = Math.min(1.6, dist * 0.9);
             const testX = currentP.x + forwardX * probeDist;
             const testZ = currentP.z + forwardZ * probeDist;
 
@@ -2208,30 +2222,57 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             let steerVz = forwardZ;
 
             // Nếu phía trước có vật cản ngắn (cột, đèn đá, chậu cảnh, mép tường)
-            if (probeDist > 0.4 && !hasLineOfSight(currentP.x, currentP.z, testX, testZ, MONK_COLLISION_RADIUS + 0.08, currentP.y)) {
-              // Phóng 2 tia cảm biến râu dò (whiskers) ở góc +45 độ (phải) và -45 độ (trái)
-              const cosA = 0.7071;
-              const sinA = 0.7071;
+            if (probeDist > 0.35 && !hasLineOfSight(currentP.x, currentP.z, testX, testZ, MONK_COLLISION_RADIUS + 0.08, currentP.y)) {
+              // Phóng 4 tia cảm biến râu dò (whiskers): +-30 độ và +-60 độ
+              const cos30 = 0.8660;
+              const sin30 = 0.5000;
 
-              // Tia phải (Right whisker)
-              const rWx = forwardX * cosA - forwardZ * sinA;
-              const rWz = forwardX * sinA + forwardZ * cosA;
-              const rOpen = hasLineOfSight(currentP.x, currentP.z, currentP.x + rWx * probeDist, currentP.z + rWz * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
+              // 1. Tia phải 30 độ (Right 30 whisker)
+              const r30x = forwardX * cos30 - forwardZ * sin30;
+              const r30z = forwardX * sin30 + forwardZ * cos30;
+              const r30Open = hasLineOfSight(currentP.x, currentP.z, currentP.x + r30x * probeDist, currentP.z + r30z * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
 
-              // Tia trái (Left whisker)
-              const lWx = forwardX * cosA + forwardZ * sinA;
-              const lWz = -forwardX * sinA + forwardZ * cosA;
-              const lOpen = hasLineOfSight(currentP.x, currentP.z, currentP.x + lWx * probeDist, currentP.z + lWz * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
+              // 2. Tia trái 30 độ (Left 30 whisker)
+              const l30x = forwardX * cos30 + forwardZ * sin30;
+              const l30z = -forwardX * sin30 + forwardZ * cos30;
+              const l30Open = hasLineOfSight(currentP.x, currentP.z, currentP.x + l30x * probeDist, currentP.z + l30z * probeDist, MONK_COLLISION_RADIUS + 0.02, currentP.y);
 
-              if (rOpen && !lOpen) {
-                steerVx = rWx;
-                steerVz = rWz;
-              } else if (lOpen && !rOpen) {
-                steerVx = lWx;
-                steerVz = lWz;
-              } else if (rOpen && lOpen) {
-                steerVx = rWx;
-                steerVz = rWz;
+              if (r30Open && !l30Open) {
+                steerVx = r30x;
+                steerVz = r30z;
+              } else if (l30Open && !r30Open) {
+                steerVx = l30x;
+                steerVz = l30z;
+              } else if (r30Open && l30Open) {
+                // Ưu tiên hướng cùng chiều quán tính hiện tại
+                const rDot = r30x * curVel.x + r30z * curVel.z;
+                const lDot = l30x * curVel.x + l30z * curVel.z;
+                if (rDot >= lDot) {
+                  steerVx = r30x;
+                  steerVz = r30z;
+                } else {
+                  steerVx = l30x;
+                  steerVz = l30z;
+                }
+              } else {
+                // Nếu cả hai hướng 30 độ bị chắn, kiểm tra 2 góc rộng 60 độ để luồn lách
+                const cos60 = 0.5000;
+                const sin60 = 0.8660;
+                const r60x = forwardX * cos60 - forwardZ * sin60;
+                const r60z = forwardX * sin60 + forwardZ * cos60;
+                const r60Open = hasLineOfSight(currentP.x, currentP.z, currentP.x + r60x * (probeDist * 0.85), currentP.z + r60z * (probeDist * 0.85), MONK_COLLISION_RADIUS + 0.02, currentP.y);
+
+                const l60x = forwardX * cos60 + forwardZ * sin60;
+                const l60z = -forwardX * sin60 + forwardZ * cos60;
+                const l60Open = hasLineOfSight(currentP.x, currentP.z, currentP.x + l60x * (probeDist * 0.85), currentP.z + l60z * (probeDist * 0.85), MONK_COLLISION_RADIUS + 0.02, currentP.y);
+
+                if (r60Open) {
+                  steerVx = r60x;
+                  steerVz = r60z;
+                } else if (l60Open) {
+                  steerVx = l60x;
+                  steerVz = l60z;
+                }
               }
             }
 
@@ -2435,12 +2476,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         // Hoạt ảnh 3D Chibi Rig (Idle / Walk / Sit / Meditation Bow / Incense Bow)
         if (charMixerRef.current && chibiModelLoadedRef.current) {
           let target = 'idle';
-          if (monkPoseRef.current === 'INCENSE_BOW') {
+          if (isCurrentlyWalking) {
+            target = 'walk';
+            if (monkPoseRef.current !== 'STAND') {
+              monkPoseRef.current = 'STAND';
+            }
+          } else if (monkPoseRef.current === 'INCENSE_BOW') {
             target = 'incenseBow';
           } else if (monkPoseRef.current === 'SIT_EDGE') {
             target = isMeditationBowingRef.current ? 'meditationBow' : 'sit';
-          } else if (isCurrentlyWalking) {
-            target = 'walk';
           }
 
           if (target !== currentActionRef.current) {
@@ -2507,9 +2551,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
         monkGroupRef.current.position.set(currentP.x, currentP.y, currentP.z);
 
-        // Xoay nhẹ vầng hào quang phước báu & cập nhật độ sáng theo công đức
-        if (meritHaloGroupRef.current) {
-          meritHaloGroupRef.current.rotation.z += 0.005;
+        // Billboard vầng hào quang phước báu luôn diện kiến camera & xoay nhẹ tia sáng Bát Chánh Đạo
+        if (meritHaloGroupRef.current && cameraRef.current) {
+          meritHaloGroupRef.current.lookAt(cameraRef.current.position);
+          const rays = meritHaloGroupRef.current.getObjectByName('RaysGroup');
+          if (rays) {
+            rays.rotation.z += 0.006;
+          }
         }
         if (stepCount % 15 === 0) {
           const curMerit = useGameStore.getState().stats.congDuc;
@@ -2806,13 +2854,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         }
       }
 
-      // Update Lotus Cursor Reticle
+      // Update Lotus Cursor Reticle (Rotates flat on ground, matching floor elevation)
       if (cursorMarkerGroupRef.current) {
         if (hasGroundTargetRef.current) {
           cursorMarkerGroupRef.current.visible = true;
           cursorMarkerGroupRef.current.position.x += (cursorGroundPosRef.current.x - cursorMarkerGroupRef.current.position.x) * 0.35;
           cursorMarkerGroupRef.current.position.z += (cursorGroundPosRef.current.z - cursorMarkerGroupRef.current.position.z) * 0.35;
-          cursorMarkerGroupRef.current.rotation.z += 0.03;
+          const targetCursorY = getTerrainFloorElevation(cursorGroundPosRef.current.x, cursorGroundPosRef.current.z, playerPosRef.current.y || 0.42);
+          cursorMarkerGroupRef.current.position.y += (targetCursorY + 0.035 - cursorMarkerGroupRef.current.position.y) * 0.45;
+          cursorMarkerGroupRef.current.rotation.y += 0.03;
+          cursorMarkerGroupRef.current.rotation.x = 0;
+          cursorMarkerGroupRef.current.rotation.z = 0;
         } else {
           cursorMarkerGroupRef.current.visible = false;
         }
@@ -3343,6 +3395,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         walkingMonk.head.rotation.x = 0.18 + Math.sin(wm.walkCycle * 2) * 0.02;
       }
 
+      // ──────────────────────────────────────────────────────────────────
+      // HỆ THỐNG NPC LAO TÁC THIỀN MÔN HẬU VIỆN (6 CHÚ TIỂU & PHẬT TỬ)
+      // ──────────────────────────────────────────────────────────────────
+      if (laborEnsembleRef.current) {
+        laborEnsembleRef.current.update(delta, stepCount, playerPosRef.current);
+      }
+
       // Update User Floating Flower Lanterns (Hoa đăng người chơi thả trôi trên hồ - Zero-Allocation)
       const lanternList = userLanternsRef.current;
       for (let lIdx = 0; lIdx < lanternList.length; lIdx++) {
@@ -3534,8 +3593,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       disposeSharedTextures();
       mapleEnsemble.dispose();
+      laborEnsemble.dispose();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       renderer.domElement.removeEventListener('mousedown', handlePointerDown);
+      renderer.domElement.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mouseup', handlePointerUp);
       renderer.domElement.removeEventListener('touchstart', handleTouchStart);

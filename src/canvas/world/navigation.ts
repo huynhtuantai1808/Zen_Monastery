@@ -218,12 +218,38 @@ export const NAV_NODES: Record<string, NavNode> = {
     neighbors: ['east_bypass_mid', 'well_entrance', 'back_avenue_south'],
   },
 
-  // Hậu Viện Sơn Tự
+  // Hậu Viện Sơn Tự & Thềm Sau Chánh Điện
+  back_terrace_west: {
+    id: 'back_terrace_west',
+    x: -8.0,
+    z: -26.0,
+    neighbors: ['west_corridor_north', 'back_terrace_center'],
+  },
+  back_terrace_east: {
+    id: 'back_terrace_east',
+    x: 8.0,
+    z: -26.0,
+    neighbors: ['east_bypass_north', 'back_terrace_center'],
+  },
+  back_terrace_center: {
+    id: 'back_terrace_center',
+    x: 0,
+    z: -26.0,
+    neighbors: ['back_terrace_west', 'back_terrace_east', 'back_avenue_south'],
+  },
   back_avenue_south: {
     id: 'back_avenue_south',
     x: 0,
     z: -34,
-    neighbors: ['west_corridor_north', 'east_bypass_north', 'back_avenue_mid', 'bamboo_walk_west', 'bamboo_walk_east'],
+    neighbors: [
+      'west_corridor_north',
+      'east_bypass_north',
+      'back_avenue_mid',
+      'bamboo_walk_west',
+      'bamboo_walk_east',
+      'back_terrace_center',
+      'wood_shed_lane',
+    ],
   },
   back_avenue_mid: {
     id: 'back_avenue_mid',
@@ -243,19 +269,37 @@ export const NAV_NODES: Record<string, NavNode> = {
     id: 'kitchen_entrance',
     x: -16.5,
     z: -45,
-    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front'],
+    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front', 'kitchen_courtyard'],
+  },
+  kitchen_courtyard: {
+    id: 'kitchen_courtyard',
+    x: -16.5,
+    z: -40.0,
+    neighbors: ['kitchen_entrance', 'bamboo_walk_west', 'west_corridor_north'],
   },
   wood_shed_front: {
     id: 'wood_shed_front',
     x: -4.0,
     z: -45,
-    neighbors: ['back_avenue_mid', 'kitchen_entrance'],
+    neighbors: ['back_avenue_mid', 'kitchen_entrance', 'wood_shed_lane'],
+  },
+  wood_shed_lane: {
+    id: 'wood_shed_lane',
+    x: -5.5,
+    z: -40.0,
+    neighbors: ['wood_shed_front', 'bamboo_walk_west', 'back_avenue_south'],
   },
   well_entrance: {
     id: 'well_entrance',
     x: 12.0,
     z: -45,
-    neighbors: ['back_avenue_mid', 'east_bypass_north'],
+    neighbors: ['back_avenue_mid', 'east_bypass_north', 'well_plaza'],
+  },
+  well_plaza: {
+    id: 'well_plaza',
+    x: 12.0,
+    z: -40.0,
+    neighbors: ['well_entrance', 'bamboo_walk_east', 'east_bypass_north'],
   },
 
   // Lối dạo rặng tre trúc
@@ -263,13 +307,13 @@ export const NAV_NODES: Record<string, NavNode> = {
     id: 'bamboo_walk_west',
     x: -7.2,
     z: -40,
-    neighbors: ['back_avenue_south', 'wood_shed_front'],
+    neighbors: ['back_avenue_south', 'wood_shed_front', 'kitchen_courtyard', 'wood_shed_lane'],
   },
   bamboo_walk_east: {
     id: 'bamboo_walk_east',
     x: 7.2,
     z: -40,
-    neighbors: ['back_avenue_south', 'well_entrance'],
+    neighbors: ['back_avenue_south', 'well_entrance', 'well_plaza'],
   },
 };
 

@@ -1,4 +1,5 @@
 import { getMapleTreeColliders } from './environment/mapleTreeEnsemble';
+import { getLaborNpcColliders } from './npcs/laborNpcs';
 
 // =======================================================================
 // MONASTERY COLLIDERS, ELEVATION LOGIC & ZONE DEFINITIONS
@@ -83,6 +84,9 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
 
   // 0.1 HÀNG CÂY PHONG LÁ ĐỎ CỔ THỤ VEN TƯỜNG BAO & HAI BÊN CỔNG (26 cây phong - Zero-Clipping)
   ...getMapleTreeColliders(),
+
+  // 0.2 CÁC NPC LAO TÁC THIỀN MÔN HẬU VIỆN (6 vị trí chú tiểu & phật tử lao tác)
+  ...getLaborNpcColliders(),
 
   // 1. CỔNG TAM QUAN 3 GIAN CỔ TRUYỀN (Zone 1 Gate: 4 stone pillars + 3 open portals)
   // 4 trụ đá hoa cương bát giác Cổng Tam Quan (khoảng mở thông thủy > 3.5m cho mỗi gian)
