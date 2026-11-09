@@ -4,7 +4,7 @@ import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
 import { loadChibiCharacter } from '../services/characterLoader';
-import { preloadMonkVoiceAudio, stopAbbotVoice, speakGuanyinPrayerVoice } from '../services/monkVoiceService';
+import { preloadMonkVoiceAudio, stopAbbotVoice, speakGuanyinPrayerLiturgy } from '../services/monkVoiceService';
 import { preloadTueTamVoice, speakTueTamVoice, stopTueTamVoice } from '../services/tueTamVoiceService';
 import { useZenBridge, zenWorldBridge } from './bridge/zenWorldBridge';
 import { Zen3DOverlays } from './Zen3DOverlays';
@@ -738,15 +738,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     soundEngine.playWindChime();
 
     const verse = GUANYIN_BLESSING_VERSES[Math.floor(Math.random() * GUANYIN_BLESSING_VERSES.length)];
-    const fullBlessing = `${verse.verse}\n\n${verse.blessing}`;
+    const fullBlessing = `【 ${verse.title} 】\n\n${verse.invoking}\n\n${verse.verse}\n\n${verse.blessing}`;
     setActiveBlessingText(fullBlessing);
-    propsRef.current.onAddMerit(35, 50, 40, '✨ Khấn Nguyện & Tiếp Nhận Pháp Thoại Quán Âm');
+    propsRef.current.onAddMerit(35, 50, 40, '✨ Khấn Nguyện Trước Quán Thế Âm Bồ Tát');
 
-    // Tự động cất tiếng tụng kinh cầu nguyện thanh tịnh
+    // Tự động cất tiếng tụng đọc văn khấn Quán Âm trang nghiêm thanh tịnh
     if (prayerVoiceCancelRef.current) {
       prayerVoiceCancelRef.current();
     }
-    const cancel = speakGuanyinPrayerVoice(fullBlessing, {
+    const cancel = speakGuanyinPrayerLiturgy(fullBlessing, {
       onStart: () => setIsPrayerVoiceActive(true),
       onEnd: () => setIsPrayerVoiceActive(false),
     });
@@ -755,13 +755,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
   const handleTogglePrayerVoice = useCallback(() => {
     if (isPrayerVoiceActive) {
+      if (prayerVoiceCancelRef.current) {
+        prayerVoiceCancelRef.current();
+        prayerVoiceCancelRef.current = null;
+      }
       stopAbbotVoice();
       setIsPrayerVoiceActive(false);
     } else if (activeBlessingText) {
       if (prayerVoiceCancelRef.current) {
         prayerVoiceCancelRef.current();
       }
-      const cancel = speakGuanyinPrayerVoice(activeBlessingText, {
+      const cancel = speakGuanyinPrayerLiturgy(activeBlessingText, {
         onStart: () => setIsPrayerVoiceActive(true),
         onEnd: () => setIsPrayerVoiceActive(false),
       });

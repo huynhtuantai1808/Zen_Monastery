@@ -221,12 +221,53 @@ export function speakAbbotVoice(
 }
 
 /**
- * Phát lời tụng kệ & cầu nguyện Quán Thế Âm Bồ Tát trang nghiêm thanh tịnh
+ * Lấy giọng đọc tiếng Việt tự nhiên nhất từ SpeechSynthesis (nếu trình duyệt/hệ điều hành hỗ trợ)
  */
-export function speakGuanyinPrayerVoice(
-  _verseText?: string,
+export function getBestVietnameseVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+  try {
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    // 1. Ưu tiên các giọng trực tuyến / Natural chất lượng cao của tiếng Việt
+    const naturalVi = voices.find(
+      (v) =>
+        (v.lang.toLowerCase().startsWith('vi') || v.lang === 'vi-VN' || v.lang === 'vi_VN') &&
+        (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('Google') || v.name.includes('HoaiMy') || v.name.includes('NamMinh'))
+    );
+    if (naturalVi) return naturalVi;
+
+    // 2. Bất kỳ giọng nào có mã ngôn ngữ tiếng Việt
+    const anyVi = voices.find(
+      (v) => v.lang.toLowerCase().startsWith('vi') || v.lang === 'vi-VN' || v.lang === 'vi_VN'
+    );
+    return anyVi || null;
+  } catch {
+    return null;
+  }
+}
+
+// Kích hoạt nạp trước danh sách giọng đọc trong trình duyệt
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  try {
+    window.speechSynthesis.onvoiceschanged = () => {
+      getBestVietnameseVoice();
+    };
+  } catch {
+    // Ignored
+  }
+}
+
+/**
+ * Tụng đọc lời Văn Khấn Nguyện Quán Thế Âm Bồ Tát trang nghiêm thanh tịnh
+ * Sử dụng giọng đọc tiếng Việt với văn phong thiền môn (nhịp chậm rãi, trầm ấm)
+ * phối hợp tiếng chuông bát và mõ thiền gia trì, hoàn toàn không phát văn mẫu dập khuôn.
+ */
+export function speakGuanyinPrayerLiturgy(
+  liturgyText?: string,
   options?: VoiceOptions
 ): () => void {
+  // Dập tắt các luồng âm thanh và giọng đọc cũ
   cancelLegacySpeechSynthesis();
   onBeforeSpeakAbbot?.();
 
@@ -240,43 +281,140 @@ export function speakGuanyinPrayerVoice(
     }
   }
 
-  const audio = getOrCreateMonkAudio();
-  if (!audio) {
-    options?.onEnd?.();
-    return () => {};
-  }
+  const rawText = liturgyText || 'Nam Mô Đại Từ Đại Bi Tầm Thinh Cứu Khổ Cứu Nạn Linh Cảm Quán Thế Âm Bồ Tát.';
+  // Lọc bỏ ký hiệu tiêu đề 【 ... 】 và icon trang trí để giọng đọc lưu loát, thành kính
+  const spokenText = rawText
+    .replace(/【.*?】/g, '')
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, ' ')
+    .replace(/[✨🙏🪷🪔*#_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  currentOptions = options || null;
-  const targetUrl = INCENSE_BOW_CHANT_URL;
-  if (!audio.src.endsWith(targetUrl)) {
-    audio.src = targetUrl;
-    audio.load();
-  }
-
+  // Khai lễ bằng tiếng chuông bát ngân vang
   soundEngine.playSingingBowl();
-  soundEngine.duckBGMForBell(60);
 
-  audio.currentTime = 0;
-  audio.volume = 1.0;
+  // Ước lượng thời lượng tụng niệm (khoảng 1.7 từ / giây với nhịp khấn trang nghiêm)
+  const wordCount = spokenText.split(/\s+/).length;
+  const estimatedSeconds = Math.max(12, Math.min(60, Math.ceil(wordCount / 1.7) + 4));
+  soundEngine.duckBGMForBell(estimatedSeconds);
 
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
+  let cancelled = false;
+  let woodenFishTimer: number | null = null;
+  const viVoice = getBestVietnameseVoice();
+
+  // Trường hợp 1: Trình duyệt có giọng đọc tiếng Việt (Chrome, Edge, Safari, Android)
+  if (viVoice && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      const utterance = new SpeechSynthesisUtterance(spokenText);
+      utterance.voice = viVoice;
+      utterance.lang = 'vi-VN';
+      utterance.rate = 0.82; // Nhịp tụng khấn trang nghiêm, chậm rãi, lắng đọng
+      utterance.pitch = 0.92; // Tông giọng trầm ấm
+      utterance.volume = 1.0;
+
+      // Điểm nhịp mõ nhẹ nhàng định kỳ tạo không khí đàn tế Quán Âm thiền tịnh
+      woodenFishTimer = window.setInterval(() => {
+        if (!isPlayingInternal || cancelled) {
+          if (woodenFishTimer !== null) {
+            clearInterval(woodenFishTimer);
+            woodenFishTimer = null;
+          }
+          return;
+        }
+        soundEngine.playWoodenFish();
+      }, 3500);
+
+      utterance.onstart = () => {
+        if (cancelled) return;
         isPlayingInternal = true;
         options?.onStart?.();
-      })
-      .catch((err) => {
-        console.warn('Trình duyệt cần tương tác để phát lời cầu nguyện:', err);
+      };
+
+      utterance.onend = () => {
+        if (woodenFishTimer !== null) {
+          clearInterval(woodenFishTimer);
+          woodenFishTimer = null;
+        }
+        soundEngine.playSingingBowl(); // Chuông kết lễ
         isPlayingInternal = false;
         options?.onEnd?.();
-      });
+      };
+
+      utterance.onerror = (err) => {
+        console.warn('SpeechSynthesis văn khấn Quán Âm kết thúc hoặc gián đoạn:', err);
+        if (woodenFishTimer !== null) {
+          clearInterval(woodenFishTimer);
+          woodenFishTimer = null;
+        }
+        isPlayingInternal = false;
+        options?.onEnd?.();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Lỗi khởi tạo giọng đọc tiếng Việt:', e);
+      isPlayingInternal = false;
+      options?.onEnd?.();
+    }
+  } else {
+    // Trường hợp 2: Không có voice tiếng Việt (không để giọng robot tiếng Anh đọc tiếng Việt)
+    // Thay vào đó thực hiện nghi thức thiền môn chuông mõ trang nghiêm gia trì lời nguyện
+    isPlayingInternal = true;
+    options?.onStart?.();
+
+    let elapsed = 0;
+    if (typeof window !== 'undefined') {
+      woodenFishTimer = window.setInterval(() => {
+        if (cancelled) {
+          if (woodenFishTimer !== null) {
+            clearInterval(woodenFishTimer);
+            woodenFishTimer = null;
+          }
+          return;
+        }
+        elapsed += 3;
+        soundEngine.playWoodenFish();
+        if (elapsed % 9 === 0) {
+          soundEngine.playWindChime();
+        }
+        if (elapsed >= estimatedSeconds) {
+          if (woodenFishTimer !== null) {
+            clearInterval(woodenFishTimer);
+            woodenFishTimer = null;
+          }
+          soundEngine.playSingingBowl();
+          isPlayingInternal = false;
+          options?.onEnd?.();
+        }
+      }, 3000);
+    } else {
+      options?.onEnd?.();
+    }
   }
 
+  // Hàm hủy phát an toàn
   return () => {
-    stopAbbotVoice();
+    cancelled = true;
+    if (woodenFishTimer !== null && typeof window !== 'undefined') {
+      clearInterval(woodenFishTimer);
+      woodenFishTimer = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // Ignored
+      }
+    }
+    isPlayingInternal = false;
+    options?.onEnd?.();
   };
 }
+
+/**
+ * Phát lời tụng niệm văn khấn Quán Thế Âm Bồ Tát (bí danh tương thích ngược)
+ */
+export const speakGuanyinPrayerVoice = speakGuanyinPrayerLiturgy;
 
 /**
  * Tạm dừng hoặc dừng hẳn giọng đọc

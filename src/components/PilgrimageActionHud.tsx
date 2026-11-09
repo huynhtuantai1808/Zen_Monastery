@@ -50,34 +50,39 @@ export const PILGRIMAGE_BUTTON_CONFIGS: PilgrimageButtonConfig[] = [
 export interface GuanyinBlessingVerse {
   id: string;
   title: string;
+  invoking: string;
   verse: string;
   blessing: string;
 }
 
 export const GUANYIN_BLESSING_VERSES: GuanyinBlessingVerse[] = [
   {
-    id: 'verse_compassion',
-    title: 'Từ Bi Hỷ Xả',
-    verse: 'Tâm từ chan chứa mười phương, lòng bi xoa dịu muôn vàn khổ đau.',
-    blessing: 'Cầu chúc bạn tâm hồn luôn an tịnh, mở rộng lòng từ ái yêu thương muôn loài.',
+    id: 'prayer_peace_protection',
+    title: 'Văn Khấn Cầu An • Tiêu Tai Tường Hòa',
+    invoking: 'Nam Mô Đại Từ Đại Bi Tầm Thinh Cứu Khổ Cứu Nạn Linh Cảm Quán Thế Âm Bồ Tát.',
+    verse: 'Đệ tử chí tâm đảnh lễ Đức Mẹ Quán Âm. Cúi xin Bồ Tát rưới giọt nước cam lộ thanh tịnh, xoa dịu khổ đau, rửa sạch trần lao phiền não.',
+    blessing: 'Nguyện xin Bồ Tát từ bi che chở cho gia đạo tường hòa, bốn mùa bình an, tai qua nạn khỏi, muôn việc hanh thông cát tường.',
   },
   {
-    id: 'verse_peace',
-    title: 'Bình An Thanh Thản',
-    verse: 'Cành dương quét sạch trần duyên, nước cam lộ rưới tiêu tan muộn phiền.',
-    blessing: 'Nguyện ánh từ quang Bồ Tát che chở cho bạn và gia quyến một đời cát tường như ý.',
+    id: 'prayer_wisdom_compassion',
+    title: 'Văn Khấn Cầu Trí Tuệ • Bồ Đề Tâm',
+    invoking: 'Nam Mô Đại Bi Quán Thế Âm Bồ Tát Ma Ha Tát.',
+    verse: 'Đệ tử chí tâm sám hối tội khiên, nguyện nương ánh từ quang Bồ Tát soi đường dẫn lối, dứt sạch tham sân chấp niệm nơi cõi hồng trần.',
+    blessing: 'Cầu xin Bồ Tát khai mở trí tuệ sáng trong, nuôi dưỡng lòng từ bi hỷ xả yêu thương muôn loài, gieo mầm phúc thiện, thân tâm thường an lạc.',
   },
   {
-    id: 'verse_wisdom',
-    title: 'Trí Tuệ Soi Đường',
-    verse: 'Bồ Đề tâm nở hoa sen, ngọn đèn chánh niệm sáng ngời màn đêm.',
-    blessing: 'Chúc bạn thân tâm an lạc, trí tuệ khai mở, vững bước trên nẻo thiện lành.',
+    id: 'prayer_wishes_fulfilled',
+    title: 'Văn Khấn Sở Cầu Như Ý • Sở Nguyện Tòng Tâm',
+    invoking: 'Chí Tâm Quy Mạng Đấng Vô Lượng Từ Bi Đại Nguyện Hóa Thân.',
+    verse: 'Trước tôn tượng Bạch Ngọc trang nghiêm, đệ tử chí thành dâng trọn lòng kính tín, quy y Tam Bảo, phát nguyện phụng sự việc thiện việc lành.',
+    blessing: 'Cúi xin Bồ Tát từ bi chứng minh gia hộ, cho mọi ước nguyện chân chính đều được thành tựu, sở cầu xứng ý, sở nguyện tòng tâm, phước duyên tăng trưởng.',
   },
   {
-    id: 'verse_karma',
-    title: 'Tiêu Trừ Chướng Nghiệp',
-    verse: 'Nam Mô Đại Bi Quán Thế Âm Bồ Tát cứu khổ cứu nạn quảng đại linh cảm.',
-    blessing: 'Nguyện mọi tai ương chướng ngại thảy đều tiêu tan, phước đức vô lượng vô biên.',
+    id: 'prayer_cam_lo_healing',
+    title: 'Văn Khấn Cam Lộ • Hóa Giải Khổ Đau',
+    invoking: 'Nam Mô Linh Cảm Quán Thế Âm Bồ Tát Chứng Minh Gia Hộ.',
+    verse: 'Cành dương liễu phất sạch bụi trần gian, nước tịnh bình rưới mát mười phương cõi, xoa dịu mọi vết thương và muộn phiền nơi nhân thế.',
+    blessing: 'Nguyện cho non sông an định, nhà nhà ấm no hạnh phúc, kẻ mất được siêu sinh cõi tịnh, người còn tăng phúc tăng thọ, muôn loài đều thấm nhuần Phật pháp.',
   },
 ];
 
@@ -173,14 +178,14 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
             </div>
 
             <h3 className="text-xl font-bold font-serif text-amber-300 tracking-wide mb-1">
-              Lời Chúc Phúc Từ Bi
+              Văn Khấn Nguyện Quán Thế Âm Bồ Tát
             </h3>
-            <p className="text-xs uppercase tracking-widest text-amber-400/80 mb-4 font-mono">
-              Quán Thế Âm Bồ Tát
+            <p className="text-xs uppercase tracking-widest text-amber-400/80 mb-3 font-mono">
+              Nam Mô Đại Bi Quán Thế Âm Bồ Tát
             </p>
 
-            <div className="p-4 mb-3.5 rounded-xl bg-black/40 border border-amber-500/30 text-amber-100 font-serif italic text-base leading-relaxed shadow-sm">
-              "{activeBlessing}"
+            <div className="p-4 mb-3.5 rounded-xl bg-black/45 border border-amber-500/35 text-amber-100 font-serif text-sm md:text-base leading-relaxed shadow-sm whitespace-pre-line text-left">
+              {activeBlessing}
             </div>
 
             {/* Audio Voice Recitation Status & Toggle */}
@@ -193,12 +198,12 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
                     ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-md shadow-amber-500/20'
                     : 'bg-stone-800/80 hover:bg-stone-800 border-amber-500/30 text-amber-300/80'
                 }`}
-                title={isPrayerVoiceActive ? 'Bấm để tắt giọng đọc' : 'Bấm để nghe giọng tụng kệ'}
+                title={isPrayerVoiceActive ? 'Bấm để tắt giọng tụng khấn' : 'Bấm để nghe giọng tụng khấn Quán Âm'}
               >
                 {isPrayerVoiceActive ? (
                   <>
                     <Volume2 className="w-4 h-4 text-amber-300 animate-pulse" />
-                    <span>Đang cất giọng tụng kinh chúc phúc...</span>
+                    <span>Đang tụng đọc văn khấn Quán Âm...</span>
                     <span className="flex gap-0.5 items-end h-3 ml-1">
                       <span className="w-0.5 h-2 bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-0.5 h-3 bg-amber-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -208,7 +213,7 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
                 ) : (
                   <>
                     <VolumeX className="w-4 h-4 text-amber-400/70" />
-                    <span>Nghe giọng đọc lời chúc phúc 🙏</span>
+                    <span>Lắng nghe tụng đọc lời văn khấn 🙏</span>
                   </>
                 )}
               </button>
@@ -219,7 +224,7 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
               onClick={onCloseBlessing}
               className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-medium rounded-xl shadow-lg shadow-amber-600/40 border border-amber-300/40 transition-all active:scale-98"
             >
-              Hoan Hỷ Tiếp Nhận 🙏
+              Chí Tâm Đảnh Lễ & Hoan Hỷ Tiếp Nhận 🙏
             </button>
           </div>
         </div>
