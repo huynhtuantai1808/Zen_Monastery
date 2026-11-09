@@ -22,7 +22,7 @@ export function hasLineOfSight(
   z1: number,
   x2: number,
   z2: number,
-  bodyRadius: number = MONK_COLLISION_RADIUS + 0.15,
+  bodyRadius: number = MONK_COLLISION_RADIUS + 0.05,
   currentY: number = 0.42
 ): boolean {
   const dx = x2 - x1;
@@ -201,19 +201,25 @@ export const NAV_NODES: Record<string, NavNode> = {
     id: 'east_bypass_south',
     x: 24.0,
     z: 2,
-    neighbors: ['sanctuary_front_east', 'east_bypass_mid'],
+    neighbors: ['sanctuary_front_east', 'east_bypass_mid', 'pagoda_approach'],
   },
   east_bypass_mid: {
     id: 'east_bypass_mid',
     x: 24.0,
     z: -16,
-    neighbors: ['east_bypass_south', 'east_bypass_north', 'pagoda_front'],
+    neighbors: ['east_bypass_south', 'east_bypass_north', 'pagoda_approach'],
+  },
+  pagoda_approach: {
+    id: 'pagoda_approach',
+    x: 26.0,
+    z: -6.0,
+    neighbors: ['east_bypass_south', 'east_bypass_mid', 'pagoda_front'],
   },
   pagoda_front: {
     id: 'pagoda_front',
-    x: 30.0,
-    z: -18,
-    neighbors: ['east_bypass_mid'],
+    x: 38.0,
+    z: -5.5,
+    neighbors: ['pagoda_approach'],
   },
   east_bypass_north: {
     id: 'east_bypass_north',
@@ -271,50 +277,56 @@ export const NAV_NODES: Record<string, NavNode> = {
   // Bếp Chùa, Trai Đường, Kho Củi & Giếng Ngọc Cổ
   kitchen_entrance: {
     id: 'kitchen_entrance',
-    x: -16.5,
-    z: -45,
-    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front', 'kitchen_courtyard', 'dining_kitchen_link'],
+    x: -13.0,
+    z: -43.0,
+    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front', 'kitchen_courtyard', 'kitchen_interior'],
+  },
+  kitchen_interior: {
+    id: 'kitchen_interior',
+    x: -13.0,
+    z: -49.0,
+    neighbors: ['kitchen_entrance', 'dining_kitchen_link'],
   },
   kitchen_courtyard: {
     id: 'kitchen_courtyard',
-    x: -16.5,
-    z: -40.0,
+    x: -13.0,
+    z: -39.0,
     neighbors: ['kitchen_entrance', 'bamboo_walk_west', 'west_corridor_north', 'dining_hall_entrance'],
   },
   dining_hall_entrance: {
     id: 'dining_hall_entrance',
-    x: -36.0,
-    z: -42.0,
+    x: -37.0,
+    z: -41.5,
     neighbors: ['kitchen_courtyard', 'dining_hall_interior', 'back_west_wing'],
   },
   dining_hall_interior: {
     id: 'dining_hall_interior',
-    x: -36.0,
-    z: -48.0,
+    x: -37.0,
+    z: -49.0,
     neighbors: ['dining_hall_entrance', 'dining_kitchen_link'],
   },
   dining_kitchen_link: {
     id: 'dining_kitchen_link',
-    x: -25.2,
+    x: -23.5,
     z: -49.0,
-    neighbors: ['dining_hall_interior', 'kitchen_entrance'],
+    neighbors: ['dining_hall_interior', 'kitchen_interior'],
   },
   back_west_wing: {
     id: 'back_west_wing',
     x: -45.0,
-    z: -42.0,
+    z: -41.5,
     neighbors: ['dining_hall_entrance'],
   },
   wood_shed_front: {
     id: 'wood_shed_front',
-    x: -4.0,
-    z: -45,
+    x: -2.0,
+    z: -44.5,
     neighbors: ['back_avenue_mid', 'kitchen_entrance', 'wood_shed_lane'],
   },
   wood_shed_lane: {
     id: 'wood_shed_lane',
-    x: -5.5,
-    z: -40.0,
+    x: -2.0,
+    z: -39.0,
     neighbors: ['wood_shed_front', 'bamboo_walk_west', 'back_avenue_south'],
   },
   well_entrance: {
@@ -373,7 +385,7 @@ export function findSmartPath(
   currentY: number = 0.42
 ): NavPoint[] {
   // 1. Direct path check: If there's clear line of sight, walk directly!
-  if (hasLineOfSight(startX, startZ, goalX, goalZ, MONK_COLLISION_RADIUS + 0.15, currentY)) {
+  if (hasLineOfSight(startX, startZ, goalX, goalZ, MONK_COLLISION_RADIUS + 0.05, currentY)) {
     return [{ x: goalX, z: goalZ }];
   }
 
@@ -394,7 +406,7 @@ export function findSmartPath(
       fallbackStartDist = dStart;
       fallbackStartNode = id;
     }
-    if (hasLineOfSight(startX, startZ, node.x, node.z, MONK_COLLISION_RADIUS + 0.15, currentY)) {
+    if (hasLineOfSight(startX, startZ, node.x, node.z, MONK_COLLISION_RADIUS + 0.05, currentY)) {
       if (dStart < bestStartDist) {
         bestStartDist = dStart;
         bestStartNode = id;
@@ -406,7 +418,7 @@ export function findSmartPath(
       fallbackGoalDist = dGoal;
       fallbackGoalNode = id;
     }
-    if (hasLineOfSight(node.x, node.z, goalX, goalZ, MONK_COLLISION_RADIUS + 0.15, currentY)) {
+    if (hasLineOfSight(node.x, node.z, goalX, goalZ, MONK_COLLISION_RADIUS + 0.05, currentY)) {
       if (dGoal < bestGoalDist) {
         bestGoalDist = dGoal;
         bestGoalNode = id;
@@ -529,7 +541,7 @@ export function findSmartPath(
     let furthestIdx = currentIdx;
     for (let j = rawWaypoints.length - 1; j >= currentIdx; j--) {
       const candidate = rawWaypoints[j];
-      if (hasLineOfSight(currX, currZ, candidate.x, candidate.z, MONK_COLLISION_RADIUS + 0.15, currentY)) {
+      if (hasLineOfSight(currX, currZ, candidate.x, candidate.z, MONK_COLLISION_RADIUS + 0.05, currentY)) {
         furthestIdx = j;
         break;
       }

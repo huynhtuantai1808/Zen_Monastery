@@ -13,9 +13,15 @@ export function createAuthenticJadePagoda(
   const pagoda = new THREE.Group();
 
   // 1. MULTI-TIER LOTUS PEDESTAL BASE (ĐÀI SEN TAM CẤP)
+  // 1.0 Chân móng đá hoa cương chìm âm thổ (Loại bỏ triệt để hiện tượng hở đáy / lơ lửng)
+  const subBase = new THREE.Mesh(new THREE.BoxGeometry(19.6, 2.5, 19.6), matLotusPlinth);
+  subBase.position.set(0, -0.65, 0);
+  subBase.receiveShadow = true;
+  pagoda.add(subBase);
+
   // Step 1: Base plinth
-  const base1 = new THREE.Mesh(new THREE.BoxGeometry(18, 1.2, 18), matLotusPlinth);
-  base1.position.set(0, 0.6, 0);
+  const base1 = new THREE.Mesh(new THREE.BoxGeometry(18, 1.4, 18), matLotusPlinth);
+  base1.position.set(0, 0.7, 0);
   base1.receiveShadow = true;
   pagoda.add(base1);
 

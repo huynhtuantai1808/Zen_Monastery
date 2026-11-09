@@ -45,9 +45,9 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     title: 'Đầu Bếp Thiền Môn',
     name: 'Chú Tiểu Tuệ Thiện',
     dialogue: 'A Di Đà Phật! Cơm chay thanh đạm đang sôi sùng sục, sư huynh đã dùng bữa chưa?',
-    x: -20.0,
-    y: 0.58, // Đứng trên sàn móng đá Nhà Bếp Chùa (Y = 0.58m)
-    z: -45.5,
+    x: -8.0,
+    y: 0.58, // Đứng trên sàn móng đá Nhà Bếp Chùa bên cạnh bếp lò (Y = 0.58m)
+    z: -49.5,
     rotationY: 0,
     colliderRadius: 0.8,
   },
@@ -57,9 +57,9 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     title: 'Phụ Bếp Nhặt Rau',
     name: 'Phật Tử Diệu Tâm',
     dialogue: 'Rau cải và củ quả tươi non vừa thu hoạch từ vườn thiền, rửa sạch thanh tịnh chuẩn bị cho trai tăng.',
-    x: -17.5,
+    x: -15.5,
     y: 0.35, // Sân gạch Bát Tràng hậu viện (Y = 0.35m)
-    z: -42.8,
+    z: -42.0,
     rotationY: Math.PI / 2,
     colliderRadius: 0.75,
   },
@@ -69,9 +69,9 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     title: 'Chú Tiểu Chẻ Củi',
     name: 'Chú Tiểu Tuệ Lực',
     dialogue: 'Từng nhát búa chẻ củi cũng là một phen tu dưỡng chánh niệm và rèn luyện thể lực.',
-    x: -6.8,
+    x: -3.2,
     y: 0.35,
-    z: -46.2,
+    z: -44.5,
     rotationY: Math.PI * 0.25,
     colliderRadius: 0.8,
   },
@@ -81,9 +81,9 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     title: 'Sắp Củi Vào Kho',
     name: 'Phật Tử Thiện Chí',
     dialogue: 'Củi khô xếp đều ngay ngắn giúp thông gió và tiện việc nhóm lửa nấu bếp mỗi sớm mai.',
-    x: -3.5,
+    x: -2.0,
     y: 0.35,
-    z: -48.0,
+    z: -47.0,
     rotationY: -Math.PI * 0.5,
     colliderRadius: 0.75,
   },
@@ -582,7 +582,7 @@ export function createLaborNpcEnsemble(): LaborEnsembleResult {
 
         // Nội suy vị trí theo X
         const startX = 12.0;
-        const endX = -16.0;
+        const endX = -13.0;
         const currX = startX + (endX - startX) * carrierProgress;
         rig.root.position.x = currX;
         rig.root.position.y = 0.38; // Sàn đá xanh trục ngang

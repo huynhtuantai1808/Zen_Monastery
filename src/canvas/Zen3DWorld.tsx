@@ -2225,10 +2225,13 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           const dz = targetPosRef.current.z - currentP.z;
           const dist = Math.hypot(dx, dz);
 
-          if (dist > CLICK_ARRIVE_DIST) {
+          const hasMoreWaypoints = tourNavQueueRef.current.length > 0;
+          const waypointThreshold = hasMoreWaypoints ? 0.75 : CLICK_ARRIVE_DIST;
+
+          if (dist > waypointThreshold) {
             hasTargetInput = true;
-            // Arrival deceleration: smooth ease-out within 1.2m
-            const arriveFactor = Math.min(1.0, dist / 1.2);
+            // Chỉ phanh giảm tốc êm ái khi đến điểm đích cuối cùng; giữ nguyên 100% tốc độ khi lướt qua các waypoint trung gian (Cắt góc mượt mà)
+            const arriveFactor = hasMoreWaypoints ? 1.0 : Math.min(1.0, dist / 1.2);
             const clickSpeed = targetSpeed * Math.max(0.35, arriveFactor);
 
             // CƠ CHẾ NÉ VẬT THỂ THỜI GIAN THỰC (5-RAY DYNAMIC WHISKER STEERING)
@@ -2242,7 +2245,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             let steerVz = forwardZ;
 
             // Nếu phía trước có vật cản ngắn (cột, đèn đá, chậu cảnh, mép tường)
-            if (probeDist > 0.35 && !hasLineOfSight(currentP.x, currentP.z, testX, testZ, MONK_COLLISION_RADIUS + 0.08, currentP.y)) {
+            if (probeDist > 0.35 && !hasLineOfSight(currentP.x, currentP.z, testX, testZ, MONK_COLLISION_RADIUS + 0.04, currentP.y)) {
               // Phóng 4 tia cảm biến râu dò (whiskers): +-30 độ và +-60 độ
               const cos30 = 0.8660;
               const sin30 = 0.5000;
@@ -2313,24 +2316,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
               const currentZone = TEMPLE_ZONES[tourIndexRef.current];
               if (currentZone) {
-                // 1. Cinematic Camera Framing
-                if (currentZone.camera) {
-                  cameraYawRef.current = currentZone.camera.yaw;
-                  cameraPitchRef.current = currentZone.camera.pitch;
-                  cameraDistRef.current = currentZone.camera.dist;
-                  if (currentZone.camera.mode && currentZone.camera.mode !== cameraModeRef.current) {
-                    cameraModeRef.current = currentZone.camera.mode;
-                    useZenBridge.getState().setCameraMode(currentZone.camera.mode);
+                // Tôn trọng 100% góc nhìn của người chơi đã chọn: Không tự động ghi đè camera yaw/pitch/dist
+                // Chỉ kích hoạt hiệu ứng âm thanh & banner vùng khi đến đích
+                if (isTourPlayingRef.current) {
+                  // Chỉ trong chế độ Tour tự động mới áp dụng tạo dáng tour
+                  if (currentZone.tourAction) {
+                    monkPoseRef.current = currentZone.tourAction;
+                    useZenBridge.getState().setMonkPose(currentZone.tourAction);
                   }
-                }
-
-                // 2. Character Pose & Orientation
-                if (currentZone.tourAction) {
-                  monkPoseRef.current = currentZone.tourAction;
-                  useZenBridge.getState().setMonkPose(currentZone.tourAction);
-                }
-                if (monkGroupRef.current && currentZone.facingAngle !== undefined) {
-                  monkGroupRef.current.rotation.y = currentZone.facingAngle;
+                  if (monkGroupRef.current && currentZone.facingAngle !== undefined) {
+                    monkGroupRef.current.rotation.y = currentZone.facingAngle;
+                  }
                 }
 
                 // 3. Atmospheric Audio (Tắt âm ting ting / chuông khi di chuyển đến điểm chỉ định)
@@ -2416,7 +2412,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             if (targetPosRef.current.active) {
               if (actualMovedDist < 0.01) {
                 stuckCountRef.current = (stuckCountRef.current || 0) + 1;
-                if (stuckCountRef.current > 25) {
+                if (stuckCountRef.current > 12) {
                   if (tourNavQueueRef.current.length > 0) {
                     const nextWp = tourNavQueueRef.current.shift()!;
                     const targetY = nextWp.y ?? getTerrainFloorElevation(nextWp.x, nextWp.z, currentP.y);

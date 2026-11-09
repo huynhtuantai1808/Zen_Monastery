@@ -117,29 +117,29 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: 4.5, z: 22.0, r: 0.65, name: 'Incense Table R' },
 
   // 3. Bảo Tháp Men Ngọc (Zone 3 Jade Pagoda at 38, -20)
-  // 3.1. Khối Chân Đế & Cánh Đài Sen Tam Cấp (Khóa cứng mọi phía, ngăn hoàn toàn việc trèo lên các cấp thềm chân tháp)
+  // 3.1. Khối Chân Đế & Cánh Đài Sen Tam Cấp (Khóa cứng mọi phía ở tầng trệt Y < 3.2m, ngăn hoàn toàn trèo lên thềm/xuyên tường)
   // Cánh Tây đài sen (Base West Wing)
-  { type: 'box', minX: 28.5, maxX: 35.6, minZ: -29.5, maxZ: -10.5, name: 'Pagoda Base West Wing' },
+  { type: 'box', minX: 28.5, maxX: 35.8, minZ: -29.5, maxZ: -10.8, maxY: 3.2, name: 'Pagoda Base West Wing' },
   // Cánh Đông đài sen (Base East Wing)
-  { type: 'box', minX: 40.4, maxX: 47.5, minZ: -29.5, maxZ: -10.5, name: 'Pagoda Base East Wing' },
+  { type: 'box', minX: 40.2, maxX: 47.5, minZ: -29.5, maxZ: -10.8, maxY: 3.2, name: 'Pagoda Base East Wing' },
   // Hậu chẩm phía Bắc đài sen (Base North Back)
-  { type: 'box', minX: 28.5, maxX: 47.5, minZ: -29.5, maxZ: -26.0, name: 'Pagoda Base North Back' },
+  { type: 'box', minX: 35.8, maxX: 40.2, minZ: -29.5, maxZ: -26.0, maxY: 3.2, name: 'Pagoda Base North Back' },
   // Má bậc thang tam cấp hai bên lối lên phía Nam (Stairs Curbs)
-  { type: 'box', minX: 34.8, maxX: 35.6, minZ: -10.5, maxZ: -7.5, name: 'Pagoda Step Curb Left' },
-  { type: 'box', minX: 40.4, maxX: 41.2, minZ: -10.5, maxZ: -7.5, name: 'Pagoda Step Curb Right' },
+  { type: 'box', minX: 35.0, maxX: 35.8, minZ: -10.8, maxZ: -7.5, name: 'Pagoda Step Curb Left' },
+  { type: 'box', minX: 40.2, maxX: 41.0, minZ: -10.8, maxZ: -7.5, name: 'Pagoda Step Curb Right' },
 
   // 3.2. Thân Tháp Tầng 1 & Lan Can Thềm Thượng (Tier 1 Terrace & Body)
-  // Thân tháp gỗ Tầng 1 (9.8m x 9.8m: X in [33.0, 43.0], Z in [-25.0, -15.0])
-  { type: 'box', minX: 33.0, maxX: 43.0, minZ: -25.0, maxZ: -15.0, name: 'Jade Pagoda Core Walls' },
+  // Thân tháp gỗ Tầng 1 (9.8m x 9.8m: X in [33.1, 42.9], Z in [-24.9, -15.1])
+  { type: 'box', minX: 32.8, maxX: 43.2, minZ: -25.2, maxZ: -14.8, name: 'Jade Pagoda Core Walls' },
   // Lan can gỗ phía Tây (West Balustrade)
-  { type: 'box', minX: 31.0, maxX: 31.8, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Balustrade West' },
+  { type: 'box', minX: 31.0, maxX: 31.8, minZ: -26.8, maxZ: -13.2, minY: 2.8, name: 'Pagoda Balustrade West' },
   // Lan can gỗ phía Đông (East Balustrade)
-  { type: 'box', minX: 44.2, maxX: 45.0, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Balustrade East' },
+  { type: 'box', minX: 44.2, maxX: 45.0, minZ: -26.8, maxZ: -13.2, minY: 2.8, name: 'Pagoda Balustrade East' },
   // Lan can gỗ phía Bắc (North Balustrade)
-  { type: 'box', minX: 31.0, maxX: 45.0, minZ: -26.8, maxZ: -26.0, name: 'Pagoda Balustrade North' },
+  { type: 'box', minX: 31.8, maxX: 44.2, minZ: -26.8, maxZ: -26.0, minY: 2.8, name: 'Pagoda Balustrade North' },
   // Lan can gỗ mặt tiền phía Nam hai bên cửa (South Balustrade Wings)
-  { type: 'box', minX: 31.0, maxX: 35.6, minZ: -13.8, maxZ: -13.0, name: 'Pagoda Balustrade South L' },
-  { type: 'box', minX: 40.4, maxX: 45.0, minZ: -13.8, maxZ: -13.0, name: 'Pagoda Balustrade South R' },
+  { type: 'box', minX: 31.0, maxX: 35.8, minZ: -13.8, maxZ: -13.0, minY: 2.8, name: 'Pagoda Balustrade South L' },
+  { type: 'box', minX: 40.2, maxX: 45.0, minZ: -13.8, maxZ: -13.0, minY: 2.8, name: 'Pagoda Balustrade South R' },
 
   { type: 'circle', x: 33.5, z: -12.5, r: 0.75, name: 'Pagoda Front Lantern L' },
   { type: 'circle', x: 42.5, z: -12.5, r: 0.75, name: 'Pagoda Front Lantern R' },
@@ -257,45 +257,51 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: 25.7, maxX: 34.3, minZ: 12.5, maxZ: 13.5, name: 'Library Shelf 2' },
   { type: 'box', minX: 25.7, maxX: 34.3, minZ: 17.0, maxZ: 18.0, name: 'Library Shelf 3' },
 
-  // 10. Hậu Viện Sơn Tự (Zone 10 Back Garden: X in [-28, 28], Z in [-58, -34])
-  // 10.1. Nhà Bếp Chùa (Hương Tích Trù: X in [-22.8, -10.5], Z in [-53.5, -44.5])
+  // 10. Hậu Viện Sơn Tự (Zone 10 Back Garden: X in [-51.5, 51.5], Z in [-58, -34])
+  // 10.1. Nhà Bếp Chùa (Hương Tích Trù: X in [-21.0, -5.0], Z in [-54.5, -43.5])
   // Tường Hậu (phía Bắc)
-  { type: 'box', minX: -22.3, maxX: -10.7, minZ: -53.0, maxZ: -52.4, name: 'Kitchen North Wall' },
-  // Tường Hồi (phía Tây)
-  { type: 'box', minX: -22.3, maxX: -21.7, minZ: -52.4, maxZ: -45.4, name: 'Kitchen West Wall' },
-  // Tường Hồi (phía Đông)
-  { type: 'box', minX: -11.3, maxX: -10.7, minZ: -52.4, maxZ: -45.4, name: 'Kitchen East Wall' },
-  // Tường Mặt Tiền cánh Tây (trái cửa)
-  { type: 'box', minX: -22.3, maxX: -17.7, minZ: -45.6, maxZ: -45.0, name: 'Kitchen Front Wall West' },
-  // Tường Mặt Tiền cánh Đông (phải cửa)
-  { type: 'box', minX: -15.3, maxX: -10.7, minZ: -45.6, maxZ: -45.0, name: 'Kitchen Front Wall East' },
+  { type: 'box', minX: -21.0, maxX: -5.0, minZ: -54.8, maxZ: -54.0, name: 'Kitchen North Wall' },
+  // Tường Hồi phía Tây (nối sang breezeway: ngỏ cửa lối đi Z in [-50.8, -47.2])
+  { type: 'box', minX: -21.0, maxX: -20.2, minZ: -54.5, maxZ: -50.8, name: 'Kitchen West Wall North' },
+  { type: 'box', minX: -21.0, maxX: -20.2, minZ: -47.2, maxZ: -43.5, name: 'Kitchen West Wall South' },
+  // Tường Hồi phía Đông (giáp kho củi)
+  { type: 'box', minX: -5.8, maxX: -5.0, minZ: -54.5, maxZ: -43.5, name: 'Kitchen East Wall' },
+  // Tường Mặt Tiền cánh Tây (trái cửa chính rộng 3.6m: X in [-14.8, -11.2])
+  { type: 'box', minX: -21.0, maxX: -14.8, minZ: -44.2, maxZ: -43.5, name: 'Kitchen Front Wall West' },
+  // Tường Mặt Tiền cánh Đông (phải cửa chính)
+  { type: 'box', minX: -11.2, maxX: -5.0, minZ: -44.2, maxZ: -43.5, name: 'Kitchen Front Wall East' },
   // Nội thất bên trong: Bàn sơ chế thức ăn chay
-  { type: 'box', minX: -21.0, maxX: -18.4, minZ: -51.1, maxZ: -49.9, name: 'Kitchen Prep Table' },
+  { type: 'box', minX: -18.5, maxX: -15.5, minZ: -51.5, maxZ: -49.5, name: 'Kitchen Prep Table' },
   // Gian bếp lò & ống khói đất nung
-  { type: 'box', minX: -13.8, maxX: -11.6, minZ: -51.2, maxZ: -49.2, name: 'Kitchen Stove Hearth' },
+  { type: 'box', minX: -9.5, maxX: -6.5, minZ: -51.8, maxZ: -49.0, name: 'Kitchen Stove Hearth' },
 
-  // 10.1B. Nhà Ăn Thiền Môn (Trai Đường Thiền Môn: X in [-44.0, -28.0], Z in [-53.5, -44.5])
-  // Tường Hậu (phía Bắc nhà ăn)
-  { type: 'box', minX: -43.8, maxX: -28.2, minZ: -53.2, maxZ: -52.4, name: 'Dining Hall North Wall' },
-  // Tường Hồi cánh Tây (giáp tường bao)
-  { type: 'box', minX: -43.8, maxX: -43.0, minZ: -52.4, maxZ: -45.4, name: 'Dining Hall West Wall' },
-  // Tường Hồi cánh Đông (giáp hành lang nối bếp)
-  { type: 'box', minX: -28.8, maxX: -28.0, minZ: -52.4, maxZ: -50.8, name: 'Dining Hall East Wall North' },
-  { type: 'box', minX: -28.8, maxX: -28.0, minZ: -47.2, maxZ: -45.4, name: 'Dining Hall East Wall South' },
-  // Tường Mặt Tiền cánh Nam (hai bên cửa chính)
-  { type: 'box', minX: -43.8, maxX: -38.2, minZ: -45.6, maxZ: -45.0, name: 'Dining Hall Front Wall West' },
-  { type: 'box', minX: -33.8, maxX: -28.2, minZ: -45.6, maxZ: -45.0, name: 'Dining Hall Front Wall East' },
-  // Dãy bàn ăn Trai Đường 1 & 2
-  { type: 'box', minX: -41.5, maxX: -30.5, minZ: -51.4, maxZ: -50.2, name: 'Dining Table Row North' },
-  { type: 'box', minX: -41.5, maxX: -30.5, minZ: -47.8, maxZ: -46.6, name: 'Dining Table Row South' },
+  // 10.1B. Nhà Ăn Thiền Môn (Trai Đường Thiền Môn: X in [-48.0, -26.0], Z in [-55.0, -43.0])
+  // Tường Hậu (phía Bắc)
+  { type: 'box', minX: -47.8, maxX: -26.2, minZ: -54.8, maxZ: -54.0, name: 'Dining Hall North Wall' },
+  // Tường Hồi cánh Tây (giáp tường rào chùa)
+  { type: 'box', minX: -47.8, maxX: -47.0, minZ: -54.5, maxZ: -43.5, name: 'Dining Hall West Wall' },
+  // Tường Hồi cánh Đông (nối sang breezeway: ngỏ cửa lối đi Z in [-50.8, -47.2])
+  { type: 'box', minX: -26.8, maxX: -26.0, minZ: -54.5, maxZ: -50.8, name: 'Dining Hall East Wall North' },
+  { type: 'box', minX: -26.8, maxX: -26.0, minZ: -47.2, maxZ: -43.5, name: 'Dining Hall East Wall South' },
+  // Tường Mặt Tiền cánh Nam (mở cửa đại sảnh 4.8m: X in [-39.4, -34.6])
+  { type: 'box', minX: -47.8, maxX: -39.4, minZ: -43.8, maxZ: -43.2, name: 'Dining Hall Front Wall West' },
+  { type: 'box', minX: -34.6, maxX: -26.2, minZ: -43.8, maxZ: -43.2, name: 'Dining Hall Front Wall East' },
+  // 3 Dãy bàn ăn Trai Đường (Bắc, Giữa, Nam)
+  { type: 'box', minX: -44.5, maxX: -29.5, minZ: -52.6, maxZ: -51.6, name: 'Dining Table Row North' },
+  { type: 'box', minX: -44.5, maxX: -29.5, minZ: -49.5, maxZ: -48.5, name: 'Dining Table Row Center' },
+  { type: 'box', minX: -44.5, maxX: -29.5, minZ: -46.4, maxZ: -45.4, name: 'Dining Table Row South' },
   // Ban thờ Giám Trai Bồ Tát & Trai Bảng
-  { type: 'box', minX: -37.5, maxX: -34.5, minZ: -52.6, maxZ: -51.6, name: 'Giam Trai Bodhisattva Altar' },
-  { type: 'circle', x: -35.2, z: -44.2, r: 0.65, name: 'Trai Bang Fish Bell Stand' },
+  { type: 'box', minX: -39.2, maxX: -34.8, minZ: -54.5, maxZ: -53.0, name: 'Giam Trai Bodhisattva Altar' },
+  { type: 'circle', x: -33.8, z: -43.6, r: 0.65, name: 'Trai Bang Fish Bell Stand' },
 
-  // 10.2. Nhà Kho Củi (Tiêu Phòng: X in [-9.0, 1.0], Z in [-53.8, -46.8])
-  { type: 'box', minX: -9.2, maxX: -3.8, minZ: -52.8, maxZ: -47.2, name: 'Wood Storage Shed' },
+  // 10.1C. Hành Lang Cầu Nối Có Mái Che (Breezeway: X in [-26.0, -21.0], Z in [-51.2, -46.8])
+  { type: 'box', minX: -26.0, maxX: -21.0, minZ: -51.4, maxZ: -50.8, name: 'Breezeway North Rail' },
+  { type: 'box', minX: -26.0, maxX: -21.0, minZ: -47.2, maxZ: -46.6, name: 'Breezeway South Rail' },
+
+  // 10.2. Nhà Kho Củi (Tiêu Phòng: X in [-4.6, 0.4], Z in [-52.5, -47.5])
+  { type: 'box', minX: -4.6, maxX: 0.4, minZ: -52.5, maxZ: -47.5, name: 'Wood Storage Shed' },
   // Bệ thớt gỗ đại thụ chẻ củi
-  { type: 'circle', x: -4.0, z: -45.0, r: 0.85, name: 'Chopping Block Dais' },
+  { type: 'circle', x: -2.0, z: -45.5, r: 0.85, name: 'Chopping Block Dais' },
 
   // 10.3. Giếng Ngọc Cổ (Tịnh Thủy Tuyền at 12, -46)
   // Thành đá xanh bát giác rêu phong (ngăn tuyệt đối rơi lọt lòng giếng)
@@ -527,20 +533,20 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
 
   // 6.5. Hậu Viện Sơn Tự (Zone 10 Back Courtyard at Z <= -34.0)
   if (z <= -34.0) {
-    // Thềm móng đá & Sàn Nhà Bếp Chùa (X: -22.5 đến -10.5, Z: -54.0 đến -44.0)
-    if (x >= -22.5 && x <= -10.5 && z >= -54.0 && z <= -44.0) {
+    // Thềm móng đá & Sàn Nhà Ăn Thiền Môn (Trai Đường: X: -48.0 đến -26.0, Z: -55.0 đến -43.0)
+    if (x >= -48.0 && x <= -26.0 && z >= -55.0 && z <= -43.0) {
       return 0.58;
     }
-    // Thềm móng đá & Sàn Nhà Ăn Thiền Môn (Trai Đường: X: -44.0 đến -28.0, Z: -54.0 đến -44.0)
-    if (x >= -44.0 && x <= -28.0 && z >= -54.0 && z <= -44.0) {
+    // Hành lang cầu nối có mái che (Breezeway: X: -26.0 đến -21.0, Z: -51.6 đến -46.4)
+    if (x >= -26.0 && x <= -21.0 && z >= -51.6 && z <= -46.4) {
       return 0.58;
     }
-    // Hành lang cầu nối có mái che (Breezeway: X: -28.0 đến -22.5, Z: -51.0 đến -47.0)
-    if (x >= -28.0 && x <= -22.5 && z >= -51.0 && z <= -47.0) {
+    // Thềm móng đá & Sàn Nhà Bếp Chùa (Hương Tích Trù: X: -21.0 đến -5.0, Z: -55.0 đến -43.0)
+    if (x >= -21.0 && x <= -5.0 && z >= -55.0 && z <= -43.0) {
       return 0.58;
     }
-    // Sàn gỗ Nhà Kho Củi (X: -9.0 đến 1.0, Z: -54.0 đến -46.0)
-    if (x >= -9.2 && x <= -3.8 && z >= -53.0 && z <= -47.0) {
+    // Sàn gỗ Nhà Kho Củi (X: -4.8 đến 0.6, Z: -53.0 đến -47.0)
+    if (x >= -4.8 && x <= 0.6 && z >= -53.0 && z <= -47.0) {
       return 0.50;
     }
     // Thềm đá Giếng Ngọc Cổ (Tâm 12, -46)
@@ -680,13 +686,13 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '18 × 18 m',
     icon: '🏯',
     desc: 'Bảo tháp kiến trúc truyền thống theo bản vẽ: 3 tầng mái cong ngói men ngọc, thân gỗ ấm, cửa vòm nguyệt môn, đài sen tam cấp và đỉnh búp sen hoàng kim.',
-    pos: { x: 30.0, y: 0.42, z: -7.0 },
+    pos: { x: 38.0, y: 0.42, z: -5.5 },
     actionKey: 'TOWER',
-    camera: { yaw: 0.9, pitch: -0.45, dist: 10.5, mode: 'THIRD_PERSON' },
-    facingAngle: Math.PI * 0.75,
+    camera: { yaw: 0.9, pitch: -0.35, dist: 12.0, mode: 'THIRD_PERSON' },
+    facingAngle: Math.PI,
     tourAction: 'STAND',
     tourSound: 'bowl',
-    navWaypoints: [{ x: 27, z: -5 }, { x: 30, z: -7 }],
+    navWaypoints: [{ x: 26, z: -6 }, { x: 38, z: -5.5 }],
   },
   {
     id: 'library',
