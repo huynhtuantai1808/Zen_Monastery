@@ -46,7 +46,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Thiện',
     dialogue: 'A Di Đà Phật! Cơm chay thanh đạm đang sôi sùng sục, sư huynh đã dùng bữa chưa?',
     x: -20.0,
-    y: 0.42,
+    y: 0.58, // Đứng trên sàn móng đá Nhà Bếp Chùa (Y = 0.58m)
     z: -45.5,
     rotationY: 0,
     colliderRadius: 0.8,
@@ -58,7 +58,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Phật Tử Diệu Tâm',
     dialogue: 'Rau cải và củ quả tươi non vừa thu hoạch từ vườn thiền, rửa sạch thanh tịnh chuẩn bị cho trai tăng.',
     x: -17.5,
-    y: 0.42,
+    y: 0.35, // Sân gạch Bát Tràng hậu viện (Y = 0.35m)
     z: -42.8,
     rotationY: Math.PI / 2,
     colliderRadius: 0.75,
@@ -70,7 +70,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Lực',
     dialogue: 'Từng nhát búa chẻ củi cũng là một phen tu dưỡng chánh niệm và rèn luyện thể lực.',
     x: -6.8,
-    y: 0.42,
+    y: 0.35,
     z: -46.2,
     rotationY: Math.PI * 0.25,
     colliderRadius: 0.8,
@@ -82,7 +82,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Phật Tử Thiện Chí',
     dialogue: 'Củi khô xếp đều ngay ngắn giúp thông gió và tiện việc nhóm lửa nấu bếp mỗi sớm mai.',
     x: -3.5,
-    y: 0.42,
+    y: 0.35,
     z: -48.0,
     rotationY: -Math.PI * 0.5,
     colliderRadius: 0.75,
@@ -94,7 +94,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Tuyền',
     dialogue: 'Nước Giếng Ngọc Cổ ngàn năm trong vắt ngọt lành, rửa sạch bụi trần phiền não.',
     x: 11.5,
-    y: 0.42,
+    y: 0.35,
     z: -45.0,
     rotationY: -Math.PI * 0.5,
     colliderRadius: 0.8,
@@ -106,7 +106,7 @@ export const LABOR_NPC_CONFIGS: LaborNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Hành',
     dialogue: 'Bước chân thong dong giữ thăng bằng đòn gánh, tâm không xao động thì nước chẳng tràn ra ngoài.',
     x: 12.0,
-    y: 0.42,
+    y: 0.38, // Lối đá xanh trục ngang Hậu Viện (Y = 0.38m)
     z: -45.0,
     rotationY: -Math.PI / 2,
     colliderRadius: 0.75,
@@ -210,6 +210,7 @@ function buildBaseLaborNpcRig(
   head.position.set(0, 0.54, 0);
   const sFaceMat = new THREE.MeshStandardMaterial({ map: faceTex, roughness: 0.5 });
   const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.26, 20, 16), sFaceMat);
+  headMesh.rotation.y = Math.PI; // Hướng mặt về phía trước z+
   headMesh.castShadow = true;
   head.add(headMesh);
   torso.add(head);
@@ -584,6 +585,7 @@ export function createLaborNpcEnsemble(): LaborEnsembleResult {
         const endX = -16.0;
         const currX = startX + (endX - startX) * carrierProgress;
         rig.root.position.x = currX;
+        rig.root.position.y = 0.38; // Sàn đá xanh trục ngang
         rig.root.position.z = -45.0;
 
         // Xoay mặt theo hướng di chuyển

@@ -135,8 +135,12 @@ export const NAV_NODES: Record<string, NavNode> = {
     z: 36,
     neighbors: ['courtyard_center', 'pond_approach', 'pond_bridge', 'tea_pavilion_front'],
   },
-  pond_bridge: { id: 'pond_bridge', x: -16.0, z: 36, neighbors: ['pond_entrance', 'pond_platform'] },
+  pond_bridge: { id: 'pond_bridge', x: -16.0, z: 36, neighbors: ['pond_entrance', 'pond_platform', 'west_pier_main'] },
   pond_platform: { id: 'pond_platform', x: -20.0, z: 36, neighbors: ['pond_bridge'] },
+
+  // Bến Nước & Hiên Nước Phía Tây
+  west_pier_main: { id: 'west_pier_main', x: -33.5, z: 36.0, neighbors: ['pond_bridge', 'west_pier_steps'] },
+  west_pier_steps: { id: 'west_pier_steps', x: -27.5, z: 36.0, neighbors: ['west_pier_main'] },
 
   // Thiền Trà Quán
   tea_pavilion_front: {
@@ -264,18 +268,42 @@ export const NAV_NODES: Record<string, NavNode> = {
     neighbors: ['back_avenue_mid'],
   },
 
-  // Bếp Chùa, Kho Củi & Giếng Ngọc Cổ
+  // Bếp Chùa, Trai Đường, Kho Củi & Giếng Ngọc Cổ
   kitchen_entrance: {
     id: 'kitchen_entrance',
     x: -16.5,
     z: -45,
-    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front', 'kitchen_courtyard'],
+    neighbors: ['back_avenue_mid', 'west_corridor_north', 'wood_shed_front', 'kitchen_courtyard', 'dining_kitchen_link'],
   },
   kitchen_courtyard: {
     id: 'kitchen_courtyard',
     x: -16.5,
     z: -40.0,
-    neighbors: ['kitchen_entrance', 'bamboo_walk_west', 'west_corridor_north'],
+    neighbors: ['kitchen_entrance', 'bamboo_walk_west', 'west_corridor_north', 'dining_hall_entrance'],
+  },
+  dining_hall_entrance: {
+    id: 'dining_hall_entrance',
+    x: -36.0,
+    z: -42.0,
+    neighbors: ['kitchen_courtyard', 'dining_hall_interior', 'back_west_wing'],
+  },
+  dining_hall_interior: {
+    id: 'dining_hall_interior',
+    x: -36.0,
+    z: -48.0,
+    neighbors: ['dining_hall_entrance', 'dining_kitchen_link'],
+  },
+  dining_kitchen_link: {
+    id: 'dining_kitchen_link',
+    x: -25.2,
+    z: -49.0,
+    neighbors: ['dining_hall_interior', 'kitchen_entrance'],
+  },
+  back_west_wing: {
+    id: 'back_west_wing',
+    x: -45.0,
+    z: -42.0,
+    neighbors: ['dining_hall_entrance'],
   },
   wood_shed_front: {
     id: 'wood_shed_front',
@@ -299,7 +327,13 @@ export const NAV_NODES: Record<string, NavNode> = {
     id: 'well_plaza',
     x: 12.0,
     z: -40.0,
-    neighbors: ['well_entrance', 'bamboo_walk_east', 'east_bypass_north'],
+    neighbors: ['well_entrance', 'bamboo_walk_east', 'east_bypass_north', 'back_east_wing'],
+  },
+  back_east_wing: {
+    id: 'back_east_wing',
+    x: 42.0,
+    z: -42.0,
+    neighbors: ['well_plaza', 'east_bypass_north'],
   },
 
   // Lối dạo rặng tre trúc

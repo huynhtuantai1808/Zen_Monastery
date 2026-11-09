@@ -1026,7 +1026,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     if (destinationMarkerRef.current) {
       destinationMarkerRef.current.position.set(
         targetZone.pos.x,
-        (targetZone.pos.y ?? 0.42) + 0.08,
+        (targetZone.pos.y ?? 0.42) + 0.05,
         targetZone.pos.z
       );
       destinationMarkerRef.current.visible = true;
@@ -1816,33 +1816,59 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     }
     scene.add(stairsGroup);
 
-    // Destination Marker (Golden Lotus Ring)
+    // Destination Marker (Golden Lotus Ring) - Anti Z-fighting with polygonOffset & depthWrite: false
     const destGroup = new THREE.Group();
     const destRing = new THREE.Mesh(
       new THREE.TorusGeometry(1.6, 0.12, 8, 24),
-      new THREE.MeshStandardMaterial({ color: 0xfde047, emissive: 0xf59e0b, emissiveIntensity: 0.8 })
+      new THREE.MeshStandardMaterial({
+        color: 0xfde047,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 0.8,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -4,
+      })
     );
     destRing.rotateX(Math.PI / 2);
     destGroup.add(destRing);
-    destGroup.position.set(0, 0.3, 66);
+    destGroup.position.set(0, 0.35, 66);
     destinationMarkerRef.current = destGroup;
     scene.add(destGroup);
 
-    // Glowing Lotus Cursor Reticle (Rotates under cursor)
+    // Glowing Lotus Cursor Reticle (Rotates under cursor) - Anti Z-fighting with polygonOffset & depthWrite: false
     const lotusCursor = new THREE.Group();
     const cursorRing = new THREE.Mesh(
       new THREE.RingGeometry(0.75, 0.95, 24),
-      new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -4,
+      })
     );
     cursorRing.rotateX(-Math.PI / 2);
     lotusCursor.add(cursorRing);
     const cursorDot = new THREE.Mesh(
       new THREE.CircleGeometry(0.25, 12),
-      new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({
+        color: 0xfde047,
+        transparent: true,
+        opacity: 0.95,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -4,
+      })
     );
     cursorDot.rotateX(-Math.PI / 2);
     lotusCursor.add(cursorDot);
-    lotusCursor.position.set(0, 0.28, 70);
+    lotusCursor.position.set(0, 0.35, 70);
     cursorMarkerGroupRef.current = lotusCursor;
     scene.add(lotusCursor);
 
@@ -1907,9 +1933,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     const raycaster = new THREE.Raycaster();
     const upVector = new THREE.Vector3(0, 1, 0);
     const groundPlane = new THREE.Plane(upVector, -0.25);
-    const sanctuaryPlane = new THREE.Plane(upVector, -3.30);
     const hitVec = new THREE.Vector3();
-    const hitSanctuaryVec = new THREE.Vector3();
 
     const updateCursorGroundPos = (clientX: number, clientY: number) => {
       if (!renderer || !camera) return;
@@ -1920,21 +1944,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
       raycaster.setFromCamera(cursorScreenPosRef.current, camera);
       const currentPy = playerPosRef.current.y || 0.42;
-      let matchedSanctuary = false;
 
-      if (raycaster.ray.intersectPlane(sanctuaryPlane, hitSanctuaryVec)) {
-        if (hitSanctuaryVec.x >= -23.5 && hitSanctuaryVec.x <= 23.5 && hitSanctuaryVec.z <= -0.5 && hitSanctuaryVec.z >= -34.0) {
-          hitVec.copy(hitSanctuaryVec);
-          matchedSanctuary = true;
+      // Two-pass Ground Raycast for accurate elevation everywhere
+      groundPlane.constant = -0.42;
+      if (raycaster.ray.intersectPlane(groundPlane, hitVec)) {
+        const floorY = getTerrainFloorElevation(hitVec.x, hitVec.z, currentPy);
+        if (Math.abs(floorY - 0.42) > 0.05) {
+          groundPlane.constant = -floorY;
+          raycaster.ray.intersectPlane(groundPlane, hitVec);
         }
-      }
-
-      if (!matchedSanctuary) {
-        groundPlane.constant = -currentPy;
-        if (raycaster.ray.intersectPlane(groundPlane, hitVec)) {
-          hitVec.x = Math.max(-50, Math.min(50, hitVec.x));
-          hitVec.z = Math.max(-75, Math.min(95, hitVec.z));
-        }
+        hitVec.x = Math.max(-50, Math.min(50, hitVec.x));
+        hitVec.z = Math.max(-75, Math.min(95, hitVec.z));
       }
 
       cursorGroundPosRef.current.copy(hitVec);
@@ -1969,7 +1989,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
       // Click on ground to move (Point & Click with Smart Obstacle Avoidance & Elevation Resolution)
       const distMoved = Math.hypot(e.clientX - lastPointerDownPosRef.current.x, e.clientY - lastPointerDownPosRef.current.y);
-      if (distMoved < 6 && hasGroundTargetRef.current) {
+      if (distMoved < 12 && hasGroundTargetRef.current) {
         const rawTargetX = cursorGroundPosRef.current.x;
         const rawTargetZ = cursorGroundPosRef.current.z;
         const currentPy = playerPosRef.current.y || 0.42;
@@ -2004,7 +2024,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           stopAbbotVoice();
         }
         if (destinationMarkerRef.current) {
-          destinationMarkerRef.current.position.set(resolved.x, floorY + 0.08, resolved.z);
+          destinationMarkerRef.current.position.set(resolved.x, floorY + 0.05, resolved.z);
           destinationMarkerRef.current.visible = true;
         }
       }
@@ -2861,7 +2881,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           cursorMarkerGroupRef.current.position.x += (cursorGroundPosRef.current.x - cursorMarkerGroupRef.current.position.x) * 0.35;
           cursorMarkerGroupRef.current.position.z += (cursorGroundPosRef.current.z - cursorMarkerGroupRef.current.position.z) * 0.35;
           const targetCursorY = getTerrainFloorElevation(cursorGroundPosRef.current.x, cursorGroundPosRef.current.z, playerPosRef.current.y || 0.42);
-          cursorMarkerGroupRef.current.position.y += (targetCursorY + 0.035 - cursorMarkerGroupRef.current.position.y) * 0.45;
+          cursorMarkerGroupRef.current.position.y += (targetCursorY + 0.05 - cursorMarkerGroupRef.current.position.y) * 0.45;
           cursorMarkerGroupRef.current.rotation.y += 0.03;
           cursorMarkerGroupRef.current.rotation.x = 0;
           cursorMarkerGroupRef.current.rotation.z = 0;

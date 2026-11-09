@@ -117,15 +117,35 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: 4.5, z: 22.0, r: 0.65, name: 'Incense Table R' },
 
   // 3. Bảo Tháp Men Ngọc (Zone 3 Jade Pagoda at 38, -20)
-  // Stone Terrace Outer Bounds (X: 31 to 45, Z: -27 to -13)
-  { type: 'box', minX: 31.0, maxX: 45.0, minZ: -27.0, maxZ: -13.0, maxY: 3.1, name: 'Pagoda Terrace Base' },
-  // Main Jade Pagoda Core Octagon / Box
-  { type: 'box', minX: 34.0, maxX: 42.0, minZ: -24.0, maxZ: -16.0, name: 'Jade Pagoda Core' },
+  // 3.1. Khối Chân Đế & Cánh Đài Sen Tam Cấp (Khóa cứng mọi phía, ngăn hoàn toàn việc trèo lên các cấp thềm chân tháp)
+  // Cánh Tây đài sen (Base West Wing)
+  { type: 'box', minX: 28.5, maxX: 35.6, minZ: -29.5, maxZ: -10.5, name: 'Pagoda Base West Wing' },
+  // Cánh Đông đài sen (Base East Wing)
+  { type: 'box', minX: 40.4, maxX: 47.5, minZ: -29.5, maxZ: -10.5, name: 'Pagoda Base East Wing' },
+  // Hậu chẩm phía Bắc đài sen (Base North Back)
+  { type: 'box', minX: 28.5, maxX: 47.5, minZ: -29.5, maxZ: -26.0, name: 'Pagoda Base North Back' },
+  // Má bậc thang tam cấp hai bên lối lên phía Nam (Stairs Curbs)
+  { type: 'box', minX: 34.8, maxX: 35.6, minZ: -10.5, maxZ: -7.5, name: 'Pagoda Step Curb Left' },
+  { type: 'box', minX: 40.4, maxX: 41.2, minZ: -10.5, maxZ: -7.5, name: 'Pagoda Step Curb Right' },
+
+  // 3.2. Thân Tháp Tầng 1 & Lan Can Thềm Thượng (Tier 1 Terrace & Body)
+  // Thân tháp gỗ Tầng 1 (9.8m x 9.8m: X in [33.0, 43.0], Z in [-25.0, -15.0])
+  { type: 'box', minX: 33.0, maxX: 43.0, minZ: -25.0, maxZ: -15.0, name: 'Jade Pagoda Core Walls' },
+  // Lan can gỗ phía Tây (West Balustrade)
+  { type: 'box', minX: 31.0, maxX: 31.8, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Balustrade West' },
+  // Lan can gỗ phía Đông (East Balustrade)
+  { type: 'box', minX: 44.2, maxX: 45.0, minZ: -26.8, maxZ: -13.2, name: 'Pagoda Balustrade East' },
+  // Lan can gỗ phía Bắc (North Balustrade)
+  { type: 'box', minX: 31.0, maxX: 45.0, minZ: -26.8, maxZ: -26.0, name: 'Pagoda Balustrade North' },
+  // Lan can gỗ mặt tiền phía Nam hai bên cửa (South Balustrade Wings)
+  { type: 'box', minX: 31.0, maxX: 35.6, minZ: -13.8, maxZ: -13.0, name: 'Pagoda Balustrade South L' },
+  { type: 'box', minX: 40.4, maxX: 45.0, minZ: -13.8, maxZ: -13.0, name: 'Pagoda Balustrade South R' },
+
   { type: 'circle', x: 33.5, z: -12.5, r: 0.75, name: 'Pagoda Front Lantern L' },
   { type: 'circle', x: 42.5, z: -12.5, r: 0.75, name: 'Pagoda Front Lantern R' },
   { type: 'circle', x: 38.0, z: -8.0, r: 0.6, name: 'Pagoda Incense Burner' },
 
-    // 4. Tháp Chuông Cổ Tự (Zone 4 Bell Tower at -26, -20)
+  // 4. Tháp Chuông Cổ Tự (Zone 4 Bell Tower at -26, -20)
   { type: 'box', minX: -30.0, maxX: -22.0, minZ: -24.0, maxZ: -16.0, maxY: 0.85, name: 'Bell Tower Podium Base' },
   // Raised stone platform with open archways (columns at 4 corners)
   { type: 'circle', x: -28.8, z: -22.8, r: 0.65, name: 'Bell Tower Col NW' },
@@ -136,7 +156,7 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'circle', x: -26.0, z: -20.0, r: 1.35, name: 'Great Bell of Wisdom' },
   { type: 'box', minX: -26.4, maxX: -25.6, minZ: -18.2, maxZ: -16.8, name: 'Bell Striking Beam' },
 
-        // 5. Hồ Sen Linh Chiểu & Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // 5. Hồ Sen Linh Chiểu & Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
   // Toàn bộ nửa Tây hồ sen & thân điện thờ Chùa Một Cột (ngăn tuyệt đối đi xuyên chùa ra sau hồ)
   { type: 'box', minX: -41.0, maxX: -23.6, minZ: 21.5, maxZ: 50.5, name: 'Lotus Pond West & Pagoda Shrine Barrier' },
   // Cột đá Chùa Một Cột uy nghiêm
@@ -188,7 +208,7 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -8.2, maxX: -7.5, minZ: 0.5, maxZ: 5.5, name: 'Dragon Railing Left' },
   { type: 'box', minX: 7.5, maxX: 8.2, minZ: 0.5, maxZ: 5.5, name: 'Dragon Railing Right' },
 
-    // 7.2. Tường Bao & Cột Tiền Điện Đại Hùng Bảo Điện
+  // 7.2. Tường Bao & Cột Tiền Điện Đại Hùng Bảo Điện
   // Tường hồi phía Tây (trái) - bao phủ kín tới góc hậu chẩm
   { type: 'box', minX: -21.5, maxX: -19.5, minZ: -33.5, maxZ: -0.5, name: 'Sanctuary West Outer Wall' },
   // Tường hồi phía Đông (phải) - bao phủ kín tới góc hậu chẩm
@@ -237,7 +257,7 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: 25.7, maxX: 34.3, minZ: 12.5, maxZ: 13.5, name: 'Library Shelf 2' },
   { type: 'box', minX: 25.7, maxX: 34.3, minZ: 17.0, maxZ: 18.0, name: 'Library Shelf 3' },
 
-    // 10. Hậu Viện Sơn Tự (Zone 10 Back Garden: X in [-28, 28], Z in [-58, -34])
+  // 10. Hậu Viện Sơn Tự (Zone 10 Back Garden: X in [-28, 28], Z in [-58, -34])
   // 10.1. Nhà Bếp Chùa (Hương Tích Trù: X in [-22.8, -10.5], Z in [-53.5, -44.5])
   // Tường Hậu (phía Bắc)
   { type: 'box', minX: -22.3, maxX: -10.7, minZ: -53.0, maxZ: -52.4, name: 'Kitchen North Wall' },
@@ -253,6 +273,24 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -21.0, maxX: -18.4, minZ: -51.1, maxZ: -49.9, name: 'Kitchen Prep Table' },
   // Gian bếp lò & ống khói đất nung
   { type: 'box', minX: -13.8, maxX: -11.6, minZ: -51.2, maxZ: -49.2, name: 'Kitchen Stove Hearth' },
+
+  // 10.1B. Nhà Ăn Thiền Môn (Trai Đường Thiền Môn: X in [-44.0, -28.0], Z in [-53.5, -44.5])
+  // Tường Hậu (phía Bắc nhà ăn)
+  { type: 'box', minX: -43.8, maxX: -28.2, minZ: -53.2, maxZ: -52.4, name: 'Dining Hall North Wall' },
+  // Tường Hồi cánh Tây (giáp tường bao)
+  { type: 'box', minX: -43.8, maxX: -43.0, minZ: -52.4, maxZ: -45.4, name: 'Dining Hall West Wall' },
+  // Tường Hồi cánh Đông (giáp hành lang nối bếp)
+  { type: 'box', minX: -28.8, maxX: -28.0, minZ: -52.4, maxZ: -50.8, name: 'Dining Hall East Wall North' },
+  { type: 'box', minX: -28.8, maxX: -28.0, minZ: -47.2, maxZ: -45.4, name: 'Dining Hall East Wall South' },
+  // Tường Mặt Tiền cánh Nam (hai bên cửa chính)
+  { type: 'box', minX: -43.8, maxX: -38.2, minZ: -45.6, maxZ: -45.0, name: 'Dining Hall Front Wall West' },
+  { type: 'box', minX: -33.8, maxX: -28.2, minZ: -45.6, maxZ: -45.0, name: 'Dining Hall Front Wall East' },
+  // Dãy bàn ăn Trai Đường 1 & 2
+  { type: 'box', minX: -41.5, maxX: -30.5, minZ: -51.4, maxZ: -50.2, name: 'Dining Table Row North' },
+  { type: 'box', minX: -41.5, maxX: -30.5, minZ: -47.8, maxZ: -46.6, name: 'Dining Table Row South' },
+  // Ban thờ Giám Trai Bồ Tát & Trai Bảng
+  { type: 'box', minX: -37.5, maxX: -34.5, minZ: -52.6, maxZ: -51.6, name: 'Giam Trai Bodhisattva Altar' },
+  { type: 'circle', x: -35.2, z: -44.2, r: 0.65, name: 'Trai Bang Fish Bell Stand' },
 
   // 10.2. Nhà Kho Củi (Tiêu Phòng: X in [-9.0, 1.0], Z in [-53.8, -46.8])
   { type: 'box', minX: -9.2, maxX: -3.8, minZ: -52.8, maxZ: -47.2, name: 'Wood Storage Shed' },
@@ -294,7 +332,7 @@ export function resolveMonkCollision(
   let curX = px;
   let curZ = pz;
 
-    // 3 relaxation iterations for corner / adjacent obstacles (Zero-Tunneling)
+  // 3 relaxation iterations for corner / adjacent obstacles (Zero-Tunneling)
   for (let iteration = 0; iteration < 3; iteration++) {
     for (let i = 0; i < MONASTERY_OBSTACLES.length; i++) {
       const obs = MONASTERY_OBSTACLES[i];
@@ -358,7 +396,7 @@ export function resolveMonkCollision(
     }
   }
 
-    // ───────────────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────────────
   // STRICT PATH CONFINEMENT: KHU VỰC HỒ SEN & CHÙA MỘT CỘT (X in [-41.0, -12.0], Z in [21.5, 50.5])
   // Khóa cứng nhân vật chỉ được phép di chuyển trên hành lang lối đi cho phép (cầu đá, sàn đệm, bậc thang rồng)
   // Tuyệt đối không cho phép đi xuyên qua điện thờ Chùa Một Cột, không lọt xuống lòng hồ sen
@@ -424,15 +462,14 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
   }
 
   // 2. Bảo Tháp Men Ngọc (Zone 3 Pagoda Tower at 38, -20)
-  if (x >= 30.5 && x <= 45.5 && z >= -27.5 && z <= -9.0) {
-    // Front stone steps leading to Tier 1 terrace (Z from -9.5 down to -14.5)
-    if (x >= 35.0 && x <= 41.0 && z >= -14.5 && z <= -9.5) {
-      const t = Math.max(0.0, Math.min(1.0, (-9.5 - z) / 5.0));
-      return 0.42 + t * (3.10 - 0.42);
-    }
-    if (z <= -14.0) {
-      return 3.10;
-    }
+  // Lối bậc thang tam cấp chính diện phía Nam (Z từ -7.5 xuống -13.5, X in [35.5, 40.5])
+  if (x >= 35.5 && x <= 40.5 && z >= -13.5 && z <= -7.5) {
+    const t = Math.max(0.0, Math.min(1.0, (-7.5 - z) / 6.0));
+    return 0.42 + t * (3.00 - 0.42);
+  }
+  // Sàn thềm thượng Tầng 1 (Y = 3.00m) - chỉ kích hoạt khi nhân vật đã lên thềm (currentY >= 1.8)
+  if (x >= 31.5 && x <= 44.5 && z >= -26.5 && z <= -13.5 && currentY >= 1.8) {
+    return 3.00;
   }
 
   // 3. Tháp Chuông Cổ Tự (Zone 4 Bell Tower at -26, -20)
@@ -445,7 +482,7 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.89;
   }
 
-        // 4. Hồ Sen Linh Chiểu & Cầu Đá Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
+  // 4. Hồ Sen Linh Chiểu & Cầu Đá Chùa Một Cột (Zone 5 at Center X: -26, Z: 36)
   // 4.1. LỐI CẦU ĐÁ PHÍA ĐÔNG & BẬC THANG RỒNG CHÙA MỘT CỘT (Trục Z = 36.0, X từ -10.6 vào -23.6)
   if (Math.abs(z - 36.0) <= 2.2 && x >= -23.8 && x <= -10.6) {
     // A. Bậc tam cấp bước lên cầu từ sân chùa (X từ -10.6 giảm dần vào -12.8)
@@ -468,8 +505,13 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.65;
   }
 
-  // 4.3. Hiên Nước & Suối Ngọc Phía Tây (Tatami Deck ven bờ Tây)
-  if (x >= -38.5 && x <= -28.0 && z >= 26.5 && z <= 45.5) {
+  // 4.3. Hiên Nước & Bến Nước Suối Ngọc Phía Tây (Tatami & Teak Pier Deck)
+  if (x >= -38.5 && x <= -26.0 && z >= 24.0 && z <= 48.0) {
+    // Bậc tam cấp mép nước phía Đông bến (X từ -28.0 vào -26.0, Z từ 33.0 đến 39.0)
+    if (x >= -28.0 && x <= -26.0 && z >= 33.0 && z <= 39.0) {
+      const stepT = Math.max(0.0, Math.min(1.0, (-26.0 - x) / 2.0));
+      return 0.58 + stepT * (0.89 - 0.58);
+    }
     return 0.89;
   }
 
@@ -483,10 +525,18 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.58;
   }
 
-    // 6.5. Hậu Viện Sơn Tự (Zone 10 Back Courtyard at Z <= -34.0)
+  // 6.5. Hậu Viện Sơn Tự (Zone 10 Back Courtyard at Z <= -34.0)
   if (z <= -34.0) {
-    // Thềm móng đá & Sàn nội thất Nhà Bếp Chùa (X: -22.5 đến -10.5, Z: -54.0 đến -44.0)
+    // Thềm móng đá & Sàn Nhà Bếp Chùa (X: -22.5 đến -10.5, Z: -54.0 đến -44.0)
     if (x >= -22.5 && x <= -10.5 && z >= -54.0 && z <= -44.0) {
+      return 0.58;
+    }
+    // Thềm móng đá & Sàn Nhà Ăn Thiền Môn (Trai Đường: X: -44.0 đến -28.0, Z: -54.0 đến -44.0)
+    if (x >= -44.0 && x <= -28.0 && z >= -54.0 && z <= -44.0) {
+      return 0.58;
+    }
+    // Hành lang cầu nối có mái che (Breezeway: X: -28.0 đến -22.5, Z: -51.0 đến -47.0)
+    if (x >= -28.0 && x <= -22.5 && z >= -51.0 && z <= -47.0) {
       return 0.58;
     }
     // Sàn gỗ Nhà Kho Củi (X: -9.0 đến 1.0, Z: -54.0 đến -46.0)
@@ -497,8 +547,16 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     if (Math.hypot(x - 12.0, z - (-46.0)) <= 2.8) {
       return 0.46;
     }
-    // Đại sân gạch nung Bát Tràng và lối đá tự nhiên Hậu Viện
-    return 0.42;
+    // Trục đường chính lát phiến đá xanh dẫn từ Chánh Điện
+    if (Math.abs(x) <= 2.2 && z >= -52.0 && z <= -34.0) {
+      return 0.38;
+    }
+    // Lối đá xanh trục ngang Hậu Viện dẫn sang Nhà Ăn, Bếp và Giếng Cổ
+    if (z >= -48.5 && z <= -45.5 && x >= -48.0 && x <= 48.0) {
+      return 0.38;
+    }
+    // Đại sân gạch nung Bát Tràng hậu viện (chuẩn xác độ cao mặt gạch Y = 0.35m)
+    return 0.35;
   }
 
   // 7. Sân gạch nung Bát Tràng & Vườn Chùa (Default ground)
@@ -547,7 +605,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     dimensions: '28 × 22 m',
     icon: '🍉',
     desc: 'Hiên gỗ kiểu Nhật lợp chiếu tatami xanh ngọc ven dòng suối trong vắt soi bóng đàn cá Koi, đĩa dưa hấu thanh mát, quạt gió mùa hè và vòm lá xanh komorebi rợp bóng.',
-            pos: { x: -19.5, y: 0.93, z: 36.0 },
+    pos: { x: -19.5, y: 0.93, z: 36.0 },
     actionKey: 'POND',
     camera: { yaw: -Math.PI / 2, pitch: -0.12, dist: 7.5, mode: 'THIRD_PERSON' },
     facingAngle: -Math.PI / 2,
@@ -660,7 +718,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     tourSound: 'woodfish',
     navWaypoints: [{ x: 17.5, z: 14 }],
   },
-    {
+  {
     id: 'back_garden',
     name: '11. Hậu Viện Sơn Tự',
     subtitle: 'Hậu viện thanh tịnh • Hương Tích Trù, Kho củi, Giếng ngọc & Rừng trúc',

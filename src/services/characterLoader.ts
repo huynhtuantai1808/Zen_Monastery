@@ -403,7 +403,7 @@ export async function loadChibiCharacter(character: CharacterAppearance): Promis
     gradientMap: toonGrad,
   });
   const headMesh = new THREE.Mesh(headGeo, matFace);
-  headMesh.rotation.y = -Math.PI / 2; // Hướng mặt về phía trước z+
+  headMesh.rotation.y = Math.PI; // Hướng khuôn mặt về phía trước z+ (Chuẩn 180 độ cho SphereGeometry UV map)
   headMesh.castShadow = true;
   head.add(headMesh);
 

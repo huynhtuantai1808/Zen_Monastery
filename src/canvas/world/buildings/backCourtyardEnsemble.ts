@@ -46,13 +46,14 @@ export function createBackCourtyardEnsemble(
 
   // =========================================================================
   // 1. ĐẠI SÂN GẠCH NUNG BÁT TRÀNG & LỐI ĐI LÁT ĐÁ XANH TỰ NHIÊN HẬU VIỆN
-  // Bao phủ diện tích 56m x 24m (X in [-28, 28], Z_local in [-7, 17] -> world Z in [-57, -33])
+  // Mở rộng toàn bộ chiều rộng khuôn viên chùa (103m: X in [-51.5, 51.5], Z_local in [-9, 17] -> world Z in [-59, -33])
+  // Đụng sát hai mí tường rào đá kiên cố phía Tây (X = -51.5) và phía Đông (X = +51.5)
   // =========================================================================
   const courtyardFloor = new THREE.Mesh(
-    new THREE.BoxGeometry(56.0, 0.35, 24.0),
+    new THREE.BoxGeometry(103.0, 0.35, 26.0),
     matTileBrick
   );
-  courtyardFloor.position.set(0, 0.175, 5.0);
+  courtyardFloor.position.set(0, 0.175, 4.0);
   courtyardFloor.receiveShadow = true;
   backGardenGroup.add(courtyardFloor);
 
@@ -65,23 +66,229 @@ export function createBackCourtyardEnsemble(
   mainStonePath.receiveShadow = true;
   backGardenGroup.add(mainStonePath);
 
-  // Lối đá rẽ sang cánh Tây dẫn vào Bếp Chùa & Kho Củi (X: 0 đến -16, Z_local: 3.0)
+  // Lối đá rẽ sang cánh Tây dẫn vào Bếp Chùa, Trai Đường & Kho Củi (X: 0 đến -48, Z_local: 3.0)
   const westStoneBranch = new THREE.Mesh(
-    new THREE.BoxGeometry(16.0, 0.38, 3.2),
+    new THREE.BoxGeometry(48.0, 0.38, 3.2),
     matStoneGrey
   );
-  westStoneBranch.position.set(-8.0, 0.19, 3.0);
+  westStoneBranch.position.set(-24.0, 0.19, 3.0);
   westStoneBranch.receiveShadow = true;
   backGardenGroup.add(westStoneBranch);
 
-  // Lối đá rẽ sang cánh Đông dẫn vào Giếng Ngọc Cổ (X: 0 đến 12, Z_local: 3.5)
+  // Lối đá rẽ sang cánh Đông dẫn vào Giếng Ngọc Cổ & Cánh Đông Rào Chùa (X: 0 đến 48, Z_local: 3.5)
   const eastStoneBranch = new THREE.Mesh(
-    new THREE.BoxGeometry(12.0, 0.38, 3.0),
+    new THREE.BoxGeometry(48.0, 0.38, 3.0),
     matStoneGrey
   );
-  eastStoneBranch.position.set(6.0, 0.19, 3.5);
+  eastStoneBranch.position.set(24.0, 0.19, 3.5);
   eastStoneBranch.receiveShadow = true;
   backGardenGroup.add(eastStoneBranch);
+
+  // Chậu cây cảnh bonsai & đèn lồng đá phong thủy dọc theo 2 mí tường rào Tây & Đông
+  [-49.5, 49.5].forEach((wallSideX) => {
+    for (let pz = -6.0; pz <= 14.0; pz += 5.0) {
+      const planter = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, 1.2), matStoneGrey);
+      planter.position.set(wallSideX, 0.22, pz);
+      backGardenGroup.add(planter);
+
+      const bonsai = new THREE.Mesh(new THREE.SphereGeometry(0.65, 8, 8), matStoneGrey);
+      bonsai.position.set(wallSideX, 0.85, pz);
+      backGardenGroup.add(bonsai);
+    }
+  });
+
+  // =========================================================================
+  // 1B. NHÀ ĂN THIỀN MÔN (TRAI ĐƯỜNG THIỀN MÔN) - CÁNH TÂY HẬU VIỆN (X_local: -36.0, Z_local: 1.0)
+  // Kích thước 16.0m x 9.0m, móng đá tôn cao 0.58m, 10 cột gỗ lim, mái ngói cong truyền thống
+  // Nội thất: 2 dãy bàn ăn thiền môn & ghế dài, bát đũa trà thiền, Ban thờ Giám Trai Bồ Tát, Trai Bảng
+  // =========================================================================
+  const diningHallGroup = new THREE.Group();
+  diningHallGroup.position.set(-36.0, 0, 1.0);
+
+  // Móng đá xanh chịu lực
+  const diningBase = new THREE.Mesh(
+    new THREE.BoxGeometry(16.0, 0.40, 9.0),
+    matStoneGrey
+  );
+  diningBase.position.set(0, 0.20, 0);
+  diningBase.receiveShadow = true;
+  diningHallGroup.add(diningBase);
+
+  // Sàn gỗ lim bóng ấm cúng (Mặt sàn hoàn thiện Y = 0.58m)
+  const diningFloor = new THREE.Mesh(
+    new THREE.BoxGeometry(15.4, 0.18, 8.4),
+    matWoodLim
+  );
+  diningFloor.position.set(0, 0.49, 0);
+  diningFloor.receiveShadow = true;
+  diningHallGroup.add(diningFloor);
+
+  // Bậc tam cấp trước cửa chính Trai Đường (Z_local = 4.5)
+  for (let s = 0; s < 3; s++) {
+    const step = new THREE.Mesh(
+      new THREE.BoxGeometry(3.6, 0.14, 0.55),
+      matStoneGrey
+    );
+    step.position.set(0, 0.07 + s * 0.14, 4.65 + (2 - s) * 0.5);
+    step.receiveShadow = true;
+    diningHallGroup.add(step);
+  }
+
+  // 10 Cột gỗ lim nâng đỡ hệ mái (2 hàng 5 cột)
+  const colConfigs: { x: number; z: number }[] = [];
+  for (let cx = -7.0; cx <= 7.0; cx += 3.5) {
+    for (const cz of [-3.8, 3.8]) {
+      colConfigs.push({ x: cx, z: cz });
+    }
+  }
+  colConfigs.forEach((cc) => {
+    // Chân tảng đá hoa sen
+    const colBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.42, 0.22, 10), matLotusPlinth);
+    colBase.position.set(cc.x, 0.69, cc.z);
+    diningHallGroup.add(colBase);
+
+    // Thân cột gỗ lim
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.27, 4.2, 8), matWoodLim);
+    col.position.set(cc.x, 2.8, cc.z);
+    col.castShadow = true;
+    diningHallGroup.add(col);
+  });
+
+  // Tường hồi phía Tây (giáp tường bao chùa) & Tường hậu phía Bắc
+  const diningWallWest = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.6, 8.0), matStoneGrey);
+  diningWallWest.position.set(-7.5, 2.4, 0);
+  diningHallGroup.add(diningWallWest);
+
+  const diningWallNorth = new THREE.Mesh(new THREE.BoxGeometry(15.0, 3.6, 0.35), matStoneGrey);
+  diningWallNorth.position.set(0, 2.4, -4.0);
+  diningHallGroup.add(diningWallNorth);
+
+  // Tường mặt tiền phía Nam hai bên cửa chính (mở cửa rộng 3.2m ở giữa)
+  const diningWallSouthL = new THREE.Mesh(new THREE.BoxGeometry(5.8, 3.6, 0.35), matStoneGrey);
+  diningWallSouthL.position.set(-4.6, 2.4, 4.0);
+  diningHallGroup.add(diningWallSouthL);
+
+  const diningWallSouthR = new THREE.Mesh(new THREE.BoxGeometry(5.8, 3.6, 0.35), matStoneGrey);
+  diningWallSouthR.position.set(4.6, 2.4, 4.0);
+  diningHallGroup.add(diningWallSouthR);
+
+  // Mái ngói cong truyền thống Trai Đường
+  const diningRoof = createStylizedCurvedRoof(17.8, 10.8, matRoofTile);
+  diningRoof.position.set(0, 5.0, 0);
+  diningHallGroup.add(diningRoof);
+
+  // Bàn thờ Giám Trai Bồ Tát (Vị Bồ Tát bảo hộ Trai Đường thiền môn) ở giữa tường Bắc
+  const altarGroup = new THREE.Group();
+  altarGroup.position.set(0, 0.58, -3.2);
+
+  const altarTable = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.95, 1.2), matWoodLim);
+  altarTable.position.set(0, 0.475, 0);
+  altarGroup.add(altarTable);
+
+  const censer = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.28, 10), matBronze);
+  censer.position.set(0, 1.09, 0);
+  altarGroup.add(censer);
+
+  // Lọ hoa sen hai bên
+  [-0.9, 0.9].forEach((vx) => {
+    const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.08, 0.45, 8), matBronze);
+    vase.position.set(vx, 1.18, 0);
+    altarGroup.add(vase);
+  });
+  diningHallGroup.add(altarGroup);
+
+  // Trai Bảng (Mõ cá gỗ báo hiệu giờ thọ trai) treo cạnh lối vào
+  const chimeStand = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 8), matWoodLim);
+  chimeStand.position.set(2.4, 1.68, 4.2);
+  diningHallGroup.add(chimeStand);
+
+  const traiBang = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.35, 0.14), matWoodLim);
+  traiBang.position.set(2.4, 2.2, 4.2);
+  diningHallGroup.add(traiBang);
+
+  const mallet = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 6), matWoodLim);
+  mallet.rotation.z = Math.PI / 4;
+  mallet.position.set(2.65, 2.05, 4.2);
+  diningHallGroup.add(mallet);
+
+  // 2 Dãy bàn ăn thiền môn & ghế băng dài
+  const matTableWood = matWoodLim;
+  for (const tableZ of [-1.5, 1.5]) {
+    // Bàn ăn dài 11m
+    const tableTop = new THREE.Mesh(new THREE.BoxGeometry(11.0, 0.08, 0.8), matTableWood);
+    tableTop.position.set(0, 1.16, tableZ);
+    tableTop.receiveShadow = true;
+    diningHallGroup.add(tableTop);
+
+    // Chân bàn ăn
+    for (let legX = -4.5; legX <= 4.5; legX += 3.0) {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.58, 0.72), matWoodLim);
+      leg.position.set(legX, 0.87, tableZ);
+      diningHallGroup.add(leg);
+    }
+
+    // Ghế băng dài 2 bên bàn
+    for (const benchZ of [tableZ - 0.75, tableZ + 0.75]) {
+      const benchTop = new THREE.Mesh(new THREE.BoxGeometry(11.0, 0.06, 0.35), matWoodLim);
+      benchTop.position.set(0, 0.86, benchZ);
+      diningHallGroup.add(benchTop);
+
+      for (let legX = -4.5; legX <= 4.5; legX += 3.0) {
+        const bLeg = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.28, 0.30), matWoodLim);
+        bLeg.position.set(legX, 0.72, benchZ);
+        diningHallGroup.add(bLeg);
+      }
+    }
+
+    // Bát ăn chay & chén trà đặt ngay ngắn trên bàn (10 bộ mỗi dãy bàn)
+    for (let setX = -4.5; setX <= 4.5; setX += 1.0) {
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.06, 0.08, 8), matStoneGrey);
+      bowl.position.set(setX, 1.24, tableZ);
+      diningHallGroup.add(bowl);
+
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.03, 0.06, 8), matBronze);
+      cup.position.set(setX + 0.22, 1.23, tableZ - 0.15);
+      diningHallGroup.add(cup);
+    }
+  }
+
+  // Đèn lồng ấm áp thắp sáng Trai Đường ban đêm
+  const diningLanternLight = new THREE.PointLight(0xfef08a, 0.65, 12.0);
+  diningLanternLight.position.set(0, 3.8, 0);
+  nightLightsRef.current.push(diningLanternLight);
+  diningHallGroup.add(diningLanternLight);
+
+  backGardenGroup.add(diningHallGroup);
+
+  // =========================================================================
+  // 1C. HÀNH LANG CẦU NỐI CÓ MÁI CHE (BREEZEWAY) NỐI TRAI ĐƯỜNG VỚI NHÀ BẾP
+  // Nhịp cầu 5.5m: X_local in [-28.0, -22.5], Z_local in [-0.5, 2.5]
+  // =========================================================================
+  const breezewayGroup = new THREE.Group();
+  breezewayGroup.position.set(-25.25, 0, 1.0);
+
+  const breezeBase = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.40, 3.2), matStoneGrey);
+  breezeBase.position.set(0, 0.20, 0);
+  breezewayGroup.add(breezeBase);
+
+  const breezeFloor = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.18, 2.8), matWoodLim);
+  breezeFloor.position.set(0, 0.49, 0);
+  breezewayGroup.add(breezeFloor);
+
+  // 4 Cột đỡ mái hành lang
+  [-2.2, 2.2].forEach((bx) => {
+    [-1.2, 1.2].forEach((bz) => {
+      const bCol = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.20, 3.8, 8), matWoodLim);
+      bCol.position.set(bx, 2.4, bz);
+      breezewayGroup.add(bCol);
+    });
+  });
+
+  const breezeRoof = createStylizedCurvedRoof(6.5, 4.2, matRoofTile);
+  breezeRoof.position.set(0, 4.4, 0);
+  breezewayGroup.add(breezeRoof);
+
+  backGardenGroup.add(breezewayGroup);
 
   // =========================================================================
   // 2. NHÀ BẾP CHÙA (HƯƠNG TÍCH TRÙ) - CÁNH TÂY BẮC (X_local: -16.5, Z_local: 1.0)
