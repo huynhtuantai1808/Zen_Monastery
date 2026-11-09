@@ -221,6 +221,64 @@ export function speakAbbotVoice(
 }
 
 /**
+ * Phát lời tụng kệ & cầu nguyện Quán Thế Âm Bồ Tát trang nghiêm thanh tịnh
+ */
+export function speakGuanyinPrayerVoice(
+  _verseText?: string,
+  options?: VoiceOptions
+): () => void {
+  cancelLegacySpeechSynthesis();
+  onBeforeSpeakAbbot?.();
+
+  currentOptions = null;
+  if (monkAudio) {
+    try {
+      monkAudio.pause();
+      monkAudio.currentTime = 0;
+    } catch {
+      // Ignored
+    }
+  }
+
+  const audio = getOrCreateMonkAudio();
+  if (!audio) {
+    options?.onEnd?.();
+    return () => {};
+  }
+
+  currentOptions = options || null;
+  const targetUrl = INCENSE_BOW_CHANT_URL;
+  if (!audio.src.endsWith(targetUrl)) {
+    audio.src = targetUrl;
+    audio.load();
+  }
+
+  soundEngine.playSingingBowl();
+  soundEngine.duckBGMForBell(60);
+
+  audio.currentTime = 0;
+  audio.volume = 1.0;
+
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isPlayingInternal = true;
+        options?.onStart?.();
+      })
+      .catch((err) => {
+        console.warn('Trình duyệt cần tương tác để phát lời cầu nguyện:', err);
+        isPlayingInternal = false;
+        options?.onEnd?.();
+      });
+  }
+
+  return () => {
+    stopAbbotVoice();
+  };
+}
+
+/**
  * Tạm dừng hoặc dừng hẳn giọng đọc
  */
 export function stopAbbotVoice(): void {

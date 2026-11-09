@@ -4,7 +4,7 @@ import { soundEngine } from '../services/audioEngine';
 import { useGameStore } from '../store/gameStore';
 import type { CharacterAppearance } from '../types/game';
 import { loadChibiCharacter } from '../services/characterLoader';
-import { preloadMonkVoiceAudio, stopAbbotVoice } from '../services/monkVoiceService';
+import { preloadMonkVoiceAudio, stopAbbotVoice, speakGuanyinPrayerVoice } from '../services/monkVoiceService';
 import { preloadTueTamVoice, speakTueTamVoice, stopTueTamVoice } from '../services/tueTamVoiceService';
 import { useZenBridge, zenWorldBridge } from './bridge/zenWorldBridge';
 import { Zen3DOverlays } from './Zen3DOverlays';
@@ -155,6 +155,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const cameraYawRef = useRef<number>(0); // 0 = Facing forward into monastery grounds towards north
   const cameraPitchRef = useRef<number>(-0.12); // Slightly looking up/level, showing surroundings & pagoda
   const cameraDistRef = useRef<number>(6.5); // Natural distance behind monk
+  const targetCameraYawRef = useRef<number>(0);
+  const targetCameraPitchRef = useRef<number>(-0.12);
+  const pointerDownButtonRef = useRef<number>(-1);
+  const smoothedCamFloorYRef = useRef<number>(0.42);
   const cameraLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 1.6, 58));
   const isDraggingOrbitRef = useRef<boolean>(false);
   const dragStartPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -385,6 +389,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const [inGuanyinShrineRange, setInGuanyinShrineRange] = useState(false);
   const [activePilgrimageRitual, setActivePilgrimageRitual] = useState<PilgrimageRitualType>('NONE');
   const [activeBlessingText, setActiveBlessingText] = useState<string | null>(null);
+  const [isPrayerVoiceActive, setIsPrayerVoiceActive] = useState<boolean>(false);
+  const prayerVoiceCancelRef = useRef<(() => void) | null>(null);
   const pilgrimageTimerRef = useRef<number>(0);
   const destinationMarkerRef = useRef<THREE.Group | null>(null);
   const nightLightsRef = useRef<THREE.PointLight[]>([]);
@@ -732,11 +738,44 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     soundEngine.playWindChime();
 
     const verse = GUANYIN_BLESSING_VERSES[Math.floor(Math.random() * GUANYIN_BLESSING_VERSES.length)];
-    setActiveBlessingText(`${verse.verse}\n\n${verse.blessing}`);
+    const fullBlessing = `${verse.verse}\n\n${verse.blessing}`;
+    setActiveBlessingText(fullBlessing);
     propsRef.current.onAddMerit(35, 50, 40, '✨ Khấn Nguyện & Tiếp Nhận Pháp Thoại Quán Âm');
+
+    // Tự động cất tiếng tụng kinh cầu nguyện thanh tịnh
+    if (prayerVoiceCancelRef.current) {
+      prayerVoiceCancelRef.current();
+    }
+    const cancel = speakGuanyinPrayerVoice(fullBlessing, {
+      onStart: () => setIsPrayerVoiceActive(true),
+      onEnd: () => setIsPrayerVoiceActive(false),
+    });
+    prayerVoiceCancelRef.current = cancel;
   }, [activePilgrimageRitual]);
 
+  const handleTogglePrayerVoice = useCallback(() => {
+    if (isPrayerVoiceActive) {
+      stopAbbotVoice();
+      setIsPrayerVoiceActive(false);
+    } else if (activeBlessingText) {
+      if (prayerVoiceCancelRef.current) {
+        prayerVoiceCancelRef.current();
+      }
+      const cancel = speakGuanyinPrayerVoice(activeBlessingText, {
+        onStart: () => setIsPrayerVoiceActive(true),
+        onEnd: () => setIsPrayerVoiceActive(false),
+      });
+      prayerVoiceCancelRef.current = cancel;
+    }
+  }, [isPrayerVoiceActive, activeBlessingText]);
+
   const handleCloseBlessing = useCallback(() => {
+    if (prayerVoiceCancelRef.current) {
+      prayerVoiceCancelRef.current();
+      prayerVoiceCancelRef.current = null;
+    }
+    stopAbbotVoice();
+    setIsPrayerVoiceActive(false);
     setActiveBlessingText(null);
     setActivePilgrimageRitual('NONE');
     monkPoseRef.current = 'STAND';
@@ -1089,6 +1128,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       cameraDistRef.current = 24.0;
       cameraYawRef.current = Math.PI * 0.78;
     }
+    targetCameraYawRef.current = cameraYawRef.current;
+    targetCameraPitchRef.current = cameraPitchRef.current;
   };
 
   const handleSetMonkPose = (pose: 'STAND' | 'LIE_DOWN' | 'SIT_EDGE' | 'INCENSE_BOW') => {
@@ -1177,6 +1218,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       cameraDistRef.current = 24.0;
       cameraYawRef.current = Math.PI * 0.78;
     }
+    targetCameraYawRef.current = cameraYawRef.current;
+    targetCameraPitchRef.current = cameraPitchRef.current;
     if (destinationMarkerRef.current) {
       destinationMarkerRef.current.position.set(0, 0.35, 66);
       destinationMarkerRef.current.visible = true;
@@ -2083,16 +2126,38 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     };
 
     // Pointer Event Listeners (Zero-Allocation in-place coordinate updates)
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
     const handlePointerDown = (e: MouseEvent) => {
-      isDraggingOrbitRef.current = true;
+      pointerDownButtonRef.current = e.button;
       dragStartPosRef.current.x = e.clientX;
       dragStartPosRef.current.y = e.clientY;
       lastPointerDownPosRef.current.x = e.clientX;
       lastPointerDownPosRef.current.y = e.clientY;
+
+      // Chuột phải (button 2) hoặc chuột giữa (button 1): chuyên trách xoay camera ngay lập tức
+      if (e.button === 2 || e.button === 1) {
+        isDraggingOrbitRef.current = true;
+      } else {
+        // Chuột trái (button 0): Không xoay ngay lập tức để tránh rung giật màn hình khi click di chuyển.
+        isDraggingOrbitRef.current = false;
+      }
     };
 
     const handlePointerMove = (e: MouseEvent) => {
       updateCursorGroundPos(e.clientX, e.clientY);
+
+      // Nếu đang giữ chuột trái và kéo vượt ngưỡng deadzone 8px -> chuyển sang xoay camera
+      if (pointerDownButtonRef.current === 0 && !isDraggingOrbitRef.current) {
+        const distMoved = Math.hypot(e.clientX - lastPointerDownPosRef.current.x, e.clientY - lastPointerDownPosRef.current.y);
+        if (distMoved > 8) {
+          isDraggingOrbitRef.current = true;
+          dragStartPosRef.current.x = e.clientX;
+          dragStartPosRef.current.y = e.clientY;
+        }
+      }
 
       if (isDraggingOrbitRef.current) {
         const dx = e.clientX - dragStartPosRef.current.x;
@@ -2100,17 +2165,20 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         dragStartPosRef.current.x = e.clientX;
         dragStartPosRef.current.y = e.clientY;
 
-        cameraYawRef.current -= dx * 0.007;
-        cameraPitchRef.current = Math.max(-0.92, Math.min(0.95, cameraPitchRef.current + dy * 0.005));
+        targetCameraYawRef.current -= dx * 0.0055;
+        targetCameraPitchRef.current = Math.max(-0.90, Math.min(0.92, targetCameraPitchRef.current + dy * 0.0042));
       }
     };
 
     const handlePointerUp = (e: MouseEvent) => {
+      const wasDraggingOrbit = isDraggingOrbitRef.current;
+      const downButton = pointerDownButtonRef.current;
       isDraggingOrbitRef.current = false;
+      pointerDownButtonRef.current = -1;
 
-      // Click on ground to move (Point & Click with Smart Obstacle Avoidance & Elevation Resolution)
+      // Click on ground to move: CHỈ kích hoạt khi người chơi click CHUỘT TRÁI (button 0) và KHÔNG kéo xoay camera
       const distMoved = Math.hypot(e.clientX - lastPointerDownPosRef.current.x, e.clientY - lastPointerDownPosRef.current.y);
-      if (distMoved < 12 && hasGroundTargetRef.current) {
+      if (downButton === 0 && !wasDraggingOrbit && distMoved <= 8 && hasGroundTargetRef.current) {
         const rawTargetX = cursorGroundPosRef.current.x;
         const rawTargetZ = cursorGroundPosRef.current.z;
         const currentPy = playerPosRef.current.y || 0.42;
@@ -2153,8 +2221,11 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     const handleMouseLeave = () => {
       hasGroundTargetRef.current = false;
+      isDraggingOrbitRef.current = false;
+      pointerDownButtonRef.current = -1;
     };
 
+    renderer.domElement.addEventListener('contextmenu', handleContextMenu);
     renderer.domElement.addEventListener('mousedown', handlePointerDown);
     renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
     window.addEventListener('mousemove', handlePointerMove);
@@ -2175,8 +2246,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       dragStartPosRef.current.x = e.touches[0].clientX;
       dragStartPosRef.current.y = e.touches[0].clientY;
 
-      cameraYawRef.current -= dx * 0.008;
-      cameraPitchRef.current = Math.max(-0.92, Math.min(0.95, cameraPitchRef.current + dy * 0.006));
+      targetCameraYawRef.current -= dx * 0.007;
+      targetCameraPitchRef.current = Math.max(-0.90, Math.min(0.92, targetCameraPitchRef.current + dy * 0.005));
     };
     const handleTouchEnd = () => {
       isDraggingOrbitRef.current = false;
@@ -2933,8 +3004,15 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         // ==========================================
         // PANORAMIC 3RD-PERSON CAMERA INTERPOLATION (CAN LOOK UP & AROUND)
         // ==========================================
+        // Smooth camera yaw & pitch interpolation with circular angle wrapping
+        let diffYaw = targetCameraYawRef.current - cameraYawRef.current;
+        while (diffYaw < -Math.PI) diffYaw += Math.PI * 2;
+        while (diffYaw > Math.PI) diffYaw -= Math.PI * 2;
+        cameraYawRef.current += diffYaw * 0.22;
+        cameraPitchRef.current += (targetCameraPitchRef.current - cameraPitchRef.current) * 0.22;
+
         const dist = cameraDistRef.current;
-        const pitch = cameraPitchRef.current; // ranges from -0.92 (looking up at sky/pagoda) to 0.95 (looking down)
+        const pitch = cameraPitchRef.current; // ranges from -0.90 (looking up at sky/pagoda) to 0.92 (looking down)
         const yaw = cameraYawRef.current;
 
         if (cameraModeRef.current === 'ON_RAINY_DAYS') {
@@ -2971,23 +3049,24 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           const targetCamX = pivotX - forwardDirX * dist;
           const targetCamZ = pivotZ - forwardDirZ * dist;
           const camFloorY = getTerrainFloorElevation(targetCamX, targetCamZ, currentP.y);
-          // Clamp camera Y above ground so it never clips through floor when looking up
-          const targetCamY = Math.max(camFloorY + 0.35, pivotY - forwardDirY * dist);
+          // Smooth floor elevation to eliminate vertical jerking when camera crosses stair steps or podium edge
+          smoothedCamFloorYRef.current += (camFloorY - smoothedCamFloorYRef.current) * 0.15;
+          const targetCamY = Math.max(smoothedCamFloorYRef.current + 0.35, pivotY - forwardDirY * dist);
 
-          camera.position.x += (targetCamX - camera.position.x) * 0.14;
-          camera.position.y += (targetCamY - camera.position.y) * 0.14;
-          camera.position.z += (targetCamZ - camera.position.z) * 0.14;
+          // Synchronized interpolation rates (0.16) for both position and look-at to eliminate skew/wobble
+          camera.position.x += (targetCamX - camera.position.x) * 0.16;
+          camera.position.y += (targetCamY - camera.position.y) * 0.16;
+          camera.position.z += (targetCamZ - camera.position.z) * 0.16;
 
           // Look-at target placed well ahead along forward look direction
-          // When looking up (pitch < 0), target elevates up to 25m into the sky!
-          const lookAheadDist = 24.0;
+          const lookAheadDist = 20.0;
           const targetLookX = pivotX + forwardDirX * lookAheadDist;
           const targetLookY = Math.max(0.2, pivotY + forwardDirY * lookAheadDist);
           const targetLookZ = pivotZ + forwardDirZ * lookAheadDist;
 
-          cameraLookAtRef.current.x += (targetLookX - cameraLookAtRef.current.x) * 0.18;
-          cameraLookAtRef.current.y += (targetLookY - cameraLookAtRef.current.y) * 0.18;
-          cameraLookAtRef.current.z += (targetLookZ - cameraLookAtRef.current.z) * 0.18;
+          cameraLookAtRef.current.x += (targetLookX - cameraLookAtRef.current.x) * 0.16;
+          cameraLookAtRef.current.y += (targetLookY - cameraLookAtRef.current.y) * 0.16;
+          cameraLookAtRef.current.z += (targetLookZ - cameraLookAtRef.current.z) * 0.16;
 
           camera.lookAt(cameraLookAtRef.current);
         } else {
@@ -2999,11 +3078,12 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
           const targetCamX = currentP.x + camOffsetX;
           const targetCamZ = currentP.z + camOffsetZ;
           const camFloorY = getTerrainFloorElevation(targetCamX, targetCamZ, currentP.y);
-          const targetCamY = Math.max(camFloorY + 0.45, currentP.y + camOffsetY);
+          smoothedCamFloorYRef.current += (camFloorY - smoothedCamFloorYRef.current) * 0.15;
+          const targetCamY = Math.max(smoothedCamFloorYRef.current + 0.45, currentP.y + camOffsetY);
 
-          camera.position.x += (targetCamX - camera.position.x) * 0.085;
-          camera.position.y += (targetCamY - camera.position.y) * 0.085;
-          camera.position.z += (targetCamZ - camera.position.z) * 0.085;
+          camera.position.x += (targetCamX - camera.position.x) * 0.10;
+          camera.position.y += (targetCamY - camera.position.y) * 0.10;
+          camera.position.z += (targetCamZ - camera.position.z) * 0.10;
 
           const lookTargetX = currentP.x;
           const lookTargetY = currentP.y + 1.2;
@@ -3786,6 +3866,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       guanyinShrineData.dispose();
       shrineNpcData.dispose();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      renderer.domElement.removeEventListener('contextmenu', handleContextMenu);
       renderer.domElement.removeEventListener('mousedown', handlePointerDown);
       renderer.domElement.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('mousemove', handlePointerMove);
@@ -3854,6 +3935,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         onMeditationPray={handlePrayGuanyin}
         activeBlessing={activeBlessingText}
         onCloseBlessing={handleCloseBlessing}
+        isPrayerVoiceActive={isPrayerVoiceActive}
+        onTogglePrayerVoice={handleTogglePrayerVoice}
       />
     </div>
   );

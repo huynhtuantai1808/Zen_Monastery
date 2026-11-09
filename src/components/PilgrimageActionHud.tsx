@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, Volume2, VolumeX } from 'lucide-react';
 
 export type PilgrimageRitualType = 'NONE' | 'LIGHT_INCENSE' | 'PROSTRATE_BOW' | 'MEDITATION_PRAY';
 
@@ -11,6 +11,8 @@ export interface PilgrimageHudProps {
   onMeditationPray: () => void;
   activeBlessing: string | null;
   onCloseBlessing: () => void;
+  isPrayerVoiceActive?: boolean;
+  onTogglePrayerVoice?: () => void;
 }
 
 export interface PilgrimageButtonConfig {
@@ -87,6 +89,8 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
   onMeditationPray,
   activeBlessing,
   onCloseBlessing,
+  isPrayerVoiceActive = false,
+  onTogglePrayerVoice,
 }) => {
   if (!inShrineRange) {
     return null;
@@ -175,8 +179,39 @@ export const PilgrimageActionHud: React.FC<PilgrimageHudProps> = ({
               Quán Thế Âm Bồ Tát
             </p>
 
-            <div className="p-4 mb-5 rounded-xl bg-black/40 border border-amber-500/30 text-amber-100 font-serif italic text-base leading-relaxed shadow-sm">
+            <div className="p-4 mb-3.5 rounded-xl bg-black/40 border border-amber-500/30 text-amber-100 font-serif italic text-base leading-relaxed shadow-sm">
               "{activeBlessing}"
+            </div>
+
+            {/* Audio Voice Recitation Status & Toggle */}
+            <div className="mb-4 flex items-center justify-center">
+              <button
+                type="button"
+                onClick={onTogglePrayerVoice}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  isPrayerVoiceActive
+                    ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-md shadow-amber-500/20'
+                    : 'bg-stone-800/80 hover:bg-stone-800 border-amber-500/30 text-amber-300/80'
+                }`}
+                title={isPrayerVoiceActive ? 'Bấm để tắt giọng đọc' : 'Bấm để nghe giọng tụng kệ'}
+              >
+                {isPrayerVoiceActive ? (
+                  <>
+                    <Volume2 className="w-4 h-4 text-amber-300 animate-pulse" />
+                    <span>Đang cất giọng tụng kinh chúc phúc...</span>
+                    <span className="flex gap-0.5 items-end h-3 ml-1">
+                      <span className="w-0.5 h-2 bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-0.5 h-3 bg-amber-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-0.5 h-2 bg-amber-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <VolumeX className="w-4 h-4 text-amber-400/70" />
+                    <span>Nghe giọng đọc lời chúc phúc 🙏</span>
+                  </>
+                )}
+              </button>
             </div>
 
             <button

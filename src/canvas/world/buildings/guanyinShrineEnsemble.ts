@@ -160,24 +160,64 @@ export function createGuanyinShrineEnsemble(
   disposables.push(matCushion);
 
   const matFacialLine = new THREE.MeshBasicMaterial({
-    color: 0x334155,
+    color: 0x111827, // Dark charcoal black for high-contrast eyebrows & meditative eyeliner
   });
   disposables.push(matFacialLine);
 
   const matUrnaPearl = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     emissive: 0xfef08a,
-    emissiveIntensity: 0.65,
+    emissiveIntensity: 0.85,
     roughness: 0.05,
     metalness: 0.2,
   });
   disposables.push(matUrnaPearl);
 
   const matLips = new THREE.MeshStandardMaterial({
-    color: 0xfbcfe8,
-    roughness: 0.3,
+    color: 0xbe185d, // Compassionate rose-lotus pink tint
+    emissive: 0x831843,
+    emissiveIntensity: 0.2,
+    roughness: 0.2,
+    metalness: 0.05,
   });
   disposables.push(matLips);
+
+  const matGoldDamascene = new THREE.MeshStandardMaterial({
+    color: 0xf59e0b,
+    roughness: 0.22,
+    metalness: 0.88,
+  });
+  disposables.push(matGoldDamascene);
+
+  const matEmeraldGem = new THREE.MeshStandardMaterial({
+    color: 0x059669,
+    roughness: 0.1,
+    metalness: 0.2,
+  });
+  disposables.push(matEmeraldGem);
+
+  const matRubyGem = new THREE.MeshStandardMaterial({
+    color: 0xb91c1c,
+    roughness: 0.1,
+    metalness: 0.2,
+  });
+  disposables.push(matRubyGem);
+
+  const matSashSilk = new THREE.MeshStandardMaterial({
+    color: 0x7dd3fc,
+    roughness: 0.45,
+  });
+  disposables.push(matSashSilk);
+
+  const matAmberHaloGlow = new THREE.MeshStandardMaterial({
+    color: 0xfef08a,
+    emissive: 0xf59e0b,
+    emissiveIntensity: 0.55,
+    transparent: true,
+    opacity: 0.72,
+    side: THREE.DoubleSide,
+  });
+  disposables.push(matAmberHaloGlow);
 
   // =========================================================================
   // 2. KHỐI ĐẾ & SÀN SẢNH TÔN CAO BỀ THẾ (ELEVATED PODIUM: FLOOR Y = 1.45m)
@@ -404,7 +444,9 @@ export function createGuanyinShrineEnsemble(
       const pAngle = (p / petalCount) * Math.PI * 2 + (t % 2 === 0 ? 0 : Math.PI / petalCount);
       const petalGeo = new THREE.ConeGeometry(tierR * 0.15, 0.54, 5);
       disposables.push(petalGeo);
-      const petal = new THREE.Mesh(petalGeo, t >= lotusTiers - 2 ? matLotusPedalPink : matLotusPedalWhite);
+      // Hai tầng trên cùng phớt hồng thanh thoát, các tầng dưới đan xen ngọc trắng và phớt hồng
+      const petalMat = (t >= lotusTiers - 2 || p % 2 === 1) ? matLotusPedalPink : matLotusPedalWhite;
+      const petal = new THREE.Mesh(petalGeo, petalMat);
       const px = statueBaseX + Math.cos(pAngle) * (tierR + 0.05);
       const pz = statueBaseZ + Math.sin(pAngle) * (tierR + 0.05);
       petal.position.set(px, tierY + 0.08, pz);
@@ -412,16 +454,14 @@ export function createGuanyinShrineEnsemble(
       petal.rotation.x = -0.44; // Cánh sen nở hé
       shrineGroup.add(petal);
 
-      // Sống gân giữa cánh sen dát vàng nhẹ
-      if (t === lotusTiers - 1) {
-        const ridgeGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.45, 4);
-        disposables.push(ridgeGeo);
-        const ridge = new THREE.Mesh(ridgeGeo, matGoldCrown);
-        ridge.position.set(px, tierY + 0.1, pz);
-        ridge.rotation.y = -pAngle;
-        ridge.rotation.x = -0.44;
-        shrineGroup.add(ridge);
-      }
+      // Sống gân giữa cánh sen dát vàng nổi bật
+      const ridgeGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.45, 4);
+      disposables.push(ridgeGeo);
+      const ridge = new THREE.Mesh(ridgeGeo, matGoldDamascene);
+      ridge.position.set(px, tierY + 0.1, pz);
+      ridge.rotation.y = -pAngle;
+      ridge.rotation.x = -0.44;
+      shrineGroup.add(ridge);
     }
   }
 
@@ -432,6 +472,17 @@ export function createGuanyinShrineEnsemble(
   const topPad = new THREE.Mesh(topPadGeo, matLotusPedalWhite);
   topPad.position.set(statueBaseX, topPadY, statueBaseZ);
   shrineGroup.add(topPad);
+
+  // Gương sen đài trên cùng: các hạt gương sen vàng nổi hạt
+  for (let sn = 0; sn < 14; sn++) {
+    const sAng = (sn / 14) * Math.PI * 2;
+    const sDist = 1.25 + (sn % 2) * 0.3;
+    const seedGeo = new THREE.SphereGeometry(0.045, 8, 8);
+    disposables.push(seedGeo);
+    const seed = new THREE.Mesh(seedGeo, matGoldDamascene);
+    seed.position.set(statueBaseX + Math.cos(sAng) * sDist, topPadY + 0.17, statueBaseZ + Math.sin(sAng) * sDist);
+    shrineGroup.add(seed);
+  }
 
   // Mây cát tường bao quanh chân tượng ngự
   for (let c = 0; c < 10; c++) {
@@ -484,6 +535,16 @@ export function createGuanyinShrineEnsemble(
   }
 
   // Dải lụa thắt lưng ngọc (Waist Sash & Double Ribbon Tassels)
+  // Đường thêu hoa văn chỉ vàng chân tà áo (Damascene Gold Border Hem)
+  for (const by of [0.22, 0.42]) {
+    const hemGeo = new THREE.TorusGeometry(1.58 - (by / 4.0) * 0.5, 0.032, 8, 36);
+    disposables.push(hemGeo);
+    const hem = new THREE.Mesh(hemGeo, matGoldDamascene);
+    hem.position.set(0, by, 0);
+    hem.rotation.x = Math.PI / 2;
+    statueGroup.add(hem);
+  }
+
   const sashGeo = new THREE.TorusGeometry(1.12, 0.14, 12, 32);
   disposables.push(sashGeo);
   const sash = new THREE.Mesh(sashGeo, matJadePolished);
@@ -491,7 +552,7 @@ export function createGuanyinShrineEnsemble(
   sash.rotation.x = Math.PI / 2;
   statueGroup.add(sash);
 
-  // Nơ thắt bướm và hai dải ruy-băng buông rủ
+  // Nơ thắt bướm vàng đính ngọc hồng lựu tâm điểm
   const bowKnotGeo = new THREE.SphereGeometry(0.24, 10, 8);
   disposables.push(bowKnotGeo);
   const bowKnot = new THREE.Mesh(bowKnotGeo, matGoldCrown);
@@ -499,16 +560,29 @@ export function createGuanyinShrineEnsemble(
   bowKnot.scale.set(1.4, 0.8, 0.8);
   statueGroup.add(bowKnot);
 
+  const bowGemGeo = new THREE.SphereGeometry(0.08, 8, 8);
+  disposables.push(bowGemGeo);
+  const bowGem = new THREE.Mesh(bowGemGeo, matRubyGem);
+  bowGem.position.set(0, 4.0, 1.28);
+  statueGroup.add(bowGem);
+
+  // Hai dải lụa mềm xanh lam ngọc buông rủ dài mềm mại có đầu tua vàng
   for (const rx of [-0.22, 0.22]) {
     const tasselCurve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(rx, 4.0, 1.15),
-      new THREE.Vector3(rx * 1.6, 2.8, 1.25),
-      new THREE.Vector3(rx * 1.2, 1.5, 1.35),
+      new THREE.Vector3(rx * 1.6, 2.7, 1.28),
+      new THREE.Vector3(rx * 1.1, 1.2, 1.40),
     ]);
-    const tasselGeo = new THREE.TubeGeometry(tasselCurve, 16, 0.05, 6, false);
+    const tasselGeo = new THREE.TubeGeometry(tasselCurve, 18, 0.048, 6, false);
     disposables.push(tasselGeo);
-    const tassel = new THREE.Mesh(tasselGeo, matWhiteJade);
+    const tassel = new THREE.Mesh(tasselGeo, matSashSilk);
     statueGroup.add(tassel);
+
+    const tipGeo = new THREE.SphereGeometry(0.065, 8, 8);
+    disposables.push(tipGeo);
+    const tip = new THREE.Mesh(tipGeo, matGoldDamascene);
+    tip.position.set(rx * 1.1, 1.18, 1.40);
+    statueGroup.add(tip);
   }
 
   // 4.3. Thân trên & Chuỗi Ngọc Anh Lạc Dát Vàng (Torso & Pectoral Necklace)
@@ -519,7 +593,17 @@ export function createGuanyinShrineEnsemble(
   torso.castShadow = true;
   statueGroup.add(torso);
 
-  // Chuỗi ngọc Anh Lạc 3 tầng trước ngực
+  // Viền cổ áo giao lĩnh sa-chi chỉ vàng (Cross-over Gold Neck Trim)
+  for (const [vx, vy, vRot] of [[-0.28, 5.75, 0.45], [0.28, 5.75, -0.45]] as const) {
+    const vTrimGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.95, 6);
+    disposables.push(vTrimGeo);
+    const vTrim = new THREE.Mesh(vTrimGeo, matGoldDamascene);
+    vTrim.position.set(vx, vy, 0.82);
+    vTrim.rotation.z = vRot;
+    statueGroup.add(vTrim);
+  }
+
+  // Chuỗi ngọc Anh Lạc 3 tầng trước ngực đính ngọc quý
   for (let n = 0; n < 3; n++) {
     const nR = 0.52 + n * 0.14;
     const nGeo = new THREE.TorusGeometry(nR, 0.045, 8, 24, Math.PI * 0.9);
@@ -528,17 +612,52 @@ export function createGuanyinShrineEnsemble(
     neckRing.position.set(0, 5.75 - n * 0.26, 0.52 + n * 0.06);
     neckRing.rotation.x = Math.PI * 0.38;
     statueGroup.add(neckRing);
+
+    // Hạt ngọc lục bảo và ruby điểm xuyết trên chuỗi
+    for (const gx of [-0.25, 0.25]) {
+      const gemGeo = new THREE.SphereGeometry(0.042, 8, 8);
+      disposables.push(gemGeo);
+      const gem = new THREE.Mesh(gemGeo, n % 2 === 0 ? matEmeraldGem : matRubyGem);
+      gem.position.set(gx, 5.75 - n * 0.26, 0.72 + n * 0.04);
+      statueGroup.add(gem);
+    }
   }
 
   // Hoa sen ngọc bội tâm điểm trước ngực
-  const chestPendantGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 8);
+  const chestPendantGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.06, 8);
   disposables.push(chestPendantGeo);
   const chestPendant = new THREE.Mesh(chestPendantGeo, matGoldCrown);
   chestPendant.position.set(0, 5.25, 0.72);
   chestPendant.rotation.x = Math.PI * 0.38;
   statueGroup.add(chestPendant);
 
-  // Áo choàng rủ hai bên vai mềm mại
+  const centerGemGeo = new THREE.SphereGeometry(0.07, 8, 8);
+  disposables.push(centerGemGeo);
+  const centerGem = new THREE.Mesh(centerGemGeo, matRubyGem);
+  centerGem.position.set(0, 5.25, 0.76);
+  statueGroup.add(centerGem);
+
+  // Tua ngọc buông rủ từ hoa sen ngực xuống bụng
+  const dropCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 5.20, 0.75),
+    new THREE.Vector3(0, 4.65, 0.92),
+  ]);
+  const dropGeo = new THREE.TubeGeometry(dropCurve, 10, 0.024, 6, false);
+  disposables.push(dropGeo);
+  const drop = new THREE.Mesh(dropGeo, matGoldDamascene);
+  statueGroup.add(drop);
+
+  // Vòng xuyến vàng đeo hai bắp tay (Armlets)
+  for (const ax of [-0.85, 0.85]) {
+    const armletGeo = new THREE.TorusGeometry(0.24, 0.038, 8, 20);
+    disposables.push(armletGeo);
+    const armlet = new THREE.Mesh(armletGeo, matGoldCrown);
+    armlet.position.set(ax, 5.3, 0.35);
+    armlet.rotation.y = Math.PI / 2;
+    statueGroup.add(armlet);
+  }
+
+  // Áo choàng rủ hai bên vai mềm mại với viền chỉ vàng
   for (const [side, sx] of [[-1, -1.18], [1, 1.18]] as const) {
     const capeGeo = new THREE.CylinderGeometry(0.36, 0.68, 4.4, 14);
     disposables.push(capeGeo);
@@ -546,6 +665,13 @@ export function createGuanyinShrineEnsemble(
     cape.position.set(sx, 4.0, 0);
     cape.rotation.z = -side * 0.12;
     statueGroup.add(cape);
+
+    const capeTrimGeo = new THREE.CylinderGeometry(0.03, 0.03, 4.4, 6);
+    disposables.push(capeTrimGeo);
+    const capeTrim = new THREE.Mesh(capeTrimGeo, matGoldDamascene);
+    capeTrim.position.set(sx + side * 0.32, 4.0, 0.2);
+    capeTrim.rotation.z = -side * 0.12;
+    statueGroup.add(capeTrim);
   }
 
   // 4.4. Cổ và Khuôn Mặt Quán Thế Âm Từ Bi Sắc Nét
@@ -555,6 +681,14 @@ export function createGuanyinShrineEnsemble(
   neck.position.set(0, 6.45, 0);
   statueGroup.add(neck);
 
+  // Vòng cổ kiềng vàng ôm sát chân cổ
+  const neckChokerGeo = new THREE.TorusGeometry(0.44, 0.038, 8, 24);
+  disposables.push(neckChokerGeo);
+  const neckChoker = new THREE.Mesh(neckChokerGeo, matGoldCrown);
+  neckChoker.position.set(0, 6.35, 0.05);
+  neckChoker.rotation.x = Math.PI / 2;
+  statueGroup.add(neckChoker);
+
   const headGeo = new THREE.SphereGeometry(0.72, 28, 24);
   disposables.push(headGeo);
   const head = new THREE.Mesh(headGeo, matWhiteJade);
@@ -563,64 +697,114 @@ export function createGuanyinShrineEnsemble(
   statueGroup.add(head);
 
   // -------------------------------------------------------------------------
-  // ĐIÊU KHẮC CHI TIẾT GƯƠNG MẶT ĐỨC QUÁN ÂM (MẮT THIỀN, CHÂN MÀY, BẠCH HÀO, MÔI)
+  // ĐIÊU KHẮC CHI TIẾT GƯƠNG MẶT ĐỨC QUÁN ÂM (MŨI, MẮT THIỀN, CHÂN MÀY, BẠCH HÀO, MÔI)
   // -------------------------------------------------------------------------
-  // Mắt thiền định khép hờ từ bi (Thiền nhãn - Meditative Slit Eyes)
-  for (const ex of [-0.26, 0.26]) {
+  // Sống mũi dọc dừa thanh tú cao quý
+  const noseGeo = new THREE.ConeGeometry(0.065, 0.36, 5);
+  disposables.push(noseGeo);
+  const nose = new THREE.Mesh(noseGeo, matWhiteJade);
+  nose.position.set(0, 7.18, 0.73);
+  nose.rotation.x = 0.28;
+  statueGroup.add(nose);
+
+  const noseTipGeo = new THREE.SphereGeometry(0.045, 8, 8);
+  disposables.push(noseTipGeo);
+  const noseTip = new THREE.Mesh(noseTipGeo, matWhiteJade);
+  noseTip.position.set(0, 7.12, 0.755);
+  statueGroup.add(noseTip);
+
+  for (const nx of [-0.045, 0.045]) {
+    const nostrilGeo = new THREE.SphereGeometry(0.03, 6, 6);
+    disposables.push(nostrilGeo);
+    const nostril = new THREE.Mesh(nostrilGeo, matWhiteJade);
+    nostril.position.set(nx, 7.10, 0.735);
+    statueGroup.add(nostril);
+  }
+
+  // Mắt thiền định khép hờ từ bi (Thiền nhãn sắc nét)
+  for (const ex of [-0.22, 0.22]) {
+    // Lòng mắt trắng bạch ngọc
+    const eyeBackGeo = new THREE.BoxGeometry(0.24, 0.06, 0.02);
+    disposables.push(eyeBackGeo);
+    const eyeBack = new THREE.Mesh(eyeBackGeo, matWhiteJade);
+    eyeBack.position.set(ex, 7.30, 0.69);
+    eyeBack.rotation.y = ex > 0 ? -0.22 : 0.22;
+    statueGroup.add(eyeBack);
+
+    // Nét mi mắt thiền định khép hờ bằng than ngọc sắc nét
     const eyeCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(ex - 0.12, 7.28, 0.68),
-      new THREE.Vector3(ex, 7.31, 0.71),
-      new THREE.Vector3(ex + 0.12, 7.27, 0.68),
+      new THREE.Vector3(ex - 0.11, 7.29, 0.705),
+      new THREE.Vector3(ex, 7.32, 0.725),
+      new THREE.Vector3(ex + 0.11, 7.28, 0.695),
     ]);
-    const eyeGeo = new THREE.TubeGeometry(eyeCurve, 12, 0.018, 6, false);
+    const eyeGeo = new THREE.TubeGeometry(eyeCurve, 14, 0.022, 6, false);
     disposables.push(eyeGeo);
     const eyeMesh = new THREE.Mesh(eyeGeo, matFacialLine);
     statueGroup.add(eyeMesh);
 
-    // Chân mày thanh tú hình cánh cung (Graceful Arched Eyebrows)
+    // Chân mày cánh cung thanh tú
     const browCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(ex - 0.14, 7.42, 0.67),
-      new THREE.Vector3(ex, 7.49, 0.70),
-      new THREE.Vector3(ex + 0.12, 7.43, 0.66),
+      new THREE.Vector3(ex - 0.13, 7.43, 0.70),
+      new THREE.Vector3(ex, 7.51, 0.73),
+      new THREE.Vector3(ex + 0.13, 7.45, 0.68),
     ]);
-    const browGeo = new THREE.TubeGeometry(browCurve, 12, 0.016, 6, false);
+    const browGeo = new THREE.TubeGeometry(browCurve, 14, 0.022, 6, false);
     disposables.push(browGeo);
     const browMesh = new THREE.Mesh(browGeo, matFacialLine);
     statueGroup.add(browMesh);
 
-    // Dái tai chảy dài cao quý (Elongated Monastic Earlobes)
-    const earGeo = new THREE.CylinderGeometry(0.06, 0.09, 0.58, 8);
+    // Dái tai chảy dài cao quý
+    const earGeo = new THREE.CylinderGeometry(0.065, 0.095, 0.65, 8);
     disposables.push(earGeo);
     const earMesh = new THREE.Mesh(earGeo, matWhiteJade);
     earMesh.position.set(ex > 0 ? 0.68 : -0.68, 7.15, -0.05);
     earMesh.rotation.z = ex > 0 ? -0.1 : 0.1;
     statueGroup.add(earMesh);
 
-    // Khuyên tai ngọc tròn
-    const earringGeo = new THREE.SphereGeometry(0.065, 8, 8);
+    // Khuyên tai hoa sen vàng đính ngọc
+    const earringGeo = new THREE.SphereGeometry(0.08, 10, 8);
     disposables.push(earringGeo);
     const earring = new THREE.Mesh(earringGeo, matGoldCrown);
-    earring.position.set(ex > 0 ? 0.68 : -0.68, 6.82, -0.05);
+    earring.position.set(ex > 0 ? 0.68 : -0.68, 6.78, -0.05);
     statueGroup.add(earring);
   }
 
-  // Tướng Bạch Hào (Urna Pearl - Hạt ngọc trắng phát sáng giữa trán)
+  // Tướng Bạch Hào (Urna Pearl - Hạt ngọc phát sáng giữa trán)
+  const urnaBaseGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.02, 12);
+  disposables.push(urnaBaseGeo);
+  const urnaBase = new THREE.Mesh(urnaBaseGeo, matGoldDamascene);
+  urnaBase.position.set(0, 7.48, 0.735);
+  urnaBase.rotation.x = Math.PI * 0.45;
+  statueGroup.add(urnaBase);
+
   const urnaGeo = new THREE.SphereGeometry(0.055, 12, 12);
   disposables.push(urnaGeo);
   const urna = new THREE.Mesh(urnaGeo, matUrnaPearl);
-  urna.position.set(0, 7.46, 0.72);
+  urna.position.set(0, 7.48, 0.76);
   statueGroup.add(urna);
 
-  // Nét môi mỉm cười từ ái (Compassionate Lips)
-  const lipCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-0.13, 7.04, 0.68),
-    new THREE.Vector3(0, 7.03, 0.72),
-    new THREE.Vector3(0.13, 7.04, 0.68),
+  // Nét môi sen hồng mỉm cười từ ái (Cupid's bow & lower crescent)
+  const upperLipCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.14, 7.02, 0.70),
+    new THREE.Vector3(-0.04, 7.04, 0.74),
+    new THREE.Vector3(0, 7.02, 0.745),
+    new THREE.Vector3(0.04, 7.04, 0.74),
+    new THREE.Vector3(0.14, 7.02, 0.70),
   ]);
-  const lipGeo = new THREE.TubeGeometry(lipCurve, 12, 0.024, 6, false);
-  disposables.push(lipGeo);
-  const lipMesh = new THREE.Mesh(lipGeo, matLips);
-  statueGroup.add(lipMesh);
+  const upperLipGeo = new THREE.TubeGeometry(upperLipCurve, 16, 0.024, 6, false);
+  disposables.push(upperLipGeo);
+  const upperLip = new THREE.Mesh(upperLipGeo, matLips);
+  statueGroup.add(upperLip);
+
+  const lowerLipCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.12, 6.99, 0.70),
+    new THREE.Vector3(0, 6.96, 0.74),
+    new THREE.Vector3(0.12, 6.99, 0.70),
+  ]);
+  const lowerLipGeo = new THREE.TubeGeometry(lowerLipCurve, 14, 0.028, 6, false);
+  disposables.push(lowerLipGeo);
+  const lowerLip = new THREE.Mesh(lowerLipGeo, matLips);
+  statueGroup.add(lowerLip);
 
   // -------------------------------------------------------------------------
   // 4.5. MŨ MIỆN PHẬT A DI ĐÀ DÁT VÀNG & KHĂN CHOÀNG PHIÊU BỒNG (AMITABHA CROWN)
@@ -639,6 +823,16 @@ export function createGuanyinShrineEnsemble(
   crown.position.set(0, 8.0, 0.05);
   statueGroup.add(crown);
 
+  // Chuỗi ngọc đính đá ruby & lục bảo quanh vành vương miện
+  for (let g = 0; g < 9; g++) {
+    const gAng = (g / 8) * Math.PI * 0.9 - Math.PI * 0.45;
+    const gemGeo = new THREE.SphereGeometry(0.045, 8, 8);
+    disposables.push(gemGeo);
+    const gem = new THREE.Mesh(gemGeo, g % 2 === 0 ? matRubyGem : matEmeraldGem);
+    gem.position.set(Math.sin(gAng) * 0.75, 7.95, Math.cos(gAng) * 0.75);
+    statueGroup.add(gem);
+  }
+
   // 5 Cánh lá vương miện đắp nổi
   for (let c = 0; c < 5; c++) {
     const cAng = (c - 2) * 0.32;
@@ -651,9 +845,9 @@ export function createGuanyinShrineEnsemble(
     statueGroup.add(leaf);
   }
 
-  // Tôn tượng Phật A Di Đà ngồi kiết già trên đỉnh vương miện
+  // Tôn tượng Đức Phật A Di Đà ngồi kiết già tại trung tâm vương miện
   const buddhaGroup = new THREE.Group();
-  buddhaGroup.position.set(0, 8.35, 0.75);
+  buddhaGroup.position.set(0, 8.40, 0.75);
 
   const bHeadGeo = new THREE.SphereGeometry(0.12, 10, 10);
   disposables.push(bHeadGeo);
@@ -667,6 +861,12 @@ export function createGuanyinShrineEnsemble(
   bBody.position.y = 0.16;
   buddhaGroup.add(bBody);
 
+  const bHaloGeo = new THREE.CircleGeometry(0.24, 16);
+  disposables.push(bHaloGeo);
+  const bHalo = new THREE.Mesh(bHaloGeo, matGoldCrown);
+  bHalo.position.set(0, 0.38, -0.06);
+  buddhaGroup.add(bHalo);
+
   const bLotusGeo = new THREE.CylinderGeometry(0.26, 0.28, 0.08, 12);
   disposables.push(bLotusGeo);
   const bLotus = new THREE.Mesh(bLotusGeo, matGoldCrown);
@@ -675,13 +875,23 @@ export function createGuanyinShrineEnsemble(
 
   statueGroup.add(buddhaGroup);
 
-  // Khăn trùm đầu ngọc buông xõa rủ vai (Celestial Veil)
+  // Khăn trùm đầu ngọc buông xõa rủ vai (Celestial Veil) có viền chỉ vàng
   const veilGeo = new THREE.CylinderGeometry(0.76, 1.35, 3.5, 24, 1, true, Math.PI * 0.35, Math.PI * 1.3);
   disposables.push(veilGeo);
   const veil = new THREE.Mesh(veilGeo, matWhiteJade);
   veil.position.set(0, 7.15, -0.22);
   veil.rotation.y = Math.PI;
   statueGroup.add(veil);
+
+  // Viền vàng kim chạy dọc mép khăn trùm đầu
+  for (const vx of [-0.68, 0.68]) {
+    const vTrimGeo = new THREE.CylinderGeometry(0.025, 0.035, 2.8, 6);
+    disposables.push(vTrimGeo);
+    const vTrim = new THREE.Mesh(vTrimGeo, matGoldDamascene);
+    vTrim.position.set(vx, 7.15, 0.15);
+    vTrim.rotation.z = vx > 0 ? -0.15 : 0.15;
+    statueGroup.add(vTrim);
+  }
 
   // -------------------------------------------------------------------------
   // 4.6. CÁNH TAY PHẢI: BẮT ẤN CÁT TƯỜNG CẦM NHÀNH DƯƠNG LIỄU (WILLOW BRANCH)
@@ -699,6 +909,13 @@ export function createGuanyinShrineEnsemble(
   forearmR.position.set(0.58, 6.05, 0.68);
   forearmR.rotation.set(-1.35, 0.2, -0.2);
   statueGroup.add(forearmR);
+
+  // Vòng xuyến vàng đeo cổ tay phải
+  const wristRGeo = new THREE.TorusGeometry(0.16, 0.032, 8, 16);
+  disposables.push(wristRGeo);
+  const wristR = new THREE.Mesh(wristRGeo, matGoldCrown);
+  wristR.position.set(0.52, 6.45, 0.78);
+  statueGroup.add(wristR);
 
   const handRGeo = new THREE.SphereGeometry(0.17, 12, 10);
   disposables.push(handRGeo);
@@ -751,6 +968,13 @@ export function createGuanyinShrineEnsemble(
   forearmL.rotation.set(-1.15, -0.4, 0.65);
   statueGroup.add(forearmL);
 
+  // Vòng xuyến vàng đeo cổ tay trái
+  const wristLGeo = new THREE.TorusGeometry(0.16, 0.032, 8, 16);
+  disposables.push(wristLGeo);
+  const wristL = new THREE.Mesh(wristLGeo, matGoldCrown);
+  wristL.position.set(-0.22, 5.02, 1.05);
+  statueGroup.add(wristL);
+
   // Bình Cam Lộ (Tịnh bình ngọc)
   const vaseGroup = new THREE.Group();
   vaseGroup.position.set(-0.08, 4.98, 1.22);
@@ -779,19 +1003,18 @@ export function createGuanyinShrineEnsemble(
 
   // -------------------------------------------------------------------------
   // 4.8. VẦNG HÀO QUANG KÉP CHIẾU DIỆU (DOUBLE MANDALA HALO PHÍA SAU LƯNG)
-  // Tia sáng mặt trời, mây cát tường cuộn sóng, ánh sáng vàng kim ấm áp
+  // Tia sáng mặt trời, đĩa hào quang ấm áp phát quang, đèn hắt sáng huyền ảo
   // -------------------------------------------------------------------------
   const haloGroup = new THREE.Group();
-  // Ở đây Z = -0.68 sau lưng tượng (trong hệ quy chiếu của statueGroup)
-  haloGroup.position.set(0, 6.2, -0.68);
+  haloGroup.position.set(0, 6.2, -0.72);
 
-  // Vòng ngoài lớn (đường kính 6.4m)
+  // Vòng ngoài lớn (đường kính 6.4m, vàng kim)
   const haloOuterGeo = new THREE.TorusGeometry(3.2, 0.16, 16, 48);
   disposables.push(haloOuterGeo);
   const haloOuter = new THREE.Mesh(haloOuterGeo, matGoldHalo);
   haloGroup.add(haloOuter);
 
-  // Vòng trong quanh đầu (đường kính 3.8m)
+  // Vòng trong quanh đầu (đường kính 3.8m, vàng kim)
   const haloInnerGeo = new THREE.TorusGeometry(1.9, 0.12, 14, 36);
   disposables.push(haloInnerGeo);
   const haloInner = new THREE.Mesh(haloInnerGeo, matGoldHalo);
@@ -800,7 +1023,7 @@ export function createGuanyinShrineEnsemble(
   // 24 Tia hào quang mặt trời tỏa sáng (Sunburst Rays)
   for (let r = 0; r < 24; r++) {
     const rAng = (r / 24) * Math.PI * 2;
-    const rayGeo = new THREE.ConeGeometry(0.06, 1.25, 4);
+    const rayGeo = new THREE.ConeGeometry(0.065, 1.35, 4);
     disposables.push(rayGeo);
     const ray = new THREE.Mesh(rayGeo, matGoldHalo);
     ray.position.set(Math.cos(rAng) * 2.55, Math.sin(rAng) * 2.55, 0);
@@ -808,22 +1031,20 @@ export function createGuanyinShrineEnsemble(
     haloGroup.add(ray);
   }
 
-  // Đĩa hào quang phát quang mềm
+  // Đĩa hào quang ấm áp phát quang (Amber Glow Disc - như ảnh mẫu)
   const haloDiscGeo = new THREE.CircleGeometry(3.15, 36);
   disposables.push(haloDiscGeo);
-  const matHaloDisc = new THREE.MeshStandardMaterial({
-    color: 0xfef08a,
-    emissive: 0xfde047,
-    emissiveIntensity: 0.35,
-    transparent: true,
-    opacity: 0.38,
-    side: THREE.DoubleSide,
-  });
-  disposables.push(matHaloDisc);
-  const haloDisc = new THREE.Mesh(haloDiscGeo, matHaloDisc);
+  const haloDisc = new THREE.Mesh(haloDiscGeo, matAmberHaloGlow);
   haloGroup.add(haloDisc);
 
-  // Mây cuộn phiêu bồng hai bên vòng hào quang
+  // Đĩa hào quang đầu bên trong phát sáng vàng rực hơn
+  const haloHeadDiscGeo = new THREE.CircleGeometry(1.85, 32);
+  disposables.push(haloHeadDiscGeo);
+  const haloHeadDisc = new THREE.Mesh(haloHeadDiscGeo, matAmberHaloGlow);
+  haloHeadDisc.position.set(0, 0.95, 0.02);
+  haloGroup.add(haloHeadDisc);
+
+  // Mây cuộn cát tường phiêu bồng hai bên vòng hào quang
   for (let mc = 0; mc < 8; mc++) {
     const side = mc % 2 === 0 ? 1 : -1;
     const cloudHGeo = new THREE.SphereGeometry(0.48 + (mc % 3) * 0.16, 10, 8);
@@ -834,12 +1055,20 @@ export function createGuanyinShrineEnsemble(
     haloGroup.add(cloudH);
   }
 
-  // Điểm sáng ấm tỏa ra từ vòng hào quang
-  const haloLight = new THREE.PointLight(0xfef08a, 2.0, 24.0, 1.4);
-  haloLight.position.set(0, 6.4, 0.6);
+  // Đèn chiếu sáng ngược từ sau vầng hào quang (Backlight hào quang)
+  const haloLight = new THREE.PointLight(0xfef08a, 2.4, 25.0, 1.2);
+  haloLight.position.set(0, 6.4, -0.65);
   statueGroup.add(haloLight);
   if (nightLightsRef) {
     nightLightsRef.current.push(haloLight);
+  }
+
+  // Đèn hắt sáng dịu mặt trước (Front fill light cho diện mạo Bồ Tát luôn sáng đẹp)
+  const faceFillLight = new THREE.PointLight(0xffedd5, 1.6, 12.0, 1.5);
+  faceFillLight.position.set(0, 7.6, 2.2);
+  statueGroup.add(faceFillLight);
+  if (nightLightsRef) {
+    nightLightsRef.current.push(faceFillLight);
   }
 
   statueGroup.add(haloGroup);
