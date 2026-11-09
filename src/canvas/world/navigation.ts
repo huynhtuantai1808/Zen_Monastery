@@ -128,8 +128,8 @@ export const NAV_NODES: Record<string, NavNode> = {
   },
   guanyin_desk: {
     id: 'guanyin_desk',
-    x: 26.0,
-    z: 36.0,
+    x: 25.5,
+    z: 37.0,
     neighbors: ['guanyin_stairs', 'guanyin_altar'],
   },
   guanyin_plaza_center: {
@@ -141,7 +141,7 @@ export const NAV_NODES: Record<string, NavNode> = {
   guanyin_altar: {
     id: 'guanyin_altar',
     x: 33.0,
-    z: 35.0,
+    z: 37.0,
     neighbors: ['guanyin_plaza_center', 'guanyin_desk'],
   },
 

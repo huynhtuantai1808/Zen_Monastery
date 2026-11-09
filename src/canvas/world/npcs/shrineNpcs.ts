@@ -43,10 +43,10 @@ export const SHRINE_NPC_CONFIGS: ShrineNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Duyên',
     dialogue:
       'A Di Đà Phật! Con kính gửi thí chủ bó nhang trầm thanh tịnh. Thí chủ hãy thắp 3 nén nhang trước tôn tượng Quán Thế Âm Bồ Tát với tất cả tấm lòng chí thành nhé.',
-    x: 26.0,
-    y: 0.58,
-    z: 34.0,
-    rotationY: Math.PI * 0.25, // Hướng ra lối vào phía Tây sảnh
+    x: 25.5,
+    y: 1.45, // Nền đài sảnh Quán Âm tôn cao Y = 1.45m
+    z: 39.5,
+    rotationY: Math.PI * 0.25, // Hướng ra lối bậc tam cấp phía Tây sảnh
     colliderRadius: 0.65,
   },
   {
@@ -56,9 +56,9 @@ export const SHRINE_NPC_CONFIGS: ShrineNpcConfig[] = [
     name: 'Chú Tiểu Tuệ Tịnh',
     dialogue:
       'A Di Đà Phật! Mỗi ngày lau chùi lư hương, quét sạch lá sen rơi, con thấy tâm mình cũng như được gột rửa bao nhiêu bụi trần phiền não, trở về sự thanh tịnh ban sơ.',
-    x: 37.0,
-    y: 0.58,
-    z: 37.5,
+    x: 37.2,
+    y: 1.45, // Nền đài sảnh Quán Âm tôn cao Y = 1.45m
+    z: 40.0,
     rotationY: -Math.PI * 0.45, // Hướng về phía lư hương và bàn thờ
     colliderRadius: 0.65,
   },

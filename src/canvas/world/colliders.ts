@@ -186,21 +186,23 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   { type: 'box', minX: -13.2, maxX: -11.5, minZ: 37.6, maxZ: 50.5, name: 'Lotus Pond Outer Wall East South' },
 
   // 5.5. Quán Âm Đại Điện & Quảng Trường Hành Hương (Zone 12 at Center X: 33.0, Z: 42.0)
-  // Khối đài sen ngũ cấp & Hồ non bộ Quán Thế Âm Bồ Tát (bán kính r = 4.8m tại X = 33.0, Z = 44.5)
-  { type: 'circle', x: 33.0, z: 44.5, r: 4.8, name: 'Guanyin Lotus Dais & Rockery Pool' },
-  // Bàn hương án cẩm thạch trắng phía trước bệ sen
-  { type: 'box', minX: 30.8, maxX: 35.2, minZ: 36.8, maxZ: 38.2, name: 'Guanyin Altar Table' },
-  // Đại lư hương đồng tam bảo
-  { type: 'circle', x: 33.0, z: 36.3, r: 0.9, name: 'Guanyin Bronze Burner' },
-  // Bàn phát nhang trầm bên Tây-Bắc sảnh
-  { type: 'box', minX: 25.0, maxX: 27.0, minZ: 33.5, maxZ: 34.5, name: 'Guanyin Incense Desk' },
-  // Lan can đá cẩm thạch bao quanh sảnh quảng trường 26m x 26m (Tâm 33, 42 -> X in [20, 46], Z in [29, 55])
-  { type: 'box', minX: 20.0, maxX: 46.0, minZ: 54.5, maxZ: 55.3, name: 'Guanyin Plaza Railing North' },
-  { type: 'box', minX: 20.0, maxX: 46.0, minZ: 28.7, maxZ: 29.5, name: 'Guanyin Plaza Railing South' },
-  { type: 'box', minX: 45.5, maxX: 46.3, minZ: 29.0, maxZ: 55.0, name: 'Guanyin Plaza Railing East' },
-  // Lan can phía Tây chừa cổng tam cấp 7m ở giữa Z in [38.5, 45.5]
-  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 29.0, maxZ: 38.5, name: 'Guanyin Plaza Railing West North' },
-  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 45.5, maxZ: 55.0, name: 'Guanyin Plaza Railing West South' },
+  // Khối đài sen ngũ cấp & Hồ non bộ Quán Thế Âm Bồ Tát (bán kính r = 4.8m tại X = 33.0, Z = 45.5)
+  { type: 'circle', x: 33.0, z: 45.5, r: 4.8, minY: 1.45, name: 'Guanyin Lotus Dais & Rockery Pool' },
+  // Bàn hương án cẩm thạch trắng trực diện trước tượng (Z = 40.8)
+  { type: 'box', minX: 30.8, maxX: 35.2, minZ: 40.1, maxZ: 41.5, minY: 1.45, name: 'Guanyin Altar Table' },
+  // Đại lư hương đồng tam bảo (Z = 39.2)
+  { type: 'circle', x: 33.0, z: 39.2, r: 0.9, minY: 1.45, name: 'Guanyin Bronze Burner' },
+  // Bàn phát nhang trầm bên Tây-Bắc sảnh (X = 25.5, Z = 39.5)
+  { type: 'box', minX: 24.5, maxX: 26.5, minZ: 39.0, maxZ: 40.0, minY: 1.45, name: 'Guanyin Incense Desk' },
+  // Lan can đá cẩm thạch bao quanh đài sảnh tôn cao 26m x 26m (Tâm 33, 42 -> X in [20, 46], Z in [29, 55])
+  { type: 'box', minX: 20.0, maxX: 46.0, minZ: 54.5, maxZ: 55.3, minY: 1.45, name: 'Guanyin Plaza Railing North' },
+  { type: 'box', minX: 45.5, maxX: 46.3, minZ: 29.0, maxZ: 55.0, minY: 1.45, name: 'Guanyin Plaza Railing East' },
+  // Lan can phía Tây chừa lối bậc tam cấp 8m ở giữa Z in [38.0, 46.0]
+  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 46.0, maxZ: 55.0, minY: 1.45, name: 'Guanyin Plaza Railing West North' },
+  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 29.0, maxZ: 38.0, minY: 1.45, name: 'Guanyin Plaza Railing West South' },
+  // Lan can phía Nam chừa lối bậc tam cấp 8m ở giữa X in [29.0, 37.0]
+  { type: 'box', minX: 20.0, maxX: 29.0, minZ: 28.7, maxZ: 29.5, minY: 1.45, name: 'Guanyin Plaza Railing South West' },
+  { type: 'box', minX: 37.0, maxX: 46.0, minZ: 28.7, maxZ: 29.5, minY: 1.45, name: 'Guanyin Plaza Railing South East' },
 
   // 6. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor at X: 15 to 21, Z: -3 to 30)
   // East wall boundary behind the open corridor
@@ -550,16 +552,21 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
   }
 
   // 6.8. Quán Âm Đại Điện & Quảng Trường Hành Hương Chiêm Bái (Zone 12 at Center X: 33.0, Z: 42.0)
-  // Sảnh quảng trường đá cẩm thạch trắng (X in [20.0, 46.0], Z in [29.0, 55.0])
-  if (x >= 18.2 && x <= 46.0 && z >= 29.0 && z <= 55.0) {
-    // Bậc tam cấp đón bước ở phía Tây (X từ 18.2 vào 20.0, Z in [38.5, 45.5])
-    if (x < 20.0 && Math.abs(z - 42.0) <= 3.5) {
-      const stepT = Math.max(0.0, Math.min(1.0, (x - 18.2) / 1.8));
-      return 0.42 + stepT * (0.58 - 0.42);
+  // Sảnh quảng trường đá cẩm thạch trắng tôn cao bề thế (Floor Y = 1.45m)
+  if (x >= 17.4 && x <= 46.0 && z >= 26.4 && z <= 55.0) {
+    // A. Bậc tam cấp đón bước phía Tây (X từ 17.4 vào 20.0, Z in [38.0, 46.0])
+    if (x < 20.0 && z >= 38.0 && z <= 46.0) {
+      const stepT = Math.max(0.0, Math.min(1.0, (x - 17.4) / 2.6));
+      return 0.42 + stepT * (1.45 - 0.42);
     }
-    // Sàn đại sảnh quảng trường
-    if (x >= 20.0) {
-      return 0.58;
+    // B. Bậc tam cấp đón bước phía Nam (Z từ 26.4 vào 29.0, X in [29.0, 37.0])
+    if (z < 29.0 && x >= 29.0 && x <= 37.0) {
+      const stepT = Math.max(0.0, Math.min(1.0, (z - 26.4) / 2.6));
+      return 0.42 + stepT * (1.45 - 0.42);
+    }
+    // C. Mặt sàn đại sảnh quảng trường tôn cao Y = 1.45m
+    if (x >= 20.0 && z >= 29.0) {
+      return 1.45;
     }
   }
 
@@ -775,16 +782,16 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     id: 'guanyin_hall',
     name: '12. Quán Âm Đại Điện',
     subtitle: 'Tôn tượng Quán Thế Âm Bạch Ngọc • Nước cam lộ thanh tịnh',
-    dimensions: '26 × 26 m',
+    dimensions: '26 × 26 m • Nền đài tôn cao 1.45m',
     icon: '🪷',
-    desc: 'Đại sảnh hành hương lát đá cẩm thạch trắng với tôn tượng Quán Thế Âm Bồ Tát bằng bạch ngọc cao lớn uy nghi, tay cầm cành dương liễu và bình cam lộ tuôn dòng nước mát lành.',
-    pos: { x: 33.0, y: 0.58, z: 35.0 },
+    desc: 'Đại sảnh hành hương lát đá cẩm thạch trắng tôn cao uy nghiêm với tôn tượng Quán Thế Âm Bồ Tát bằng bạch ngọc cao lớn, tay cầm cành dương liễu và bình cam lộ tuôn dòng nước mát lành.',
+    pos: { x: 33.0, y: 1.45, z: 37.0 },
     actionKey: 'GUANYIN_HALL',
-    camera: { yaw: 0, pitch: -0.08, dist: 9.5, mode: 'THIRD_PERSON' },
+    camera: { yaw: 0, pitch: -0.06, dist: 9.5, mode: 'THIRD_PERSON' },
     facingAngle: 0,
     tourAction: 'INCENSE_BOW',
     tourSound: 'bowl',
-    navWaypoints: [{ x: 18, z: 42 }, { x: 26, z: 42 }, { x: 33, z: 35 }],
+    navWaypoints: [{ x: 17, z: 42 }, { x: 21, z: 42 }, { x: 33, z: 37 }],
   },
   {
     id: 'balcony',

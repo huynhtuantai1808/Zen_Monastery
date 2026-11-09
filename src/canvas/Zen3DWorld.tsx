@@ -658,6 +658,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     monkPoseRef.current = 'INCENSE_BOW';
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
 
+    playerRotationRef.current = 0;
     if (monkGroupRef.current) {
       monkGroupRef.current.rotation.y = 0; // Hướng về phía bàn thờ và tượng Quan Âm
     }
@@ -690,6 +691,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
 
     monkPoseRef.current = 'SIT_EDGE';
     useZenBridge.getState().setMonkPose('SIT_EDGE');
+    playerRotationRef.current = 0;
     if (monkGroupRef.current) {
       monkGroupRef.current.rotation.y = 0;
     }
@@ -722,7 +724,7 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     setActivePilgrimageRitual('MEDITATION_PRAY');
     monkPoseRef.current = 'INCENSE_BOW';
     useZenBridge.getState().setMonkPose('INCENSE_BOW');
-
+    playerRotationRef.current = 0;
     if (monkGroupRef.current) {
       monkGroupRef.current.rotation.y = 0;
     }
