@@ -99,18 +99,50 @@ export const NAV_NODES: Record<string, NavNode> = {
   // Cổng Tam Quan & Sân Tiền
   gate_outer: { id: 'gate_outer', x: 0, z: 72, neighbors: ['gate_center'] },
   gate_center: { id: 'gate_center', x: 0, z: 66, neighbors: ['gate_outer', 'courtyard_south'] },
-  courtyard_south: { id: 'courtyard_south', x: 0, z: 50, neighbors: ['gate_center', 'courtyard_center', 'pond_approach'] },
+  courtyard_south: { id: 'courtyard_south', x: 0, z: 50, neighbors: ['gate_center', 'courtyard_center', 'pond_approach', 'guanyin_approach'] },
   courtyard_center: {
     id: 'courtyard_center',
     x: 0,
     z: 28,
-    neighbors: ['courtyard_south', 'courtyard_north', 'pond_entrance', 'east_corridor_mid'],
+    neighbors: ['courtyard_south', 'courtyard_north', 'pond_entrance', 'east_corridor_mid', 'guanyin_approach'],
   },
   courtyard_north: {
     id: 'courtyard_north',
     x: 0,
     z: 8,
     neighbors: ['courtyard_center', 'sanctuary_front_west', 'sanctuary_front_east'],
+  },
+
+  // Quán Âm Đại Điện (Zone 12 Grand Guanyin Shrine Complex at Center X: 33, Z: 42)
+  guanyin_approach: {
+    id: 'guanyin_approach',
+    x: 18.0,
+    z: 42.0,
+    neighbors: ['courtyard_south', 'courtyard_center', 'guanyin_stairs'],
+  },
+  guanyin_stairs: {
+    id: 'guanyin_stairs',
+    x: 21.0,
+    z: 42.0,
+    neighbors: ['guanyin_approach', 'guanyin_plaza_center', 'guanyin_desk'],
+  },
+  guanyin_desk: {
+    id: 'guanyin_desk',
+    x: 26.0,
+    z: 36.0,
+    neighbors: ['guanyin_stairs', 'guanyin_altar'],
+  },
+  guanyin_plaza_center: {
+    id: 'guanyin_plaza_center',
+    x: 27.0,
+    z: 42.0,
+    neighbors: ['guanyin_stairs', 'guanyin_altar'],
+  },
+  guanyin_altar: {
+    id: 'guanyin_altar',
+    x: 33.0,
+    z: 35.0,
+    neighbors: ['guanyin_plaza_center', 'guanyin_desk'],
   },
 
   // Sân trước Chánh Điện

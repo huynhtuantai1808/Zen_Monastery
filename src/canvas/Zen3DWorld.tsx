@@ -80,6 +80,9 @@ import { createAuthenticTeaPavilion } from './world/buildings/teaPavilion';
 import { createRedesignedTempleGate, createMonasteryPerimeterWalls, type PerimeterWallMaterials } from './world/buildings/perimeterWall';
 import { createLotusPondEnsemble, type KoiFishData } from './world/buildings/lotusPondEnsemble';
 import { createBackCourtyardEnsemble } from './world/buildings/backCourtyardEnsemble';
+import { createGuanyinShrineEnsemble, type GuanyinShrineReturnData } from './world/buildings/guanyinShrineEnsemble';
+import { createShrineNpcEnsemble, type ShrineNpcEnsembleResult } from './world/npcs/shrineNpcs';
+import { PilgrimageActionHud, type PilgrimageRitualType, GUANYIN_BLESSING_VERSES } from '../components/PilgrimageActionHud';
 import { findSmartPath, hasLineOfSight } from './world/navigation';
 
 // CẤU HÌNH ĐỘNG HỌC DI CHUYỂN NHÂN VẬT CHÍNH (RESPONSIVE MOVEMENT CONFIG)
@@ -375,6 +378,14 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
   const waterRipplesRef = useRef<{ mesh: THREE.Mesh; posX: number; posZ: number; scale: number; maxScale: number; opacity: number }[]>([]);
   const bambooLeavesRef = useRef<THREE.Group[]>([]);
   const kitchenSmokeRef = useRef<THREE.Points | null>(null);
+
+  // Quán Âm Đại Điện & Tôn Tượng Bạch Ngọc Chiêm Bái
+  const guanyinShrineRef = useRef<GuanyinShrineReturnData | null>(null);
+  const shrineNpcRef = useRef<ShrineNpcEnsembleResult | null>(null);
+  const [inGuanyinShrineRange, setInGuanyinShrineRange] = useState(false);
+  const [activePilgrimageRitual, setActivePilgrimageRitual] = useState<PilgrimageRitualType>('NONE');
+  const [activeBlessingText, setActiveBlessingText] = useState<string | null>(null);
+  const pilgrimageTimerRef = useRef<number>(0);
   const destinationMarkerRef = useRef<THREE.Group | null>(null);
   const nightLightsRef = useRef<THREE.PointLight[]>([]);
   const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
@@ -636,6 +647,98 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     }
 
     propsRef.current.onAddMerit(10, 50, 42, '🙏 Lắng Nghe Chuông Ngân • Chí Thành Đảnh Lễ');
+  }, []);
+
+  // =========================================================================
+  // NGHI THỨC HÀNH HƯƠNG QUÁN ÂM ĐẠI ĐIỆN (THẮP HƯƠNG, VÁI LẠY, CẦU NGUYỆN)
+  // =========================================================================
+  const handleLightIncenseGuanyin = useCallback(() => {
+    if (activePilgrimageRitual !== 'NONE') return;
+    setActivePilgrimageRitual('LIGHT_INCENSE');
+    monkPoseRef.current = 'INCENSE_BOW';
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
+
+    if (monkGroupRef.current) {
+      monkGroupRef.current.rotation.y = 0; // Hướng về phía bàn thờ và tượng Quan Âm
+    }
+    if (chibiIncenseBundleRef.current) {
+      chibiIncenseBundleRef.current.visible = true;
+    }
+
+    soundEngine.playSingingBowl();
+    pilgrimageTimerRef.current = 210; // ~3.5s
+
+    setTimeout(() => {
+      soundEngine.playWoodenFish();
+    }, 1500);
+
+    setTimeout(() => {
+      if (chibiIncenseBundleRef.current) {
+        chibiIncenseBundleRef.current.visible = false;
+      }
+      monkPoseRef.current = 'STAND';
+      useZenBridge.getState().setMonkPose('STAND');
+      setActivePilgrimageRitual('NONE');
+      soundEngine.playSingingBowl();
+      propsRef.current.onAddMerit(40, 50, 40, '🪔 Thắp Hương Trầm Trước Tượng Quán Thế Âm');
+    }, 3500);
+  }, [activePilgrimageRitual]);
+
+  const handleProstrateBowGuanyin = useCallback(() => {
+    if (activePilgrimageRitual !== 'NONE') return;
+    setActivePilgrimageRitual('PROSTRATE_BOW');
+
+    monkPoseRef.current = 'SIT_EDGE';
+    useZenBridge.getState().setMonkPose('SIT_EDGE');
+    if (monkGroupRef.current) {
+      monkGroupRef.current.rotation.y = 0;
+    }
+
+    soundEngine.playWoodenFish();
+    handleTriggerMeditationBow();
+    pilgrimageTimerRef.current = 260; // ~4.3s
+
+    setTimeout(() => {
+      soundEngine.playWoodenFish();
+      handleTriggerMeditationBow();
+    }, 1400);
+
+    setTimeout(() => {
+      soundEngine.playWoodenFish();
+      handleTriggerMeditationBow();
+    }, 2800);
+
+    setTimeout(() => {
+      monkPoseRef.current = 'STAND';
+      useZenBridge.getState().setMonkPose('STAND');
+      setActivePilgrimageRitual('NONE');
+      soundEngine.playSingingBowl();
+      propsRef.current.onAddMerit(50, 50, 40, '🙏 Đảnh Lễ Tam Bái Quán Thế Âm Bồ Tát');
+    }, 4200);
+  }, [activePilgrimageRitual, handleTriggerMeditationBow]);
+
+  const handlePrayGuanyin = useCallback(() => {
+    if (activePilgrimageRitual !== 'NONE') return;
+    setActivePilgrimageRitual('MEDITATION_PRAY');
+    monkPoseRef.current = 'INCENSE_BOW';
+    useZenBridge.getState().setMonkPose('INCENSE_BOW');
+
+    if (monkGroupRef.current) {
+      monkGroupRef.current.rotation.y = 0;
+    }
+
+    soundEngine.playWindChime();
+
+    const verse = GUANYIN_BLESSING_VERSES[Math.floor(Math.random() * GUANYIN_BLESSING_VERSES.length)];
+    setActiveBlessingText(`${verse.verse}\n\n${verse.blessing}`);
+    propsRef.current.onAddMerit(35, 50, 40, '✨ Khấn Nguyện & Tiếp Nhận Pháp Thoại Quán Âm');
+  }, [activePilgrimageRitual]);
+
+  const handleCloseBlessing = useCallback(() => {
+    setActiveBlessingText(null);
+    setActivePilgrimageRitual('NONE');
+    monkPoseRef.current = 'STAND';
+    useZenBridge.getState().setMonkPose('STAND');
   }, []);
 
   // =========================================================================
@@ -1806,6 +1909,22 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
     scene.add(laborEnsemble.group);
     laborEnsembleRef.current = laborEnsemble;
 
+    // =========================================================================
+    // [ZONE 12: QUÁN ÂM ĐẠI ĐIỆN & TÔN TƯỢNG BẠCH NGỌC CHIÊM BÁI]
+    // Tôn tượng Quán Thế Âm Bạch Ngọc cao lớn (>11m), đài sen ngũ cấp & sảnh cẩm thạch
+    // =========================================================================
+    const guanyinShrineData = createGuanyinShrineEnsemble(
+      { matStoneGrey, matBronze, matLotusPlinth, matWoodLim, matGold },
+      nightLightsRef
+    );
+    scene.add(guanyinShrineData.group);
+    guanyinShrineRef.current = guanyinShrineData;
+
+    // 2 NPC Thiền Môn Quán Âm Điện (Chú Tiểu Tuệ Duyên & Chú Tiểu Tuệ Tịnh)
+    const shrineNpcData = createShrineNpcEnsemble();
+    scene.add(shrineNpcData.group);
+    shrineNpcRef.current = shrineNpcData;
+
     // [ZONE 12: ĐƯỜNG LÊN TẦNG TRÊN (CẦU THANG ĐÁ)]
     const stairsGroup = new THREE.Group();
     stairsGroup.position.set(28, 0, -6);
@@ -2376,6 +2495,10 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             soundEngine.stopWoodenFishRhythm();
             stopAbbotVoice();
           }
+          if (activePilgrimageRitual !== 'NONE') {
+            setActivePilgrimageRitual('NONE');
+            if (activeBlessingText) setActiveBlessingText(null);
+          }
           isWalkingStateRef.current = true;
 
           // Attempt movement displacement
@@ -2737,6 +2860,37 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
             } else if (zKey === 'BACK_GARDEN') {
               actionsList.push({ title: 'Chẻ Củi Bếp Chùa', action: p.onOpenWoodChopping, icon: '🪓' });
               actionsList.push({ title: 'Gánh Nước Giếng Ngọc', action: p.onOpenWaterCarrying, icon: '🪣' });
+            } else if (zKey === 'GUANYIN_HALL') {
+              actionsList.push({
+                title: 'Nhận Nhang (Chú Tiểu Tuệ Duyên)',
+                action: () => {
+                  soundEngine.playSingingBowl();
+                  p.onAddMerit(25, 50, 40, '🪔 Nhận Nhang Trầm Thanh Tịnh');
+                  useZenBridge.getState().setTeaNpcDialogue({
+                    speaker: 'Chú Tiểu Tuệ Duyên',
+                    role: 'Người Trao Nhang • Quán Âm Điện',
+                    avatar: '🪔',
+                    text: 'A Di Đà Phật! Con kính gửi thí chủ bó nhang trầm thanh tịnh. Thí chủ hãy thắp 3 nén nhang trước tôn tượng Quán Thế Âm Bồ Tát với tất cả tấm lòng chí thành nhé.',
+                    gatha: '🪷 Kệ Dâng Hương:\n"Khói hương thanh khiết ngút trời mây,\nĐảnh lễ Quán Âm dạ chứa chan.\nNguyện cõi nhân gian tiêu nghiệp chướng,\nThân tâm an lạc phước muôn vàn."'
+                  });
+                },
+                icon: '🪔'
+              });
+              actionsList.push({
+                title: 'Đàm Đạo (Chú Tiểu Tuệ Tịnh)',
+                action: () => {
+                  soundEngine.playWoodenFish();
+                  p.onAddMerit(25, 50, 40, '✨ Đàm Đạo Lau Chùi Quét Lá Thiền Môn');
+                  useZenBridge.getState().setTeaNpcDialogue({
+                    speaker: 'Chú Tiểu Tuệ Tịnh',
+                    role: 'Người Dọn Dẹp • Quán Âm Điện',
+                    avatar: '🧹',
+                    text: 'A Di Đà Phật! Mỗi ngày lau chùi lư hương, quét sạch lá sen rơi, con thấy tâm mình cũng như được gột rửa bao nhiêu bụi trần phiền não, trở về sự thanh tịnh ban sơ.',
+                    gatha: '📜 Kệ Quét Lá Đài Sen:\n"Lau sạch bụi trần gương sáng tỏ,\nQuét tan phiền não dạ an nhiên.\nHoa sen ngọc nở trên đài biếc,\nTâm Phật rạng ngời dứt đảo điên."'
+                  });
+                },
+                icon: '🧹'
+              });
             } else if (zKey === 'BALCONY') {
               actionsList.push({ title: 'Ngắm Cảnh Mây Núi Lầu Cao', action: () => p.onAddMerit(20, 50, 40, 'An Nhiên Vọng Cảnh'), icon: '🪟' });
             }
@@ -3418,6 +3572,23 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         laborEnsembleRef.current.update(delta, stepCount, playerPosRef.current);
       }
 
+      // ──────────────────────────────────────────────────────────────────
+      // QUÁN ÂM ĐẠI ĐIỆN: KIỂM TRA CỰ LY CHIÊM BÁI & CẬP NHẬT HOẠT ẢNH
+      // ──────────────────────────────────────────────────────────────────
+      const inShrine = playerPosRef.current.x >= 18.0 && playerPosRef.current.x <= 48.0 &&
+                       playerPosRef.current.z >= 28.0 && playerPosRef.current.z <= 56.0;
+      if (inShrine !== inGuanyinShrineRange) {
+        setInGuanyinShrineRange(inShrine);
+      }
+
+      if (guanyinShrineRef.current) {
+        guanyinShrineRef.current.update(delta, stepCount);
+      }
+
+      if (shrineNpcRef.current) {
+        shrineNpcRef.current.update(delta, stepCount, playerPosRef.current);
+      }
+
       // Update User Floating Flower Lanterns (Hoa đăng người chơi thả trôi trên hồ - Zero-Allocation)
       const lanternList = userLanternsRef.current;
       for (let lIdx = 0; lIdx < lanternList.length; lIdx++) {
@@ -3610,6 +3781,8 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
       disposeSharedTextures();
       mapleEnsemble.dispose();
       laborEnsemble.dispose();
+      guanyinShrineData.dispose();
+      shrineNpcData.dispose();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       renderer.domElement.removeEventListener('mousedown', handlePointerDown);
       renderer.domElement.removeEventListener('mouseleave', handleMouseLeave);
@@ -3668,6 +3841,17 @@ const Zen3DWorldComponent: React.FC<Zen3DWorldProps> = ({
         templeZones={TEMPLE_ZONES}
         isNightMode={isNightMode}
         onToggleNightMode={() => setIsNightMode((prev) => !prev)}
+      />
+
+      {/* HUD 3 Nút Nghi Thức Chiêm Bái & Lời Chúc Phúc Quán Âm Đại Điện */}
+      <PilgrimageActionHud
+        inShrineRange={inGuanyinShrineRange}
+        activeRitual={activePilgrimageRitual}
+        onLightIncense={handleLightIncenseGuanyin}
+        onProstrateBow={handleProstrateBowGuanyin}
+        onMeditationPray={handlePrayGuanyin}
+        activeBlessing={activeBlessingText}
+        onCloseBlessing={handleCloseBlessing}
       />
     </div>
   );

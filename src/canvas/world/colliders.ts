@@ -32,6 +32,7 @@ export interface TempleZoneInfo {
   | 'MEDITATION'
   | 'LIBRARY'
   | 'BACK_GARDEN'
+  | 'GUANYIN_HALL'
   | 'BALCONY'
   | 'STAIRS'
   | 'AERIAL'
@@ -183,6 +184,23 @@ export const MONASTERY_OBSTACLES: MonasteryObstacle[] = [
   // Bờ kè phía Đông (chừa cổng mở thông thủy ở giữa: Z in [34.4, 37.6])
   { type: 'box', minX: -13.2, maxX: -11.5, minZ: 21.5, maxZ: 34.4, name: 'Lotus Pond Outer Wall East North' },
   { type: 'box', minX: -13.2, maxX: -11.5, minZ: 37.6, maxZ: 50.5, name: 'Lotus Pond Outer Wall East South' },
+
+  // 5.5. Quán Âm Đại Điện & Quảng Trường Hành Hương (Zone 12 at Center X: 33.0, Z: 42.0)
+  // Khối đài sen ngũ cấp & Hồ non bộ Quán Thế Âm Bồ Tát (bán kính r = 4.8m tại X = 33.0, Z = 44.5)
+  { type: 'circle', x: 33.0, z: 44.5, r: 4.8, name: 'Guanyin Lotus Dais & Rockery Pool' },
+  // Bàn hương án cẩm thạch trắng phía trước bệ sen
+  { type: 'box', minX: 30.8, maxX: 35.2, minZ: 36.8, maxZ: 38.2, name: 'Guanyin Altar Table' },
+  // Đại lư hương đồng tam bảo
+  { type: 'circle', x: 33.0, z: 36.3, r: 0.9, name: 'Guanyin Bronze Burner' },
+  // Bàn phát nhang trầm bên Tây-Bắc sảnh
+  { type: 'box', minX: 25.0, maxX: 27.0, minZ: 33.5, maxZ: 34.5, name: 'Guanyin Incense Desk' },
+  // Lan can đá cẩm thạch bao quanh sảnh quảng trường 26m x 26m (Tâm 33, 42 -> X in [20, 46], Z in [29, 55])
+  { type: 'box', minX: 20.0, maxX: 46.0, minZ: 54.5, maxZ: 55.3, name: 'Guanyin Plaza Railing North' },
+  { type: 'box', minX: 20.0, maxX: 46.0, minZ: 28.7, maxZ: 29.5, name: 'Guanyin Plaza Railing South' },
+  { type: 'box', minX: 45.5, maxX: 46.3, minZ: 29.0, maxZ: 55.0, name: 'Guanyin Plaza Railing East' },
+  // Lan can phía Tây chừa cổng tam cấp 7m ở giữa Z in [38.5, 45.5]
+  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 29.0, maxZ: 38.5, name: 'Guanyin Plaza Railing West North' },
+  { type: 'box', minX: 19.7, maxX: 20.5, minZ: 45.5, maxZ: 55.0, name: 'Guanyin Plaza Railing West South' },
 
   // 6. Dãy Hành Lang Cột Gỗ Lim (Zone 6 Corridor at X: 15 to 21, Z: -3 to 30)
   // East wall boundary behind the open corridor
@@ -531,6 +549,20 @@ export function getTerrainFloorElevation(x: number, z: number, currentY: number 
     return 0.58;
   }
 
+  // 6.8. Quán Âm Đại Điện & Quảng Trường Hành Hương Chiêm Bái (Zone 12 at Center X: 33.0, Z: 42.0)
+  // Sảnh quảng trường đá cẩm thạch trắng (X in [20.0, 46.0], Z in [29.0, 55.0])
+  if (x >= 18.2 && x <= 46.0 && z >= 29.0 && z <= 55.0) {
+    // Bậc tam cấp đón bước ở phía Tây (X từ 18.2 vào 20.0, Z in [38.5, 45.5])
+    if (x < 20.0 && Math.abs(z - 42.0) <= 3.5) {
+      const stepT = Math.max(0.0, Math.min(1.0, (x - 18.2) / 1.8));
+      return 0.42 + stepT * (0.58 - 0.42);
+    }
+    // Sàn đại sảnh quảng trường
+    if (x >= 20.0) {
+      return 0.58;
+    }
+  }
+
   // 6.5. Hậu Viện Sơn Tự (Zone 10 Back Courtyard at Z <= -34.0)
   if (z <= -34.0) {
     // Thềm móng đá & Sàn Nhà Ăn Thiền Môn (Trai Đường: X: -48.0 đến -26.0, Z: -55.0 đến -43.0)
@@ -740,8 +772,23 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
     navWaypoints: [{ x: 18, z: 0 }, { x: 23, z: -25 }, { x: 16, z: -38 }, { x: 0, z: -44 }],
   },
   {
+    id: 'guanyin_hall',
+    name: '12. Quán Âm Đại Điện',
+    subtitle: 'Tôn tượng Quán Thế Âm Bạch Ngọc • Nước cam lộ thanh tịnh',
+    dimensions: '26 × 26 m',
+    icon: '🪷',
+    desc: 'Đại sảnh hành hương lát đá cẩm thạch trắng với tôn tượng Quán Thế Âm Bồ Tát bằng bạch ngọc cao lớn uy nghi, tay cầm cành dương liễu và bình cam lộ tuôn dòng nước mát lành.',
+    pos: { x: 33.0, y: 0.58, z: 35.0 },
+    actionKey: 'GUANYIN_HALL',
+    camera: { yaw: 0, pitch: -0.08, dist: 9.5, mode: 'THIRD_PERSON' },
+    facingAngle: 0,
+    tourAction: 'INCENSE_BOW',
+    tourSound: 'bowl',
+    navWaypoints: [{ x: 18, z: 42 }, { x: 26, z: 42 }, { x: 33, z: 35 }],
+  },
+  {
     id: 'balcony',
-    name: '12. Lầu Gác Vọng Cảnh',
+    name: '13. Lầu Gác Vọng Cảnh',
     subtitle: 'Lầu cao lan can chạm chữ Vạn • Ngắm cảnh non nước',
     dimensions: '28 × 8 m',
     icon: '🪟',
@@ -756,7 +803,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
   },
   {
     id: 'aerial',
-    name: '13. View Từ Trên Cao',
+    name: '14. View Từ Trên Cao',
     subtitle: 'Góc nhìn Isometric toàn cảnh diorama tuyệt đẹp',
     dimensions: 'Toàn cảnh',
     icon: '🌄',
@@ -771,7 +818,7 @@ export const TEMPLE_ZONES: TempleZoneInfo[] = [
   },
   {
     id: 'night',
-    name: '14. Ban Đêm Huyền Ảo',
+    name: '15. Ban Đêm Huyền Ảo',
     subtitle: 'Đêm trăng huyền ảo • Muôn ngọn đèn lồng bừng sáng',
     dimensions: 'Toàn cảnh',
     icon: '🌕',
